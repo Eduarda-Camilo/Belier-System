@@ -30,7 +30,7 @@ export default function Layout() {
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-inner">
-          <Link to="/components" className="layout-brand">Belier-System</Link>
+          <Link to="/" className="layout-brand">Belier-System</Link>
           <div className="layout-search">
             <input
               value={q}

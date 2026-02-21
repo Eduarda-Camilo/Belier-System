@@ -24,8 +24,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Layout />}>
-        <Route index element={<Navigate to="/components" replace />} />
-        <Route path="components" element={<ComponentList />} />
+        <Route index element={<div className="page-empty">Selecione um componente no menu lateral.</div>} />
+        <Route path="components" element={<div className="page-empty">Selecione um componente no menu lateral.</div>} />
         <Route path="components/new" element={<ProtectedRoute allowedProfiles={['admin', 'designer']}><ComponentForm /></ProtectedRoute>} />
         <Route path="components/:id" element={<ComponentDetail />} />
         <Route path="components/:id/edit" element={<ProtectedRoute allowedProfiles={['admin', 'designer']}><ComponentForm /></ProtectedRoute>} />
