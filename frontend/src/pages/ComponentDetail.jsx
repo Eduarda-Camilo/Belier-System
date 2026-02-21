@@ -4,6 +4,53 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import './ComponentDetail.css';
 
+/** Destaque de sintaxe simples para HTML/CSS: retorna array de elementos React. */
+function highlightCode(str) {
+  if (!str) return null;
+  const out = [];
+  let key = 0;
+  const push = (cls, text) => {
+    if (text == null || text === '') return;
+    out.push(<span key={key++} className={cls}>{text}</span>);
+  };
+  let i = 0;
+  const s = str;
+  while (i < s.length) {
+    if (s[i] === '<') {
+      const start = i;
+      i++;
+      push('code-punctuation', '<');
+      if (s[i] === '/') { push('code-punctuation', '/'); i++; }
+      let name = '';
+      while (i < s.length && /[a-zA-Z0-9-]/.test(s[i])) name += s[i++];
+      push('code-tag', name);
+      while (i < s.length && s[i] !== '>' && s[i] !== '/') {
+        while (i < s.length && /\s/.test(s[i])) { push('code-plain', s[i]); i++; }
+        if (i >= s.length || s[i] === '>' || s[i] === '/') break;
+        let attr = '';
+        while (i < s.length && /[a-zA-Z0-9-]/.test(s[i])) attr += s[i++];
+        if (attr) push('code-attr', attr);
+        if (s[i] === '=') { push('code-punctuation', '='); i++; }
+        if (s[i] === '"' || s[i] === "'") {
+          const q = s[i++];
+          push('code-punctuation', q);
+          let val = '';
+          while (i < s.length && s[i] !== q) val += s[i++];
+          push('code-string', val);
+          if (s[i] === q) { push('code-punctuation', s[i]); i++; }
+        }
+      }
+      if (s[i] === '/') { push('code-punctuation', '/'); i++; }
+      if (s[i] === '>') { push('code-punctuation', '>'); i++; }
+      continue;
+    }
+    let plain = '';
+    while (i < s.length && s[i] !== '<') plain += s[i++];
+    if (plain) push('code-plain', plain);
+  }
+  return out;
+}
+
 export default function ComponentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -154,15 +201,15 @@ export default function ComponentDetail() {
         </div>
         {usageTab === 'preview' && (
           <div className="usage-preview-wrap">
-            {component.usagePreview ? (
+            {component.documentation && component.documentation.trim() ? (
               <iframe
                 title="Pré-visualização"
                 className="usage-preview-iframe"
-                srcDoc={component.usagePreview}
+                srcDoc={component.documentation}
                 sandbox="allow-scripts"
               />
             ) : (
-              <p className="detail-empty">Nenhuma pré-visualização configurada.</p>
+              <p className="detail-empty">Nenhum código de uso definido.</p>
             )}
           </div>
         )}
@@ -181,7 +228,26 @@ export default function ComponentDetail() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               )}
             </button>
-            <pre className="code-block"><code>{component.documentation || '// Nenhum código de uso definido.'}</code></pre>
+            <div className="code-block-with-lines">
+              <div className="code-line-numbers" aria-hidden="true">
+                {(() => {
+                  const code = component.documentation || '// Nenhum código de uso definido.';
+                  const lines = code.split('\n');
+                  return lines.map((_, i) => (
+                    <span key={i} className="code-ln">{i + 1}</span>
+                  ));
+                })()}
+              </div>
+              <pre className="code-block">
+                {(component.documentation || '// Nenhum código de uso definido.')
+                  .split('\n')
+                  .map((line, i) => (
+                    <div key={i} className="code-line">
+                      <code>{highlightCode(line)}</code>
+                    </div>
+                  ))}
+              </pre>
+            </div>
           </div>
         )}
       </section>

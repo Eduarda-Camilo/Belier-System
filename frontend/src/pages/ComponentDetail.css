@@ -139,11 +139,36 @@
   white-space: nowrap;
 }
 
+.code-block-with-lines {
+  display: flex;
+  padding-top: 52px;
+  overflow: hidden;
+  background: #1e1e1e;
+  border-radius: var(--radius);
+}
+
+.code-line-numbers {
+  flex-shrink: 0;
+  padding: var(--spacing-lg) var(--spacing-sm) var(--spacing-lg) var(--spacing-lg);
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #6e7681;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid #333;
+}
+
+.code-ln {
+  display: block;
+}
+
 .code-block {
   margin: 0;
   padding: var(--spacing-lg);
-  padding-top: 52px;
+  padding-left: var(--spacing-md);
   overflow-x: auto;
+  flex: 1;
   font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
   font-size: 0.875rem;
   line-height: 1.5;
@@ -151,11 +176,23 @@
   background: #1e1e1e;
 }
 
+.code-line {
+  min-height: 1.5em;
+  white-space: pre;
+}
+
 .code-block code {
   background: none;
   padding: 0;
   color: inherit;
 }
+
+/* Syntax highlight (tema escuro) */
+.code-tag       { color: #569cd6; }
+.code-attr     { color: #9cdcfe; }
+.code-string   { color: #ce9178; }
+.code-punctuation { color: #808080; }
+.code-plain    { color: #d4d4d4; }
 
 .detail-doc {
   line-height: 1.6;
