@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { IconInbox, IconDocs, IconFigma, IconComponentes, IconSearch } from './Icons';
+import { IconInbox, IconDocs, IconComponentes, IconSearch } from './Icons';
 import './Layout.css';
 
 const FIGMA_URL = 'https://www.figma.com';
@@ -54,7 +54,7 @@ export default function Layout() {
               <IconDocs /> Docs
             </NavLink>
             <a href={FIGMA_URL} target="_blank" rel="noopener noreferrer" className="layout-nav-link">
-              <IconFigma /> Figma
+              <img src="/figma.svg" alt="" className="layout-nav-figma-icon" aria-hidden /> Figma
             </a>
             <NavLink to="/" className={navLinkClass} end>
               <IconComponentes /> Componentes
@@ -91,7 +91,7 @@ export default function Layout() {
             <ul className="layout-side-list">
               <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
               <li><NavLink to="/categories" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
-              <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><IconFigma /> Figma</a></li>
+              <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><img src="/figma.svg" alt="" className="layout-side-figma-icon" aria-hidden /> Figma</a></li>
               <li><NavLink to="/" className={sideLinkClass} end><IconComponentes /> Componentes</NavLink></li>
             </ul>
             <p className="layout-side-title">Componentes</p>

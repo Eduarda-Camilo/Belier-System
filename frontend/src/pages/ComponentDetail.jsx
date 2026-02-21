@@ -101,19 +101,39 @@ export default function ComponentDetail() {
   const loadComments = () => api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
 
   useEffect(() => {
+    if (!id) return;
     setError('');
     setComponent(null);
     setLoading(true);
-    const setData = (data) => {
-      if (data && (data.id || data.name || data.title)) setComponent(data);
-      else setError('Resposta inválida do servidor.');
+    const normalize = (res) => (res?.data != null ? res.data : res);
+    const setData = (raw) => {
+      const data = raw && typeof raw === 'object' && (raw.data != null ? raw.data : raw);
+      if (data && typeof data === 'object' && (data.id != null || data.name || data.title)) {
+        setComponent(data);
+      } else {
+        setError(raw?.error || 'Resposta inválida do servidor.');
+      }
     };
     api.get(`/components/${id}`, { params: { include: 'examples' } })
-      .then((res) => setData(res.data))
+      .then((res) => {
+        const body = normalize(res);
+        setData(body);
+      })
       .catch(() =>
-        api.get(`/components/${id}`).then((res) => setData(res.data))
+        api.get(`/components/${id}`).then((res) => {
+          const body = normalize(res);
+          setData(body);
+        })
       )
-      .catch((err) => setError(err.response?.data?.error || 'Não foi possível carregar o componente. Verifique a conexão.'))
+      .catch((err) => {
+        if (err.response?.status === 404) {
+          setComponent(null);
+          setError('');
+          return;
+        }
+        const msg = err.response?.data?.error || err.message || 'Não foi possível carregar o componente. Verifique a conexão.';
+        setError(msg);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 

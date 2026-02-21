@@ -82,7 +82,8 @@ async function getOne(req, res, next) {
         // Tabela examples pode não existir ou associação falhar; segue com componente sem exemplos
       }
     }
-    res.json(component);
+    const plain = component.get ? component.get({ plain: true }) : component;
+    res.json(plain);
   } catch (err) {
     next(err);
   }
