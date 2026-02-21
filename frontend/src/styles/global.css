@@ -34,6 +34,15 @@ button {
 input, select, textarea {
   font-family: inherit;
   font-size: 1rem;
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+  border-color: var(--color-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.9;
 }
 
 .card {

@@ -1,21 +1,23 @@
 /**
- * Tema MVP — variáveis centralizadas.
- * Quando tiver o layout no Figma, altere aqui (ou substitua este arquivo).
+ * Tema dark — variáveis centralizadas (modo escuro por padrão).
  */
 :root {
-  --color-bg: #f5f5f5;
-  --color-surface: #ffffff;
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-text: #1f2937;
-  --color-text-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-error: #dc2626;
-  --color-success: #16a34a;
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-surface-elevated: #21262d;
+  --color-primary: #58a6ff;
+  --color-primary-hover: #79b8ff;
+  --color-text: #e6edf3;
+  --color-text-muted: #8b949e;
+  --color-border: #30363d;
+  --color-error: #f85149;
+  --color-success: #3fb950;
+  --color-input-bg: #21262d;
+  --color-input-text: #e6edf3;
 
   --font-sans: system-ui, -apple-system, sans-serif;
   --radius: 8px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;

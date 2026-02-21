@@ -51,5 +51,5 @@
 }
 
 .user-table tbody tr:hover {
-  background: #fafafa;
+  background: var(--color-surface-elevated);
 }
