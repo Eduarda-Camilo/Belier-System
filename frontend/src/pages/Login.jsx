@@ -1,7 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
+
+const BANNERS = [
+  {
+    title: 'Design System em um só lugar',
+    text: 'Documente componentes, variações e padrões para toda a equipe.',
+  },
+  {
+    title: 'Colaboração e histórico',
+    text: 'Comentários, versões e responsáveis por componente.',
+  },
+  {
+    title: 'Categorias e busca',
+    text: 'Organize por tipo e encontre o que precisa rapidamente.',
+  },
+];
 
 export default function Login() {
   const { user, login } = useAuth();
@@ -10,6 +25,14 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setCarouselIndex((i) => (i + 1) % BANNERS.length);
+    }, 5000);
+    return () => clearInterval(t);
+  }, []);
 
   if (user) return <Navigate to="/components" replace />;
 
@@ -32,36 +55,83 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      <div className="login-card">
-        <h1 className="login-title">Belier-System</h1>
-        <p className="login-subtitle">Design System / Component Library</p>
-        <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="login-error">{error}</div>}
-          <label>
-            E-mail
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="admin@belier.com"
-            />
-          </label>
-          <label>
-            Senha
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </label>
-          <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+      <div className="login-container">
+        <div className="login-logo" aria-hidden="true">
+          <span className="login-logo-icon">◆</span>
+          <span className="login-logo-text">Belier-System</span>
+        </div>
+
+        <div className="login-layout">
+          <div className="login-panel">
+            <h1 className="login-title">Entrar</h1>
+            <p className="login-subtitle">
+              Bem-vindo ao Belier-System. Faça login para continuar.
+            </p>
+            <form onSubmit={handleSubmit} className="login-form">
+              {error && <div className="login-error">{error}</div>}
+              <label>
+                E-mail
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="seu@email.com"
+                />
+              </label>
+              <label>
+                Senha
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                />
+              </label>
+              <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
+                {loading ? 'Entrando...' : 'Entrar'}
+              </button>
+            </form>
+          </div>
+
+          <div className="login-carousel-wrap">
+            <div className="login-carousel">
+              {BANNERS.map((b, i) => (
+                <div
+                  key={i}
+                  className={`login-carousel-slide ${i === carouselIndex ? 'active' : ''}`}
+                  aria-hidden={i !== carouselIndex}
+                >
+                  <div className="login-carousel-visual">
+                    <div className="login-banner-placeholder" />
+                  </div>
+                  <p className="login-carousel-title">{b.title}</p>
+                  <p className="login-carousel-text">{b.text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="login-carousel-dots" role="tablist" aria-label="Banners">
+              {BANNERS.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === carouselIndex}
+                  aria-label={`Banner ${i + 1}`}
+                  className={`login-carousel-dot ${i === carouselIndex ? 'active' : ''}`}
+                  onClick={() => setCarouselIndex(i)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <footer className="login-footer">
+          <p>© Belier-System. Design System / Component Library.</p>
+        </footer>
       </div>
     </div>
   );

@@ -4,26 +4,81 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-lg);
+  background: var(--color-bg);
 }
 
-.login-card {
+.login-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+/* Logo no topo */
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.login-logo-icon {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.login-logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Layout duas colunas */
+.login-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+  width: 100%;
+  align-items: stretch;
+  min-height: 420px;
+}
+
+@media (max-width: 720px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-carousel-wrap {
+    min-height: 280px;
+  }
+}
+
+/* Painel do formulário (esquerda) */
+.login-panel {
   background: var(--color-surface);
-  padding: var(--spacing-xl);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow);
 }
 
 .login-title {
   margin: 0 0 var(--spacing-xs);
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 .login-subtitle {
   margin: 0 0 var(--spacing-lg);
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 .login-form label {
@@ -31,6 +86,7 @@
   margin-bottom: var(--spacing-md);
   font-weight: 500;
   font-size: 0.9rem;
+  color: var(--color-text);
 }
 
 .login-form input {
@@ -42,6 +98,12 @@
   border-radius: var(--radius);
   background: var(--color-input-bg);
   color: var(--color-input-text);
+  font-size: 1rem;
+}
+
+.login-form input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.8;
 }
 
 .login-form input:focus {
@@ -63,4 +125,113 @@
   width: 100%;
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
+/* Carrossel (direita) */
+.login-carousel-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.login-carousel {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-carousel-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  padding: var(--spacing-md);
+}
+
+.login-carousel-slide.active {
+  position: relative;
+  opacity: 1;
+}
+
+.login-carousel-visual {
+  width: 100%;
+  max-width: 240px;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Placeholder genérico do banner (você troca por imagem depois) */
+.login-banner-placeholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: linear-gradient(145deg, var(--color-surface-elevated) 0%, var(--color-border) 100%);
+  border-radius: var(--radius);
+  border: 1px dashed var(--color-border);
+}
+
+.login-carousel-title {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.login-carousel-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+/* Dots do carrossel */
+.login-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.login-carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.login-carousel-dot:hover {
+  background: var(--color-text-muted);
+}
+
+.login-carousel-dot.active {
+  background: var(--color-primary);
+  transform: scale(1.2);
+}
+
+/* Footer */
+.login-footer {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.login-footer p {
+  margin: 0;
 }
