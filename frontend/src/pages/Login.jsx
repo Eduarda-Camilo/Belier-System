@@ -21,11 +21,10 @@ export default function Login() {
       await login(email.trim(), password.trim());
       navigate('/components');
     } catch (err) {
-      if (!err.response) {
-        setError('Não foi possível conectar ao servidor. O backend está rodando? (npm run dev na pasta backend, porta 3001)');
-      } else {
-        setError(err.response?.data?.error || 'Falha no login. Verifique email e senha.');
-      }
+      const msg = !err?.response
+        ? 'Não foi possível conectar à API. Você configurou o backend e a variável VITE_API_URL na Vercel?'
+        : (err.response?.data?.error || 'Falha no login. Verifique email e senha.');
+      setError(msg);
     } finally {
       setLoading(false);
     }
