@@ -51,6 +51,29 @@ function highlightCode(str) {
   return out;
 }
 
+function normalizeVariations(variations) {
+  if (!variations) return [];
+  if (Array.isArray(variations)) return variations;
+  const entries = Object.entries(variations || {});
+  return entries.map(([key, val]) => {
+    if (val && typeof val === 'object') {
+      return {
+        id: val.id ?? key,
+        title: val.title,
+        description: val.description,
+        codeSnippet: val.codeSnippet ?? val.code ?? '',
+        ...val,
+      };
+    }
+    return {
+      id: key,
+      title: key,
+      description: '',
+      codeSnippet: String(val ?? ''),
+    };
+  });
+}
+
 export default function ComponentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -104,7 +127,7 @@ export default function ComponentDetail() {
     if (!component) return;
     const tabs = {};
     tabs.default = 'preview';
-    const vars = component.variations || [];
+    const vars = normalizeVariations(component.variations);
     for (let i = 0; i < vars.length; i++) {
       const key = `var-${vars[i].id || i}`;
       tabs[key] = 'preview';
@@ -113,7 +136,7 @@ export default function ComponentDetail() {
   }, [component]);
 
   useEffect(() => {
-    const ids = ['title', 'default', ...((component?.variations || []).map((v, i) => `var-${v.id || i}`))];
+    const ids = ['title', 'default', ...(normalizeVariations(component?.variations).map((v, i) => `var-${v.id || i}`))];
     const obs = new IntersectionObserver((entries) => {
       const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
       if (visible[0]) setActiveIndexId(visible[0].target.id);
@@ -307,9 +330,9 @@ export default function ComponentDetail() {
           )}
         </section>
 
-        {(component.variations && component.variations.length > 0) && (
+        {(normalizeVariations(component.variations).length > 0) && (
           <div className="detail-variations-list">
-            {component.variations.map((v, i) => {
+            {normalizeVariations(component.variations).map((v, i) => {
               const key = `var-${v.id || i}`;
               const code = v.codeSnippet || '';
               return (
@@ -483,7 +506,7 @@ export default function ComponentDetail() {
           <ul className="detail-toc-list">
             <li><a href="#title" className={`detail-toc-link ${activeIndexId === 'title' ? 'active' : ''}`}>{component.title || component.name}</a></li>
             <li><a href="#default" className={`detail-toc-link ${activeIndexId === 'default' ? 'active' : ''}`}>Default</a></li>
-            {(component.variations || []).map((v, i) => {
+            {normalizeVariations(component.variations).map((v, i) => {
               const key = `var-${v.id || i}`;
               return (
                 <li key={key}><a href={`#${key}`} className={`detail-toc-link ${activeIndexId === key ? 'active' : ''}`}>{v.title || `Variação ${i + 1}`}</a></li>
