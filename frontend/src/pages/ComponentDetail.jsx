@@ -19,6 +19,8 @@ export default function ComponentDetail() {
   const [replyText, setReplyText] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const [usageTab, setUsageTab] = useState('preview'); // 'preview' | 'code'
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   const canEdit = ['admin', 'designer'].includes(user?.profile);
   const statusLabel = { draft: 'Rascunho', published: 'Publicado', archived: 'Arquivado' };
@@ -95,6 +97,14 @@ export default function ComponentDetail() {
     }
   };
 
+  const handleCopyCode = () => {
+    const code = component.documentation || '';
+    navigator.clipboard.writeText(code).then(() => {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 1500);
+    });
+  };
+
   if (loading) return <div className="page-loading">Carregando...</div>;
   if (error && !component) return <div className="page-error">{error}</div>;
   if (!component) return null;
@@ -121,18 +131,60 @@ export default function ComponentDetail() {
       </div>
 
       {component.description && (
-        <section className="detail-section">
-          <h2>Descrição</h2>
-          <p>{component.description}</p>
-        </section>
+        <p className="detail-description">{component.description}</p>
       )}
 
-      {component.documentation && (
-        <section className="detail-section">
-          <h2>Documentação</h2>
-          <div className="detail-doc" dangerouslySetInnerHTML={{ __html: component.documentation }} />
-        </section>
-      )}
+      <section className="detail-section detail-usage">
+        <h2>Uso</h2>
+        <div className="usage-tabs">
+          <button
+            type="button"
+            className={`usage-tab ${usageTab === 'preview' ? 'active' : ''}`}
+            onClick={() => setUsageTab('preview')}
+          >
+            Pré-visualização
+          </button>
+          <button
+            type="button"
+            className={`usage-tab ${usageTab === 'code' ? 'active' : ''}`}
+            onClick={() => setUsageTab('code')}
+          >
+            Código
+          </button>
+        </div>
+        {usageTab === 'preview' && (
+          <div className="usage-preview-wrap">
+            {component.usagePreview ? (
+              <iframe
+                title="Pré-visualização"
+                className="usage-preview-iframe"
+                srcDoc={component.usagePreview}
+                sandbox="allow-scripts"
+              />
+            ) : (
+              <p className="detail-empty">Nenhuma pré-visualização configurada.</p>
+            )}
+          </div>
+        )}
+        {usageTab === 'code' && (
+          <div className="code-block-wrap">
+            <button
+              type="button"
+              className="code-block-copy"
+              onClick={handleCopyCode}
+              title="Copiar"
+              aria-label="Copiar código"
+            >
+              {copyFeedback ? (
+                <span className="code-copy-feedback">Copiado!</span>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              )}
+            </button>
+            <pre className="code-block"><code>{component.documentation || '// Nenhum código de uso definido.'}</code></pre>
+          </div>
+        )}
+      </section>
 
       {component.variations && Object.keys(component.variations).length > 0 && (
         <section className="detail-section">

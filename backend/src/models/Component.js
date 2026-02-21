@@ -47,6 +47,11 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    usagePreview: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'HTML opcional para a aba Pré-visualização do Uso',
+    },
     variations: {
       type: DataTypes.TEXT,
       allowNull: true,

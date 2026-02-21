@@ -54,7 +54,7 @@ async function getOne(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const { name, description, categoryId, status, documentation, variations } = req.body;
+    const { name, description, categoryId, status, documentation, usagePreview, variations } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Nome é obrigatório' });
     }
@@ -68,6 +68,7 @@ async function create(req, res, next) {
       responsibleId: req.user.id,
       status: status || 'draft',
       documentation: documentation ? documentation.trim() : null,
+      usagePreview: usagePreview ? usagePreview.trim() : null,
       variations: variations || null,
     });
     const withAssociations = await Component.findByPk(component.id, {
@@ -85,7 +86,7 @@ async function create(req, res, next) {
 async function update(req, res, next) {
   try {
     const { id } = req.params;
-    const { name, description, categoryId, status, documentation, variations } = req.body;
+    const { name, description, categoryId, status, documentation, usagePreview, variations } = req.body;
     const component = await Component.findByPk(id, {
       include: [
         { model: Category, as: 'Category', attributes: ['id', 'name'] },
@@ -100,6 +101,7 @@ async function update(req, res, next) {
     if (categoryId !== undefined) component.categoryId = Number(categoryId);
     if (status !== undefined) component.status = status;
     if (documentation !== undefined) component.documentation = documentation ? documentation.trim() : null;
+    if (usagePreview !== undefined) component.usagePreview = usagePreview ? usagePreview.trim() : null;
     if (variations !== undefined) component.variations = variations;
     await component.save();
     res.json(component);

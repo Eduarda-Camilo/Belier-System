@@ -17,6 +17,7 @@ export default function ComponentForm() {
     categoryId: '',
     status: 'draft',
     documentation: '',
+    usagePreview: '',
     variations: '',
   });
 
@@ -35,6 +36,7 @@ export default function ComponentForm() {
           categoryId: String(c.categoryId || ''),
           status: c.status || 'draft',
           documentation: c.documentation || '',
+          usagePreview: c.usagePreview || '',
           variations: typeof c.variations === 'object' && c.variations
             ? JSON.stringify(c.variations, null, 2)
             : '',
@@ -59,6 +61,7 @@ export default function ComponentForm() {
       categoryId: form.categoryId ? Number(form.categoryId) : null,
       status: form.status,
       documentation: form.documentation.trim() || null,
+      usagePreview: form.usagePreview.trim() || null,
     };
     let variations = null;
     if (form.variations.trim()) {
@@ -122,8 +125,12 @@ export default function ComponentForm() {
           </select>
         </label>
         <label>
-          Documentação (texto ou HTML)
-          <textarea name="documentation" value={form.documentation} onChange={handleChange} rows={6} />
+          Código de uso (exibido na aba Código)
+          <textarea name="documentation" value={form.documentation} onChange={handleChange} placeholder="Ex.: import { Button } from &quot;@lib/ui&quot;; ..." rows={6} />
+        </label>
+        <label>
+          HTML da pré-visualização (opcional; exibido na aba Pré-visualização)
+          <textarea name="usagePreview" value={form.usagePreview} onChange={handleChange} placeholder="Ex.: <button class=&quot;btn&quot;>Clique</button>" rows={4} />
         </label>
         <label>
           Variações (JSON, opcional)
