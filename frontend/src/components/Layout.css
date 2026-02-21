@@ -32,15 +32,24 @@
   color: var(--color-primary);
 }
 
-.layout-header nav a {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius);
+.layout-search {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
 }
 
-.layout-header nav a.active {
-  background: var(--color-primary);
-  color: white;
-  text-decoration: none;
+.layout-search-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+}
+
+.layout-new-btn {
+  white-space: nowrap;
 }
 
 .layout-user {
@@ -62,6 +71,55 @@
   margin: 0 auto;
   padding: var(--spacing-lg);
   width: 100%;
+}
+
+.layout-with-sidebar {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--spacing-lg);
+}
+
+.layout-sidebar {
+  position: sticky;
+  top: var(--spacing-lg);
+  align-self: start;
+}
+
+.layout-side-title {
+  margin: 0 0 var(--spacing-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.layout-side-list {
+  list-style: none;
+  margin: 0 0 var(--spacing-lg);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.layout-side-list a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  color: var(--color-text);
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.layout-side-list a:hover {
+  background: var(--color-surface-elevated);
+}
+
+.layout-side-list a.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.layout-side-empty {
+  color: var(--color-text-muted);
 }
 
 .app-loading,

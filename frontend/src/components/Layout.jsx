@@ -1,39 +1,46 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../services/api';
 import './Layout.css';
-
-const navStyle = {
-  display: 'flex',
-  gap: 'var(--spacing-md)',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-};
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [components, setComponents] = useState([]);
+  const [q, setQ] = useState('');
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  useEffect(() => {
+    api.get('/components')
+      .then((res) => setComponents(res.data || []))
+      .catch(() => setComponents([]));
+  }, []);
+
+  const filtered = (components || []).filter((c) => {
+    const name = (c.title || c.name || '').toLowerCase();
+    return name.includes(q.toLowerCase());
+  });
+
   return (
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-inner">
-          <NavLink to="/components" className="layout-brand">Belier-System</NavLink>
-          <nav>
-            <ul style={navStyle}>
-              <li><NavLink to="/components">Componentes</NavLink></li>
-              <li><NavLink to="/categories">Categorias</NavLink></li>
-              {user && <li><NavLink to="/notifications">Notificações</NavLink></li>}
-              {user?.profile === 'admin' && (
-                <li><NavLink to="/users">Usuários</NavLink></li>
-              )}
-            </ul>
-          </nav>
+          <Link to="/components" className="layout-brand">Belier-System</Link>
+          <div className="layout-search">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="layout-search-input"
+              placeholder="Buscar componentes..."
+              aria-label="Buscar componentes"
+            />
+            <Link to="/components/new" className="btn btn-primary layout-new-btn">Novo componente</Link>
+          </div>
           <div className="layout-user">
             {user ? (
               <>
@@ -47,8 +54,32 @@ export default function Layout() {
           </div>
         </div>
       </header>
-      <main className="layout-main">
-        <Outlet />
+      <main className="layout-main layout-with-sidebar">
+        <aside className="layout-sidebar">
+          <nav>
+            <p className="layout-side-title">Navegação</p>
+            <ul className="layout-side-list">
+              <li><NavLink to="/categories">Categorias</NavLink></li>
+              {user && <li><NavLink to="/notifications">Notificações</NavLink></li>}
+              {user?.profile === 'admin' && <li><NavLink to="/users">Usuários</NavLink></li>}
+            </ul>
+            <p className="layout-side-title">Componentes</p>
+            <ul className="layout-side-list">
+              {filtered.length === 0 ? (
+                <li className="layout-side-empty">Nenhum componente</li>
+              ) : (
+                filtered.map((c) => (
+                  <li key={c.id}>
+                    <NavLink to={`/components/${c.id}`}>{c.title || c.name}</NavLink>
+                  </li>
+                ))
+              )}
+            </ul>
+          </nav>
+        </aside>
+        <section className="layout-content">
+          <Outlet />
+        </section>
       </main>
     </div>
   );

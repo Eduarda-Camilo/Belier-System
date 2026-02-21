@@ -223,18 +223,7 @@ export default function ComponentDetail() {
   }
 
   return (
-    <div className="page detail-layout">
-      <aside className="detail-sidebar" aria-label="Navegação">
-        <nav>
-          <ul className="detail-side-list">
-            <li><a href="#" className="detail-side-link">Inbox</a></li>
-            <li><a href="#" className="detail-side-link">Docs</a></li>
-            <li><a href="#" className="detail-side-link">Figma</a></li>
-            <li><Link to="/components" className="detail-side-link active">Componentes</Link></li>
-            <li><a href="#title" className="detail-side-link">{component.title || component.name}</a></li>
-          </ul>
-        </nav>
-      </aside>
+    <div className="page detail-content-grid">
       <div className="detail-content">
         <div className="page-header" id="title">
           <div>
