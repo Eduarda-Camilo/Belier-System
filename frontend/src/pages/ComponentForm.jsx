@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import './ComponentForm.css';
 
@@ -88,51 +88,85 @@ export default function ComponentForm() {
 
   if (loading) return <div className="page-loading">Carregando...</div>;
 
+  const cancelUrl = isEdit ? `/components/${id}` : '/components';
+
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1>{isEdit ? 'Editar componente' : 'Novo componente'}</h1>
-        <Link to={isEdit ? `/components/${id}` : '/components'} className="btn btn-ghost">Cancelar</Link>
-      </div>
-      {error && <div className="page-error">{error}</div>}
-      <form onSubmit={handleSubmit} className="form">
-        <label>
-          Nome *
-          <input name="name" value={form.name} onChange={handleChange} required />
-        </label>
-        <label>
-          Descrição
-          <textarea name="description" value={form.description} onChange={handleChange} rows={3} />
-        </label>
-        <label>
-          Categoria *
-          <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
-            <option value="">Selecione</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Status
-          <select name="status" value={form.status} onChange={handleChange}>
-            <option value="draft">Rascunho</option>
-            <option value="published">Publicado</option>
-            <option value="archived">Arquivado</option>
-          </select>
-        </label>
-        <label>
-          Código de uso (exibido na aba Código e renderizado na Pré-visualização)
-          <textarea name="documentation" value={form.documentation} onChange={handleChange} placeholder="Ex.: <button type=&quot;submit&quot; class=&quot;btn&quot;>Salvar</button>" rows={8} />
-        </label>
-        <label>
-          Variações (JSON, opcional)
-          <textarea name="variations" value={form.variations} onChange={handleChange} placeholder='{"default": "...", "disabled": "..."}' rows={4} />
-        </label>
-        <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Salvando...' : (isEdit ? 'Salvar' : 'Criar')}
-          </button>
+    <div className="page page-component-form">
+      <form onSubmit={handleSubmit} className="component-form">
+        <div className="component-form-header">
+          <h1>{isEdit ? 'Editar componente' : 'Novo componente'}</h1>
+          <div className="component-form-actions">
+            <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar</button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? 'Salvando...' : 'Salvar'}
+            </button>
+          </div>
+        </div>
+        {error && <div className="page-error">{error}</div>}
+        <div className="component-form-body">
+          <div className="form-row">
+            <div className="form-field-label">
+              <span className="form-field-name">Nome *</span>
+              <span className="form-field-desc">Nome único do componente no design system.</span>
+            </div>
+            <div className="form-field-input">
+              <input name="name" value={form.name} onChange={handleChange} required placeholder="Ex.: botão primário" />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field-label">
+              <span className="form-field-name">Descrição</span>
+              <span className="form-field-desc">Texto que aparece na listagem e na página do componente.</span>
+            </div>
+            <div className="form-field-input">
+              <textarea name="description" value={form.description} onChange={handleChange} rows={3} placeholder="Descreva o uso do componente..." />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field-label">
+              <span className="form-field-name">Categoria *</span>
+              <span className="form-field-desc">Agrupa o componente (ex.: Botões, Formulários).</span>
+            </div>
+            <div className="form-field-input">
+              <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
+                <option value="">Selecione</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field-label">
+              <span className="form-field-name">Status</span>
+              <span className="form-field-desc">Rascunho (visível só para quem pode editar), Publicado (visível para todos) ou Arquivado.</span>
+            </div>
+            <div className="form-field-input">
+              <select name="status" value={form.status} onChange={handleChange}>
+                <option value="draft">Rascunho</option>
+                <option value="published">Publicado</option>
+                <option value="archived">Arquivado</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field-label">
+              <span className="form-field-name">Código de uso</span>
+              <span className="form-field-desc">Exibido na aba Código e renderizado na Pré-visualização. Use HTML ou snippet de exemplo.</span>
+            </div>
+            <div className="form-field-input">
+              <textarea name="documentation" value={form.documentation} onChange={handleChange} placeholder='Ex.: <button type="submit" class="btn">Salvar</button>' rows={8} />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field-label">
+              <span className="form-field-name">Variações <span className="form-field-optional">(opcional)</span></span>
+              <span className="form-field-desc">JSON com estados ou variações do componente.</span>
+            </div>
+            <div className="form-field-input">
+              <textarea name="variations" value={form.variations} onChange={handleChange} placeholder='{"default": "...", "disabled": "..."}' rows={4} />
+            </div>
+          </div>
         </div>
       </form>
     </div>
