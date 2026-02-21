@@ -107,6 +107,38 @@
   font-size: 0.95rem;
 }
 
+.comment-actions {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.comment-edit-box .comment-textarea {
+  margin-bottom: var(--spacing-sm);
+}
+
+.comment-reply-form {
+  margin-top: var(--spacing-sm);
+  margin-left: var(--spacing-lg);
+}
+
+.comment-replies {
+  list-style: none;
+  margin: var(--spacing-md) 0 0 var(--spacing-lg);
+  padding: 0;
+}
+
+.comment-reply {
+  margin-bottom: var(--spacing-sm);
+  border-left: 3px solid var(--color-border);
+  padding-left: var(--spacing-md);
+}
+
+.comment-login-hint {
+  margin-top: var(--spacing-md);
+  color: var(--color-text-muted);
+}
+
 .comment-form {
   margin-top: var(--spacing-md);
 }

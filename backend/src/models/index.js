@@ -42,20 +42,25 @@ Component.hasMany(Comment, { foreignKey: 'componentId' });
 Comment.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(Comment, { foreignKey: 'userId' });
 
+// Respostas: comentário pode ter parentId (resposta a outro comentário)
+Comment.belongsTo(Comment, { as: 'parent', foreignKey: 'parentId' });
+Comment.hasMany(Comment, { as: 'replies', foreignKey: 'parentId' });
+
 // Notificação: para um User, referente a um Comment e um Component
 Notification.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(Notification, { foreignKey: 'userId' });
 Notification.belongsTo(Comment, { foreignKey: 'commentId' });
-Comment.hasOne(Notification, { foreignKey: 'commentId' });
+Comment.hasMany(Notification, { foreignKey: 'commentId' });
 Notification.belongsTo(Component, { foreignKey: 'componentId' });
 Component.hasMany(Notification, { foreignKey: 'componentId' });
 
 /**
  * Sincroniza o banco: cria as tabelas se não existirem (sync).
- * force: true apagaria e recriaria as tabelas (use só em dev para resetar).
+ * Em produção (DATABASE_URL), usa alter: true para adicionar colunas novas (ex.: parentId em comments).
  */
-async function syncDatabase(options = { force: false }) {
-  await sequelize.sync(options);
+async function syncDatabase(options = {}) {
+  const alter = Boolean(process.env.DATABASE_URL);
+  await sequelize.sync({ ...options, alter });
 }
 
 module.exports = {

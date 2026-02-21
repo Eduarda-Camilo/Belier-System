@@ -1,16 +1,24 @@
 /**
- * Controller de comentários: listar por componente e criar comentário.
- * Ao criar um comentário, criamos uma notificação para o responsável do componente.
+ * Controller de comentários: listar (público), criar (auth), editar próprio (auth), respostas (parentId).
  */
 
 const { Comment, Component, User, Notification } = require('../models');
+const { Op } = require('sequelize');
 
 async function listByComponent(req, res, next) {
   try {
     const { componentId } = req.params;
     const comments = await Comment.findAll({
-      where: { componentId },
-      include: [{ model: User, as: 'User', attributes: ['id', 'name', 'email'] }],
+      where: { componentId, parentId: null },
+      include: [
+        { model: User, as: 'User', attributes: ['id', 'name', 'email'] },
+        {
+          model: Comment,
+          as: 'replies',
+          include: [{ model: User, as: 'User', attributes: ['id', 'name', 'email'] }],
+          order: [['createdAt', 'ASC']],
+        },
+      ],
       order: [['createdAt', 'ASC']],
     });
     res.json(comments);
@@ -22,7 +30,7 @@ async function listByComponent(req, res, next) {
 async function create(req, res, next) {
   try {
     const { componentId } = req.params;
-    const { text } = req.body;
+    const { text, parentId } = req.body;
     if (!text || !text.trim()) {
       return res.status(400).json({ error: 'Texto do comentário é obrigatório' });
     }
@@ -30,13 +38,26 @@ async function create(req, res, next) {
     if (!component) {
       return res.status(404).json({ error: 'Componente não encontrado' });
     }
+    const isReply = parentId != null;
+    let parentComment = null;
+    if (isReply) {
+      parentComment = await Comment.findOne({ where: { id: parentId, componentId } });
+      if (!parentComment) return res.status(400).json({ error: 'Comentário pai não encontrado' });
+    }
     const comment = await Comment.create({
       componentId: Number(componentId),
       userId: req.user.id,
+      parentId: isReply ? Number(parentId) : null,
       text: text.trim(),
     });
-    // Notifica o responsável (se não for o próprio autor do comentário)
-    if (component.responsibleId !== req.user.id) {
+    if (isReply && parentComment && parentComment.userId !== req.user.id) {
+      await Notification.create({
+        userId: parentComment.userId,
+        commentId: comment.id,
+        componentId: component.id,
+        read: false,
+      });
+    } else if (!isReply && component.responsibleId !== req.user.id) {
       await Notification.create({
         userId: component.responsibleId,
         commentId: comment.id,
@@ -53,4 +74,25 @@ async function create(req, res, next) {
   }
 }
 
-module.exports = { listByComponent, create };
+async function update(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    const comment = await Comment.findByPk(id);
+    if (!comment) return res.status(404).json({ error: 'Comentário não encontrado' });
+    if (comment.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Só é possível editar seu próprio comentário' });
+    }
+    if (!text || !text.trim()) return res.status(400).json({ error: 'Texto é obrigatório' });
+    comment.text = text.trim();
+    await comment.save();
+    const withUser = await Comment.findByPk(comment.id, {
+      include: [{ model: User, as: 'User', attributes: ['id', 'name', 'email'] }],
+    });
+    res.json(withUser);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listByComponent, create, update };

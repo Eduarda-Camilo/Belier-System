@@ -27,6 +27,12 @@ module.exports = (sequelize) => {
       references: { model: 'users', key: 'id' },
       onDelete: 'CASCADE',
     },
+    parentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: 'comments', key: 'id' },
+      onDelete: 'CASCADE',
+    },
     text: {
       type: DataTypes.TEXT,
       allowNull: false,

@@ -23,21 +23,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
+      <Route path="/" element={<Layout />}>
         <Route index element={<Navigate to="/components" replace />} />
         <Route path="components" element={<ComponentList />} />
         <Route path="components/new" element={<ProtectedRoute allowedProfiles={['admin', 'designer']}><ComponentForm /></ProtectedRoute>} />
         <Route path="components/:id" element={<ComponentDetail />} />
         <Route path="components/:id/edit" element={<ProtectedRoute allowedProfiles={['admin', 'designer']}><ComponentForm /></ProtectedRoute>} />
         <Route path="categories" element={<CategoryList />} />
-        <Route path="notifications" element={<Notifications />} />
+        <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute allowedProfiles={['admin']}><UserList /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

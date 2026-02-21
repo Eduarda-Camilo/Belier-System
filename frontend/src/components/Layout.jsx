@@ -28,16 +28,22 @@ export default function Layout() {
             <ul style={navStyle}>
               <li><NavLink to="/components">Componentes</NavLink></li>
               <li><NavLink to="/categories">Categorias</NavLink></li>
-              <li><NavLink to="/notifications">Notificações</NavLink></li>
+              {user && <li><NavLink to="/notifications">Notificações</NavLink></li>}
               {user?.profile === 'admin' && (
                 <li><NavLink to="/users">Usuários</NavLink></li>
               )}
             </ul>
           </nav>
           <div className="layout-user">
-            <span className="layout-user-name">{user?.name}</span>
-            <span className="layout-user-profile">({user?.profile})</span>
-            <button type="button" onClick={handleLogout} className="btn btn-ghost">Sair</button>
+            {user ? (
+              <>
+                <span className="layout-user-name">{user.name}</span>
+                <span className="layout-user-profile">({user.profile})</span>
+                <button type="button" onClick={handleLogout} className="btn btn-ghost">Sair</button>
+              </>
+            ) : (
+              <NavLink to="/login" className="btn btn-primary">Entrar</NavLink>
+            )}
           </div>
         </div>
       </header>

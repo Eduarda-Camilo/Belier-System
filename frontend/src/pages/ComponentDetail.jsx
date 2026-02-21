@@ -15,10 +15,17 @@ export default function ComponentDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editingText, setEditingText] = useState('');
 
   const canEdit = ['admin', 'designer'].includes(user?.profile);
   const statusLabel = { draft: 'Rascunho', published: 'Publicado', archived: 'Arquivado' };
   const [savingVersion, setSavingVersion] = useState(false);
+
+  const totalComments = comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0);
+  const loadComments = () => api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
 
   useEffect(() => {
     api.get(`/components/${id}`)
@@ -51,12 +58,40 @@ export default function ComponentDetail() {
     setSendingComment(true);
     try {
       const { data } = await api.post(`/comments/component/${id}`, { text: commentText.trim() });
-      setComments((prev) => [...prev, data]);
+      loadComments();
       setCommentText('');
     } catch (err) {
       setError(err.response?.data?.error || 'Erro ao enviar comentário');
     } finally {
       setSendingComment(false);
+    }
+  };
+
+  const handleReply = async (e, parentId) => {
+    e.preventDefault();
+    if (!replyText.trim()) return;
+    setSendingComment(true);
+    try {
+      await api.post(`/comments/component/${id}`, { text: replyText.trim(), parentId });
+      loadComments();
+      setReplyText('');
+      setReplyingTo(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erro ao enviar resposta');
+    } finally {
+      setSendingComment(false);
+    }
+  };
+
+  const handleEditComment = async (commentId) => {
+    if (!editingText.trim()) return;
+    try {
+      await api.put(`/comments/${commentId}`, { text: editingText.trim() });
+      loadComments();
+      setEditingId(null);
+      setEditingText('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erro ao editar');
     }
   };
 
@@ -128,28 +163,88 @@ export default function ComponentDetail() {
       </section>
 
       <section className="detail-section">
-        <h2>Comentários ({comments.length})</h2>
+        <h2>Comentários ({totalComments})</h2>
         <ul className="comment-list">
           {comments.map((c) => (
             <li key={c.id} className="comment-item">
               <span className="comment-author">{c.User?.name || 'Usuário'}</span>
               <span className="comment-date">{new Date(c.createdAt).toLocaleString('pt-BR')}</span>
-              <p className="comment-text">{c.text}</p>
+              {editingId === c.id ? (
+                <div className="comment-edit-box">
+                  <textarea
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    rows={2}
+                    className="comment-textarea"
+                  />
+                  <div className="comment-actions">
+                    <button type="button" className="btn btn-primary" onClick={() => handleEditComment(c.id)}>Salvar</button>
+                    <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(null); setEditingText(''); }}>Cancelar</button>
+                  </div>
+                </div>
+              ) : (
+                <p className="comment-text">{c.text}</p>
+              )}
+              {user && editingId !== c.id && (
+                <div className="comment-actions">
+                  {user.id === c.User?.id && (
+                    <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(c.id); setEditingText(c.text); }}>Editar</button>
+                  )}
+                  <button type="button" className="btn btn-ghost" onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyText(''); }}>Responder</button>
+                </div>
+              )}
+              {replyingTo === c.id && (
+                <form onSubmit={(e) => handleReply(e, c.id)} className="comment-reply-form">
+                  <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Escreva uma resposta..." rows={2} className="comment-textarea" />
+                  <div className="comment-actions">
+                    <button type="submit" className="btn btn-primary" disabled={sendingComment || !replyText.trim()}>Enviar</button>
+                    <button type="button" className="btn btn-ghost" onClick={() => { setReplyingTo(null); setReplyText(''); }}>Cancelar</button>
+                  </div>
+                </form>
+              )}
+              {c.replies && c.replies.length > 0 && (
+                <ul className="comment-replies">
+                  {[...c.replies].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map((r) => (
+                    <li key={r.id} className="comment-item comment-reply">
+                      <span className="comment-author">{r.User?.name || 'Usuário'}</span>
+                      <span className="comment-date">{new Date(r.createdAt).toLocaleString('pt-BR')}</span>
+                      {editingId === r.id ? (
+                        <div className="comment-edit-box">
+                          <textarea value={editingText} onChange={(e) => setEditingText(e.target.value)} rows={2} className="comment-textarea" />
+                          <div className="comment-actions">
+                            <button type="button" className="btn btn-primary" onClick={() => handleEditComment(r.id)}>Salvar</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(null); setEditingText(''); }}>Cancelar</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="comment-text">{r.text}</p>
+                      )}
+                      {user && user.id === r.User?.id && editingId !== r.id && (
+                        <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(r.id); setEditingText(r.text); }}>Editar</button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
-        <form onSubmit={handleSubmitComment} className="comment-form">
-          <textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Escreva um comentário..."
-            rows={3}
-            className="comment-textarea"
-          />
-          <button type="submit" className="btn btn-primary" disabled={sendingComment || !commentText.trim()}>
-            {sendingComment ? 'Enviando...' : 'Enviar comentário'}
-          </button>
-        </form>
+        {user ? (
+          <form onSubmit={handleSubmitComment} className="comment-form">
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Escreva um comentário..."
+              rows={3}
+              className="comment-textarea"
+            />
+            <button type="submit" className="btn btn-primary" disabled={sendingComment || !commentText.trim()}>
+              {sendingComment ? 'Enviando...' : 'Enviar comentário'}
+            </button>
+          </form>
+        ) : (
+          <p className="comment-login-hint"><Link to="/login">Faça login</Link> para comentar.</p>
+        )}
       </section>
     </div>
   );
