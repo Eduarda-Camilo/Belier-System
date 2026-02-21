@@ -1,0 +1,121 @@
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.detail-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  margin-left: var(--spacing-sm);
+}
+
+.detail-badge-draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.detail-badge-published {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.detail-badge-archived {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.detail-meta {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-top: var(--spacing-xs);
+}
+
+.detail-section {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.detail-section h2 {
+  margin: 0 0 var(--spacing-md);
+  font-size: 1.125rem;
+}
+
+.detail-doc {
+  line-height: 1.6;
+}
+
+.detail-doc p {
+  margin: 0 0 var(--spacing-sm);
+}
+
+.detail-variations {
+  background: #f9fafb;
+  padding: var(--spacing-md);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+
+.detail-empty {
+  color: var(--color-text-muted);
+}
+
+.version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.version-list li {
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+.comment-list {
+  list-style: none;
+  margin: 0 0 var(--spacing-lg);
+  padding: 0;
+}
+
+.comment-item {
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-sm);
+}
+
+.comment-author {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.comment-date {
+  margin-left: var(--spacing-sm);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.comment-text {
+  margin: var(--spacing-sm) 0 0;
+  font-size: 0.95rem;
+}
+
+.comment-form {
+  margin-top: var(--spacing-md);
+}
+
+.comment-textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-sm);
+  resize: vertical;
+}

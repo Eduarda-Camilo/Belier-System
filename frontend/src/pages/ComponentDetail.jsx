@@ -1,0 +1,156 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import api from '../services/api';
+import './ComponentDetail.css';
+
+export default function ComponentDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [component, setComponent] = useState(null);
+  const [versions, setVersions] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [sendingComment, setSendingComment] = useState(false);
+
+  const canEdit = ['admin', 'designer'].includes(user?.profile);
+  const statusLabel = { draft: 'Rascunho', published: 'Publicado', archived: 'Arquivado' };
+  const [savingVersion, setSavingVersion] = useState(false);
+
+  useEffect(() => {
+    api.get(`/components/${id}`)
+      .then((res) => setComponent(res.data))
+      .catch((err) => setError(err.response?.data?.error || 'Componente não encontrado'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    api.get(`/versions/component/${id}`).then((res) => setVersions(res.data)).catch(() => {});
+    api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
+  }, [id]);
+
+  const handleSaveVersion = async () => {
+    setSavingVersion(true);
+    try {
+      const { data } = await api.post(`/versions/component/${id}`, { description: `Versão ${(versions.length || 0) + 1}` });
+      setVersions((prev) => [data, ...prev]);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erro ao registrar versão');
+    } finally {
+      setSavingVersion(false);
+    }
+  };
+
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setSendingComment(true);
+    try {
+      const { data } = await api.post(`/comments/component/${id}`, { text: commentText.trim() });
+      setComments((prev) => [...prev, data]);
+      setCommentText('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erro ao enviar comentário');
+    } finally {
+      setSendingComment(false);
+    }
+  };
+
+  if (loading) return <div className="page-loading">Carregando...</div>;
+  if (error && !component) return <div className="page-error">{error}</div>;
+  if (!component) return null;
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <Link to="/components" className="back-link">← Componentes</Link>
+          <h1>{component.name}</h1>
+          <span className={`detail-badge detail-badge-${component.status}`}>
+            {statusLabel[component.status]}
+          </span>
+          {component.Category && (
+            <span className="detail-meta">Categoria: {component.Category.name}</span>
+          )}
+          {component.responsible && (
+            <span className="detail-meta">Responsável: {component.responsible.name}</span>
+          )}
+        </div>
+        {canEdit && (
+          <Link to={`/components/${id}/edit`} className="btn btn-primary">Editar</Link>
+        )}
+      </div>
+
+      {component.description && (
+        <section className="detail-section">
+          <h2>Descrição</h2>
+          <p>{component.description}</p>
+        </section>
+      )}
+
+      {component.documentation && (
+        <section className="detail-section">
+          <h2>Documentação</h2>
+          <div className="detail-doc" dangerouslySetInnerHTML={{ __html: component.documentation }} />
+        </section>
+      )}
+
+      {component.variations && Object.keys(component.variations).length > 0 && (
+        <section className="detail-section">
+          <h2>Variações / Estados</h2>
+          <pre className="detail-variations">{JSON.stringify(component.variations, null, 2)}</pre>
+        </section>
+      )}
+
+      <section className="detail-section">
+        <h2>Histórico de versões</h2>
+        {canEdit && (
+          <button type="button" className="btn btn-ghost" onClick={handleSaveVersion} disabled={savingVersion} style={{ marginBottom: 'var(--spacing-md)' }}>
+            {savingVersion ? 'Salvando...' : 'Registrar versão atual'}
+          </button>
+        )}
+        {versions.length === 0 ? (
+          <p className="detail-empty">Nenhuma versão registrada.</p>
+        ) : (
+          <ul className="version-list">
+            {versions.map((v) => (
+              <li key={v.id}>
+                <strong>v{v.number}</strong> — {v.description || 'Sem descrição'} —{' '}
+                {new Date(v.createdAt).toLocaleDateString('pt-BR')}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="detail-section">
+        <h2>Comentários ({comments.length})</h2>
+        <ul className="comment-list">
+          {comments.map((c) => (
+            <li key={c.id} className="comment-item">
+              <span className="comment-author">{c.User?.name || 'Usuário'}</span>
+              <span className="comment-date">{new Date(c.createdAt).toLocaleString('pt-BR')}</span>
+              <p className="comment-text">{c.text}</p>
+            </li>
+          ))}
+        </ul>
+        <form onSubmit={handleSubmitComment} className="comment-form">
+          <textarea
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="Escreva um comentário..."
+            rows={3}
+            className="comment-textarea"
+          />
+          <button type="submit" className="btn btn-primary" disabled={sendingComment || !commentText.trim()}>
+            {sendingComment ? 'Enviando...' : 'Enviar comentário'}
+          </button>
+        </form>
+      </section>
+    </div>
+  );
+}
