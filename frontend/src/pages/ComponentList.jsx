@@ -81,7 +81,7 @@ export default function ComponentList() {
             components.map((comp) => (
               <div key={comp.id} className="card">
                 <div className="card-header">
-                  <Link to={`/components/${comp.id}`} className="card-title">{comp.name}</Link>
+                  <Link to={`/components/${comp.id}`} className="card-title">{comp.title || comp.name}</Link>
                   <span className={`card-badge card-badge-${comp.status}`}>
                     {statusLabel[comp.status]}
                   </span>
@@ -90,9 +90,9 @@ export default function ComponentList() {
                 {comp.responsible && (
                   <span className="card-meta">Responsável: {comp.responsible.name}</span>
                 )}
-                {comp.description && (
-                  <p className="card-desc">{comp.description.slice(0, 100)}
-                    {comp.description.length > 100 ? '...' : ''}</p>
+                {(comp.shortDescription || comp.description) && (
+                  <p className="card-desc">{(comp.shortDescription || comp.description).slice(0, 100)}
+                    {(comp.shortDescription || comp.description).length > 100 ? '...' : ''}</p>
                 )}
                 <div className="card-actions">
                   <Link to={`/components/${comp.id}`} className="btn btn-ghost">Ver</Link>

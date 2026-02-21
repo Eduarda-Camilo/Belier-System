@@ -18,6 +18,7 @@ const sequelize = require('../config/database');
 const User = require('./User')(sequelize);
 const Category = require('./Category')(sequelize);
 const Component = require('./Component')(sequelize);
+const Example = require('./Example')(sequelize);
 const Version = require('./Version')(sequelize);
 const Comment = require('./Comment')(sequelize);
 const Notification = require('./Notification')(sequelize);
@@ -30,6 +31,9 @@ Category.hasMany(Component, { foreignKey: 'categoryId' });
 
 Component.belongsTo(User, { as: 'responsible', foreignKey: 'responsibleId' });
 User.hasMany(Component, { foreignKey: 'responsibleId' });
+
+Example.belongsTo(Component, { foreignKey: 'componentId' });
+Component.hasMany(Example, { foreignKey: 'componentId' });
 
 // Versão e Comentário pertencem a um Componente
 Version.belongsTo(Component, { foreignKey: 'componentId' });
@@ -68,6 +72,7 @@ module.exports = {
   User,
   Category,
   Component,
+  Example,
   Version,
   Comment,
   Notification,

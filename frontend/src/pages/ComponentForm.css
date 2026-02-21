@@ -105,3 +105,144 @@
   color: var(--color-text-muted);
   opacity: 0.9;
 }
+
+.form-field-slug {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.form-field-slug input {
+  flex: 1;
+}
+
+.btn-sm {
+  font-size: 0.85rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+/* Chips */
+.chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+  min-height: 40px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.chip-remove:hover {
+  color: var(--color-error);
+}
+
+.chips-input {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  background: transparent;
+  padding: var(--spacing-xs);
+}
+
+.chips-input:focus {
+  outline: none;
+}
+
+/* Sections */
+.form-section {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.form-section-title {
+  margin: 0 0 var(--spacing-xs);
+  font-size: 1.125rem;
+  color: var(--color-text);
+}
+
+.form-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.form-section-desc {
+  margin: 0 0 var(--spacing-md);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.form-empty-hint {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.code-snippet-textarea {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+}
+
+/* Variation cards */
+.variations-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.variation-card {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-lg);
+}
+
+.variation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.variation-card-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.variation-card-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.btn-danger-sm:hover {
+  color: var(--color-error);
+}

@@ -77,7 +77,7 @@ export default function ComponentDetail() {
   const loadComments = () => api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
 
   useEffect(() => {
-    api.get(`/components/${id}`)
+    api.get(`/components/${id}`, { params: { include: 'examples' } })
       .then((res) => setComponent(res.data))
       .catch((err) => setError(err.response?.data?.error || 'Componente não encontrado'))
       .finally(() => setLoading(false));
@@ -144,9 +144,9 @@ export default function ComponentDetail() {
     }
   };
 
+  const usageCode = component.defaultExample?.codeSnippet ?? component.documentation ?? '';
   const handleCopyCode = () => {
-    const code = component.documentation || '';
-    navigator.clipboard.writeText(code).then(() => {
+    navigator.clipboard.writeText(usageCode).then(() => {
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 1500);
     });
@@ -161,7 +161,7 @@ export default function ComponentDetail() {
       <div className="page-header">
         <div>
           <Link to="/components" className="back-link">← Componentes</Link>
-          <h1>{component.name}</h1>
+          <h1>{component.title || component.name}</h1>
           <span className={`detail-badge detail-badge-${component.status}`}>
             {statusLabel[component.status]}
           </span>
@@ -177,8 +177,8 @@ export default function ComponentDetail() {
         )}
       </div>
 
-      {component.description && (
-        <p className="detail-description">{component.description}</p>
+      {(component.shortDescription || component.description) && (
+        <p className="detail-description">{component.shortDescription || component.description}</p>
       )}
 
       <section className="detail-section detail-usage">
@@ -201,11 +201,11 @@ export default function ComponentDetail() {
         </div>
         {usageTab === 'preview' && (
           <div className="usage-preview-wrap">
-            {component.documentation && component.documentation.trim() ? (
+            {usageCode.trim() ? (
               <iframe
                 title="Pré-visualização"
                 className="usage-preview-iframe"
-                srcDoc={component.documentation}
+                srcDoc={usageCode}
                 sandbox="allow-scripts"
               />
             ) : (
@@ -231,7 +231,7 @@ export default function ComponentDetail() {
             <div className="code-block-with-lines">
               <div className="code-line-numbers" aria-hidden="true">
                 {(() => {
-                  const code = component.documentation || '// Nenhum código de uso definido.';
+                  const code = usageCode || '// Nenhum código de uso definido.';
                   const lines = code.split('\n');
                   return lines.map((_, i) => (
                     <span key={i} className="code-ln">{i + 1}</span>
@@ -239,7 +239,7 @@ export default function ComponentDetail() {
                 })()}
               </div>
               <pre className="code-block">
-                {(component.documentation || '// Nenhum código de uso definido.')
+                {(usageCode || '// Nenhum código de uso definido.')
                   .split('\n')
                   .map((line, i) => (
                     <div key={i} className="code-line">
