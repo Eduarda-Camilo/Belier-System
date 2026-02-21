@@ -52,24 +52,35 @@ async function getOne(req, res, next) {
   try {
     const { id } = req.params;
     const includeExamples = req.query.include === 'examples';
-    const component = await Component.findByPk(id, {
-      include: [
-        { model: Category, as: 'Category', attributes: ['id', 'name', 'description'] },
-        { model: User, as: 'responsible', attributes: ['id', 'name', 'email'] },
-        ...(includeExamples
-          ? [{ model: Example, as: 'Examples', attributes: ['id', 'type', 'title', 'description', 'order', 'propsTokens', 'codeSnippet', 'codeCustom', 'renderConfig'] }]
-          : []),
-      ],
+    const baseInclude = [
+      { model: Category, as: 'Category', attributes: ['id', 'name', 'description'] },
+      { model: User, as: 'responsible', attributes: ['id', 'name', 'email'] },
+    ];
+    let component = await Component.findByPk(id, {
+      include: baseInclude,
     });
     if (!component) {
       return res.status(404).json({ error: 'Componente não encontrado' });
     }
-    if (includeExamples && component.Examples) {
-      const defaultEx = component.Examples.find((e) => e.type === 'default') || null;
-      const variations = component.Examples.filter((e) => e.type === 'variation').sort((a, b) => a.order - b.order);
-      component.dataValues.defaultExample = defaultEx;
-      component.dataValues.variations = variations;
-      delete component.dataValues.Examples;
+    if (includeExamples) {
+      try {
+        const withExamples = await Component.findByPk(id, {
+          include: [
+            ...baseInclude,
+            { model: Example, attributes: ['id', 'type', 'title', 'description', 'order', 'propsTokens', 'codeSnippet', 'codeCustom', 'renderConfig'] },
+          ],
+        });
+        if (withExamples && withExamples.Examples) {
+          const defaultEx = withExamples.Examples.find((e) => e.type === 'default') || null;
+          const variations = withExamples.Examples.filter((e) => e.type === 'variation').sort((a, b) => a.order - b.order);
+          withExamples.dataValues.defaultExample = defaultEx;
+          withExamples.dataValues.variations = variations;
+          delete withExamples.dataValues.Examples;
+          component = withExamples;
+        }
+      } catch (_) {
+        // Tabela examples pode não existir ou associação falhar; segue com componente sem exemplos
+      }
     }
     res.json(component);
   } catch (err) {

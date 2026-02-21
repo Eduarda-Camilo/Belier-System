@@ -79,6 +79,9 @@ export default function ComponentDetail() {
   useEffect(() => {
     api.get(`/components/${id}`, { params: { include: 'examples' } })
       .then((res) => setComponent(res.data))
+      .catch(() =>
+        api.get(`/components/${id}`).then((res) => setComponent(res.data))
+      )
       .catch((err) => setError(err.response?.data?.error || 'Componente não encontrado'))
       .finally(() => setLoading(false));
   }, [id]);
