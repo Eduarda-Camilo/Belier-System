@@ -248,10 +248,6 @@ export default function ComponentDetail() {
           <p className="detail-description">{component.shortDescription || component.description}</p>
         )}
 
-        <div className="detail-search">
-          <input className="detail-search-input" placeholder="Buscar..." />
-        </div>
-
         <section className="detail-card" id="default">
           <h2>Default</h2>
           <p className="detail-meta">Descrição</p>

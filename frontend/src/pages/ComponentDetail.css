@@ -86,11 +86,42 @@
   border-bottom-color: var(--color-primary);
 }
 
+/* Pills (Preview | Código) no estilo Figma */
+.section-tabs {
+  border-bottom: none;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-sm);
+  display: flex;
+}
+
+.section-tab {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.section-tab:hover {
+  color: var(--color-text);
+}
+
+.section-tab.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
 .usage-preview-wrap {
-  background: #1e1e1e;
-  border-radius: var(--radius);
+  background: rgba(30, 30, 30, 0.6);
+  border-radius: 14px;
   padding: var(--spacing-lg);
   min-height: 120px;
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(6px);
 }
 
 .usage-preview-iframe {
@@ -350,18 +381,6 @@
   gap: var(--spacing-lg);
 }
 
-.section-tabs {
-  border-bottom: none;
-  margin-bottom: var(--spacing-md);
-  gap: var(--spacing-sm);
-}
-
-.section-tab {
-  border: 1px solid var(--color-border);
-  border-bottom: 2px solid transparent;
-  border-radius: 999px;
-}
-
 .detail-toc {
   position: sticky;
   top: var(--spacing-lg);
@@ -369,10 +388,11 @@
 }
 
 .detail-toc-inner {
-  background: var(--color-surface);
+  background: rgba(33, 38, 45, 0.85);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: var(--spacing-md);
+  backdrop-filter: blur(8px);
 }
 
 .detail-toc-title {

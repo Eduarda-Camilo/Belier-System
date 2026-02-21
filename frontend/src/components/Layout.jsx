@@ -2,7 +2,17 @@ import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import { IconInbox, IconDocs, IconFigma, IconComponentes, IconSearch } from './Icons';
 import './Layout.css';
+
+const FIGMA_URL = 'https://www.figma.com';
+
+function getInitials(user) {
+  if (!user?.name) return 'U';
+  const parts = user.name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, 2);
+  return (user.name[0] || 'U').toUpperCase();
+}
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -26,42 +36,63 @@ export default function Layout() {
     return name.includes(q.toLowerCase());
   });
 
+  const navLinkClass = ({ isActive }) => `layout-nav-link ${isActive ? 'active' : ''}`;
+  const sideLinkClass = ({ isActive }) => (isActive ? 'active' : '');
+
   return (
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-inner">
-          <Link to="/" className="layout-brand">Belier-System</Link>
-          <div className="layout-search">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="layout-search-input"
-              placeholder="Buscar componentes..."
-              aria-label="Buscar componentes"
-            />
+          <Link to="/" className="layout-brand">
+            <img src="/logo.svg" alt="Belier" className="layout-logo" />
+          </Link>
+          <nav className="layout-nav">
+            <NavLink to="/notifications" className={navLinkClass} end>
+              <IconInbox /> Inbox
+            </NavLink>
+            <NavLink to="/categories" className={navLinkClass}>
+              <IconDocs /> Docs
+            </NavLink>
+            <a href={FIGMA_URL} target="_blank" rel="noopener noreferrer" className="layout-nav-link">
+              <IconFigma /> Figma
+            </a>
+            <NavLink to="/" className={navLinkClass} end>
+              <IconComponentes /> Componentes
+            </NavLink>
+          </nav>
+          <div className="layout-header-right">
+            <div className="layout-search-wrap">
+              <span className="layout-search-icon" aria-hidden><IconSearch /></span>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="layout-search-input"
+                placeholder="Buscar..."
+                aria-label="Buscar"
+              />
+            </div>
             <Link to="/components/new" className="btn btn-primary layout-new-btn">Novo componente</Link>
-          </div>
-          <div className="layout-user">
-            {user ? (
-              <>
-                <span className="layout-user-name">{user.name}</span>
-                <span className="layout-user-profile">({user.profile})</span>
-                <button type="button" onClick={handleLogout} className="btn btn-ghost">Sair</button>
-              </>
-            ) : (
-              <NavLink to="/login" className="btn btn-primary">Entrar</NavLink>
-            )}
+            <div className="layout-user">
+              {user ? (
+                <>
+                  <div className="layout-avatar" title={user.name}>{getInitials(user)}</div>
+                  <button type="button" onClick={handleLogout} className="btn btn-ghost layout-logout">Sair</button>
+                </>
+              ) : (
+                <NavLink to="/login" className="btn btn-primary">Entrar</NavLink>
+              )}
+            </div>
           </div>
         </div>
       </header>
       <main className="layout-main layout-with-sidebar">
         <aside className="layout-sidebar">
           <nav>
-            <p className="layout-side-title">Navegação</p>
             <ul className="layout-side-list">
-              <li><NavLink to="/categories">Categorias</NavLink></li>
-              {user && <li><NavLink to="/notifications">Notificações</NavLink></li>}
-              {user?.profile === 'admin' && <li><NavLink to="/users">Usuários</NavLink></li>}
+              <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
+              <li><NavLink to="/categories" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
+              <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><IconFigma /> Figma</a></li>
+              <li><NavLink to="/" className={sideLinkClass} end><IconComponentes /> Componentes</NavLink></li>
             </ul>
             <p className="layout-side-title">Componentes</p>
             <ul className="layout-side-list">
@@ -70,7 +101,7 @@ export default function Layout() {
               ) : (
                 filtered.map((c) => (
                   <li key={c.id}>
-                    <NavLink to={`/components/${c.id}`}>{c.title || c.name}</NavLink>
+                    <NavLink to={`/components/${c.id}`} className={sideLinkClass}>{c.title || c.name}</NavLink>
                   </li>
                 ))
               )}
