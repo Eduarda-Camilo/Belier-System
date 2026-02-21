@@ -77,12 +77,19 @@ export default function ComponentDetail() {
   const loadComments = () => api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
 
   useEffect(() => {
+    setError('');
+    setComponent(null);
+    setLoading(true);
+    const setData = (data) => {
+      if (data && (data.id || data.name || data.title)) setComponent(data);
+      else setError('Resposta inválida do servidor.');
+    };
     api.get(`/components/${id}`, { params: { include: 'examples' } })
-      .then((res) => setComponent(res.data))
+      .then((res) => setData(res.data))
       .catch(() =>
-        api.get(`/components/${id}`).then((res) => setComponent(res.data))
+        api.get(`/components/${id}`).then((res) => setData(res.data))
       )
-      .catch((err) => setError(err.response?.data?.error || 'Componente não encontrado'))
+      .catch((err) => setError(err.response?.data?.error || 'Não foi possível carregar o componente. Verifique a conexão.'))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -157,7 +164,14 @@ export default function ComponentDetail() {
 
   if (loading) return <div className="page-loading">Carregando...</div>;
   if (error && !component) return <div className="page-error">{error}</div>;
-  if (!component) return null;
+  if (!component) {
+    return (
+      <div className="page">
+        <p className="page-loading">Componente não encontrado.</p>
+        <Link to="/components" className="btn btn-ghost">← Voltar à lista</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
