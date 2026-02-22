@@ -621,11 +621,11 @@
 }
 
 /* Título do componente: 36px bold */
-.detail-content .page-header h1 {
+.detail-content .page-header h1.page-title {
   margin: 0;
-  font-size: 36px;
+  font-size: 48px;
   font-weight: 700;
-  line-height: 40px;
+  line-height: 1.2;
   color: #ffffff;
 }
 

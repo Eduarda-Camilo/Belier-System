@@ -241,17 +241,6 @@ export default function ComponentDetail() {
       .catch(() => setVersions([]));
   }, [id]);
 
-  useEffect(() => {
-    if (!id) return;
-    const params = {};
-    if (selectedVersionId != null) params.versionId = selectedVersionId;
-    if (effectiveExampleIdForApi != null && typeof effectiveExampleIdForApi === 'number') params.exampleId = effectiveExampleIdForApi;
-    else if (selectedExampleId != null && typeof selectedExampleId === 'number') params.exampleId = selectedExampleId;
-    const q = new URLSearchParams(params).toString();
-    api.get(`/comments/component/${id}${q ? `?${q}` : ''}`).then((res) => setComments(res.data || [])).catch(() => setComments([]));
-  }, [id, selectedVersionId, selectedExampleId, effectiveExampleIdForApi]);
-
-
   const versionsList = Array.isArray(versions) ? versions : [];
   const selectedVersion = selectedVersionId != null ? versionsList.find((v) => v.id === selectedVersionId) : null;
   const fromSnapshot = selectedVersion?.content?.variationsSnapshot;
@@ -290,6 +279,16 @@ export default function ComponentDetail() {
     const q = new URLSearchParams(params).toString();
     return api.get(`/comments/component/${id}${q ? `?${q}` : ''}`).then((res) => setComments(res.data || [])).catch(() => setComments([]));
   };
+
+  useEffect(() => {
+    if (!id) return;
+    const params = {};
+    if (selectedVersionId != null) params.versionId = selectedVersionId;
+    if (effectiveExampleIdForApi != null && typeof effectiveExampleIdForApi === 'number') params.exampleId = effectiveExampleIdForApi;
+    else if (selectedExampleId != null && typeof selectedExampleId === 'number') params.exampleId = selectedExampleId;
+    const q = new URLSearchParams(params).toString();
+    api.get(`/comments/component/${id}${q ? `?${q}` : ''}`).then((res) => setComments(res.data || [])).catch(() => setComments([]));
+  }, [id, selectedVersionId, selectedExampleId, effectiveExampleIdForApi]);
 
   useEffect(() => {
     if (!component) return;
@@ -414,7 +413,7 @@ export default function ComponentDetail() {
         <div className="page-header" id="title">
           <div className="page-header-row">
             <div className="page-header-left">
-              <h1>{component.title || component.name}</h1>
+              <h1 className="page-title">{component.title || component.name}</h1>
               <span className={`detail-badge detail-badge-${component.status || 'draft'}`}>
                 {statusLabel[component.status] || component.status || 'Rascunho'}
               </span>

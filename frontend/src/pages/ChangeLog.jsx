@@ -48,7 +48,7 @@ export default function ChangeLog() {
   return (
     <div className="page changelog-page">
       <div className="page-header">
-        <h1>ChangeLog</h1>
+        <h1 className="page-title">ChangeLog</h1>
       </div>
       {error && <div className="page-error">{error}</div>}
       {list.length === 0 && !error ? (

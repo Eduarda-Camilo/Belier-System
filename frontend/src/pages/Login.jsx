@@ -60,7 +60,7 @@ export default function Login() {
         </aside>
 
         <div className="auth-panel-right">
-          <h1 className="auth-form-title">Entrar</h1>
+          <h1 className="page-title auth-form-title">Entrar</h1>
           <p className="auth-form-subtitle">
             Digite seu email e senha para acessar o sistema.
           </p>

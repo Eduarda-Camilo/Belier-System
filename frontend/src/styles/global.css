@@ -63,3 +63,10 @@ textarea::placeholder {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
+
+/* Título de página padronizado (todos os H1 do sistema) */
+.page-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0;
+}

@@ -1,3 +1,25 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-view-modal {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  max-width: 480px;
+}
+
+.user-view-modal h3 {
+  margin: 0 0 var(--spacing-md);
+  font-size: 1.125rem;
+}
+
+.user-view-modal p {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 0.95rem;
+}
+
 .user-form {
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-lg);
@@ -28,6 +50,7 @@
 
 .user-table-wrap {
   overflow-x: auto;
+  margin-top: 24px;
 }
 
 .user-table {
@@ -52,4 +75,19 @@
 
 .user-table tbody tr:hover {
   background: var(--color-surface-elevated);
+}
+
+.user-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.user-table-actions .btn-danger {
+  color: var(--color-error, #c53030);
+}
+
+.user-table-actions .btn-danger:hover {
+  background: rgba(197, 48, 48, 0.1);
 }

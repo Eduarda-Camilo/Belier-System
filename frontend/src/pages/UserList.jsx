@@ -8,6 +8,7 @@ export default function UserList() {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [viewUser, setViewUser] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', profile: 'developer' });
 
   const load = () => {
@@ -74,6 +75,17 @@ export default function UserList() {
     setForm({ name: '', email: '', password: '', profile: 'developer' });
   };
 
+  const handleDelete = async (u) => {
+    if (!window.confirm(`Excluir o usuário "${u.name}"? Esta ação não pode ser desfeita.`)) return;
+    setError('');
+    try {
+      await api.delete(`/users/${u.id}`);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erro ao excluir usuário');
+    }
+  };
+
   const profileLabel = { admin: 'Admin', designer: 'Designer', developer: 'Desenvolvedor' };
 
   if (loading) return <div className="page-loading">Carregando...</div>;
@@ -81,12 +93,21 @@ export default function UserList() {
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Usuários</h1>
+        <h1 className="page-title">Usuários</h1>
         <button type="button" className="btn btn-primary" onClick={() => { setShowForm(true); setEditingId(null); setForm({ name: '', email: '', password: '', profile: 'developer' }); }}>
           Novo usuário
         </button>
       </div>
       {error && <div className="page-error">{error}</div>}
+      {viewUser && (
+        <div className="user-view-modal card">
+          <h3>Visualizar usuário</h3>
+          <p><strong>Nome:</strong> {viewUser.name}</p>
+          <p><strong>E-mail:</strong> {viewUser.email}</p>
+          <p><strong>Perfil:</strong> {profileLabel[viewUser.profile]}</p>
+          <button type="button" className="btn btn-ghost" onClick={() => setViewUser(null)}>Fechar</button>
+        </div>
+      )}
       {(showForm || editingId) && (
         <form onSubmit={editingId ? handleUpdate : handleCreate} className="user-form card">
           <h3>{editingId ? 'Editar usuário' : 'Novo usuário'}</h3>
@@ -120,8 +141,10 @@ export default function UserList() {
                 <td>{u.name}</td>
                 <td>{u.email}</td>
                 <td>{profileLabel[u.profile]}</td>
-                <td>
-                  <button type="button" className="btn btn-ghost" onClick={() => startEdit(u)}>Editar</button>
+                <td className="user-table-actions">
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setViewUser(u)}>Visualizar</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => startEdit(u)}>Editar</button>
+                  <button type="button" className="btn btn-ghost btn-sm btn-danger" onClick={() => handleDelete(u)}>Excluir</button>
                 </td>
               </tr>
             ))}

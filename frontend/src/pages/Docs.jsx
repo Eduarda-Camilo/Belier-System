@@ -99,7 +99,7 @@ export default function Docs() {
     <div className="page docs-page detail-content-grid">
       <div className="docs-content">
         <header className="docs-header">
-          <h1 id="topo">Docs — Belier</h1>
+          <h1 id="topo" className="page-title">Docs — Belier</h1>
           <p className="docs-intro">
             O Belier é um portal de documentação e governança de componentes de interface. Centralize componentes, variações, padrões de uso e exemplos de código para padronizar, reutilizar e evoluir a UI com consistência.
           </p>

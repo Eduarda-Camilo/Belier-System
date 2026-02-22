@@ -29,9 +29,9 @@
   width: 100%;
 }
 
-.docs-header h1 {
+.docs-header h1.page-title {
   margin: 0 0 8px;
-  font-size: 2rem;
+  font-size: 48px;
   font-weight: 700;
   color: #ffffff;
 }

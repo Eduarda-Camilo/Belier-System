@@ -39,8 +39,8 @@ export default function App() {
         <Route path="docs" element={<Docs />} />
         <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="changelog" element={<ProtectedRoute><ChangeLog /></ProtectedRoute>} />
-        <Route path="profile" element={<ProtectedRoute><div className="page"><h1>Perfil</h1><p>Em breve.</p></div></ProtectedRoute>} />
-        <Route path="profile/trocar-senha" element={<ProtectedRoute><div className="page"><h1>Trocar senha</h1><p>Em breve.</p></div></ProtectedRoute>} />
+        <Route path="profile" element={<ProtectedRoute><div className="page"><h1 className="page-title">Perfil</h1><p>Em breve.</p></div></ProtectedRoute>} />
+        <Route path="profile/trocar-senha" element={<ProtectedRoute><div className="page"><h1 className="page-title">Trocar senha</h1><p>Em breve.</p></div></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute allowedProfiles={['admin']}><UserList /></ProtectedRoute>} />
       </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

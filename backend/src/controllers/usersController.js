@@ -74,4 +74,18 @@ async function update(req, res, next) {
   }
 }
 
-module.exports = { list, create, update };
+async function destroy(req, res, next) {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    await user.destroy();
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, create, update, destroy };

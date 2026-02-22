@@ -20,7 +20,7 @@ export default class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div className="page" style={{ padding: '2rem', maxWidth: '600px', minHeight: '200px', color: 'var(--color-text)', background: 'var(--color-bg)' }}>
-          <h1 style={{ margin: '0 0 0.5rem' }}>Algo deu errado</h1>
+          <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Algo deu errado</h1>
           <p>Não foi possível exibir esta página. Tente voltar à lista ou recarregar.</p>
           {this.state.error && (
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginTop: '1rem' }}>

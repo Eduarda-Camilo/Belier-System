@@ -7,5 +7,6 @@ const authorize = require('../middlewares/authorize');
 router.get('/', auth, authorize('admin'), usersController.list);
 router.post('/', auth, authorize('admin'), usersController.create);
 router.put('/:id', auth, authorize('admin'), usersController.update);
+router.delete('/:id', auth, authorize('admin'), usersController.destroy);
 
 module.exports = router;

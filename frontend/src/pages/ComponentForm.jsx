@@ -317,7 +317,7 @@ export default function ComponentForm() {
     <div className="page page-component-form">
       <div className="component-form">
         <div className="component-form-header">
-          <h1>{isEdit ? 'Editar componente' : 'Novo componente'}</h1>
+          <h1 className="page-title">{isEdit ? 'Editar componente' : 'Novo componente'}</h1>
           <div className="component-form-actions">
             <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar</button>
             <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving}>
@@ -354,7 +354,7 @@ export default function ComponentForm() {
                 <span className="form-field-desc">Identificador único (apenas letras minúsculas, números e hífen).</span>
               </div>
               <div className="form-field-input form-field-slug">
-                <input name="slug" value={form.slug} onChange={handleChange} required placeholder="ex.: botao-primario" pattern="[a-z0-9-]+" />
+                <input name="slug" value={form.slug} onChange={handleChange} required placeholder="ex.: botao-primario" pattern="[a-z0-9\-]+" title="Apenas letras minúsculas, números e hífen" />
                 <button type="button" className="btn btn-ghost btn-sm" onClick={suggestSlug}>Gerar do título</button>
               </div>
             </div>
