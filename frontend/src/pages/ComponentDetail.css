@@ -718,3 +718,69 @@
 .detail-toc-list li:nth-child(n+3) .detail-toc-link {
   padding-left: 48px;
 }
+
+/* Seletores Versão / Variação */
+.detail-selectors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+.detail-selector-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+.detail-select {
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  min-width: 140px;
+}
+
+/* Documentação (Markdown) */
+.detail-doc {
+  margin-top: var(--spacing-xl);
+}
+.detail-doc-block {
+  margin-bottom: var(--spacing-lg);
+}
+.detail-doc-block h3 {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+.detail-markdown {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+.detail-markdown p { margin: 0 0 0.75em; }
+.detail-markdown h2 { font-size: 1.1rem; margin: 1em 0 0.5em; }
+.detail-markdown h3 { font-size: 1rem; margin: 0.75em 0 0.35em; }
+.detail-markdown h4 { font-size: 0.95rem; margin: 0.5em 0 0.25em; }
+.detail-markdown strong { font-weight: 600; }
+.detail-markdown ul, .detail-markdown ol { margin: 0.5em 0; padding-left: 1.5em; }
+
+.version-changelog {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.detail-comments-tab {
+  padding-top: var(--spacing-sm);
+}
+.detail-comments-tab .comment-form {
+  margin-top: var(--spacing-lg);
+}
+.detail-card-main {
+  margin-top: var(--spacing-lg);
+}

@@ -1,38 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
-
-const BANNERS = [
-  {
-    title: 'Design System em um só lugar',
-    text: 'Documente componentes, variações e padrões para toda a equipe.',
-  },
-  {
-    title: 'Colaboração e histórico',
-    text: 'Comentários, versões e responsáveis por componente.',
-  },
-  {
-    title: 'Categorias e busca',
-    text: 'Organize por tipo e encontre o que precisa rapidamente.',
-  },
-];
 
 export default function Login() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [carouselIndex, setCarouselIndex] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setCarouselIndex((i) => (i + 1) % BANNERS.length);
-    }, 5000);
-    return () => clearInterval(t);
-  }, []);
 
   if (user) return <Navigate to="/" replace />;
 
@@ -45,7 +23,7 @@ export default function Login() {
       navigate('/');
     } catch (err) {
       const msg = !err?.response
-        ? 'Não foi possível conectar à API. Você configurou o backend e a variável VITE_API_URL na Vercel?'
+        ? 'Não foi possível conectar. Verifique a conexão.'
         : (err.response?.data?.error || 'Falha no login. Verifique email e senha.');
       setError(msg);
     } finally {
@@ -54,84 +32,95 @@ export default function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-logo" aria-hidden="true">
-          <span className="login-logo-icon">◆</span>
-          <span className="login-logo-text">Belier-System</span>
-        </div>
+    <div className="auth-page">
+      <div className="auth-card">
+        <aside className="auth-panel-left">
+          <div className="auth-brand">
+            <span className="auth-logo-icon">◆</span>
+            <span className="auth-logo-text">Belier</span>
+          </div>
+          <h2 className="auth-welcome-title">Comece com a gente</h2>
+          <p className="auth-welcome-subtitle">
+            Faça login para acessar a documentação de componentes e colaborar com a equipe.
+          </p>
+          <div className="auth-step-list">
+            <div className="auth-step-item active">
+              <span className="auth-step-num">1</span>
+              <span>Entrar na sua conta</span>
+            </div>
+            <div className="auth-step-item">
+              <span className="auth-step-num">2</span>
+              <span>Explorar componentes</span>
+            </div>
+            <div className="auth-step-item">
+              <span className="auth-step-num">3</span>
+              <span>Documentar e colaborar</span>
+            </div>
+          </div>
+        </aside>
 
-        <div className="login-layout">
-          <div className="login-panel">
-            <h1 className="login-title">Entrar</h1>
-            <p className="login-subtitle">
-              Bem-vindo ao Belier-System. Faça login para continuar.
-            </p>
-            <form onSubmit={handleSubmit} className="login-form">
-              {error && <div className="login-error">{error}</div>}
-              <label>
-                E-mail
+        <div className="auth-panel-right">
+          <h1 className="auth-form-title">Entrar</h1>
+          <p className="auth-form-subtitle">
+            Digite seu email e senha para acessar o sistema.
+          </p>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            {error && <div className="auth-error" role="alert">{error}</div>}
+            <label className="auth-label">
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="ex.: seu@email.com"
+                className="auth-input"
+              />
+            </label>
+            <label className="auth-label">
+              Senha
+              <div className="auth-password-wrap">
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  placeholder="seu@email.com"
-                />
-              </label>
-              <label>
-                Senha
-                <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  placeholder="••••••••"
+                  placeholder="Digite sua senha"
+                  className="auth-input auth-input-password"
                 />
-              </label>
-              <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
-                {loading ? 'Entrando...' : 'Entrar'}
-              </button>
-            </form>
-          </div>
-
-          <div className="login-carousel-wrap">
-            <div className="login-carousel">
-              {BANNERS.map((b, i) => (
-                <div
-                  key={i}
-                  className={`login-carousel-slide ${i === carouselIndex ? 'active' : ''}`}
-                  aria-hidden={i !== carouselIndex}
-                >
-                  <div className="login-carousel-visual">
-                    <div className="login-banner-placeholder" />
-                  </div>
-                  <p className="login-carousel-title">{b.title}</p>
-                  <p className="login-carousel-text">{b.text}</p>
-                </div>
-              ))}
-            </div>
-            <div className="login-carousel-dots" role="tablist" aria-label="Banners">
-              {BANNERS.map((_, i) => (
                 <button
-                  key={i}
                   type="button"
-                  role="tab"
-                  aria-selected={i === carouselIndex}
-                  aria-label={`Banner ${i + 1}`}
-                  className={`login-carousel-dot ${i === carouselIndex ? 'active' : ''}`}
-                  onClick={() => setCarouselIndex(i)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+                  className="auth-password-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </label>
+            <button type="submit" className="auth-submit" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
 
-        <footer className="login-footer">
-          <p>© Belier-System. Design System / Component Library.</p>
-        </footer>
+          <p className="auth-switch">
+            Não tem conta? <Link to="/register" className="auth-switch-link">Cadastre-se</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

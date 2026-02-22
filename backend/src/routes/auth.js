@@ -10,6 +10,9 @@ const auth = require('../middlewares/auth');
 // POST /api/auth/login — recebe { email, password }, devolve { token, user }
 router.post('/login', authController.login);
 
+// POST /api/auth/register — recebe { name, email, password }, cria usuário e devolve { token, user }
+router.post('/register', authController.register);
+
 // GET /api/auth/me — devolve o usuário atual (requer token no header)
 // Útil para o frontend saber quem está logado ao recarregar a página
 router.get('/me', auth, (req, res) => {

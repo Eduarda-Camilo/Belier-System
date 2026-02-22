@@ -15,6 +15,53 @@ const { User } = require('../models');
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-mude-em-producao';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
+async function register(req, res, next) {
+  try {
+    const { name, email, password } = req.body;
+    const emailTrim = email && String(email).trim().toLowerCase();
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ error: 'Nome é obrigatório' });
+    }
+    if (!emailTrim) {
+      return res.status(400).json({ error: 'Email é obrigatório' });
+    }
+    if (!password || String(password).length < 8) {
+      return res.status(400).json({ error: 'Senha deve ter no mínimo 8 caracteres' });
+    }
+
+    const existing = await User.findOne({ where: { email: emailTrim } });
+    if (existing) {
+      return res.status(400).json({ error: 'Este email já está cadastrado' });
+    }
+
+    const hashedPassword = await bcrypt.hash(String(password), 10);
+    const user = await User.create({
+      name: String(name).trim(),
+      email: emailTrim,
+      password: hashedPassword,
+      profile: 'developer',
+    });
+
+    const token = jwt.sign(
+      { userId: user.id },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        profile: user.profile,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
@@ -54,4 +101,4 @@ async function login(req, res, next) {
   }
 }
 
-module.exports = { login };
+module.exports = { login, register };

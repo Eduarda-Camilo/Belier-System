@@ -74,6 +74,24 @@ function normalizeVariations(variations) {
   });
 }
 
+/** Converte Markdown básico em HTML seguro (parágrafos, quebras, **negrito**, ## título). */
+function simpleMarkdown(md) {
+  if (!md || typeof md !== 'string') return '';
+  let s = md
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  s = s.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+  s = s.replace(/^## (.+)$/gm, '<h3>$1</h3>');
+  s = s.replace(/^# (.+)$/gm, '<h2>$1</h2>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/\n\n/g, '</p><p>');
+  s = s.replace(/\n/g, '<br/>');
+  return `<p>${s}</p>`;
+}
+
 export default function ComponentDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -88,7 +106,6 @@ export default function ComponentDetail() {
   const [replyText, setReplyText] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState('');
-  const [sectionTabs, setSectionTabs] = useState({});
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [activeIndexId, setActiveIndexId] = useState('title');
 
@@ -116,7 +133,6 @@ export default function ComponentDetail() {
   }, [moreActionsOpen]);
 
   const totalComments = comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0);
-  const loadComments = () => api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
 
   const canArchive = canEdit;
 
@@ -188,40 +204,59 @@ export default function ComponentDetail() {
     api.get(`/versions/component/${id}`).then((res) => {
       const list = res.data || [];
       setVersions(list);
-      if (list.length > 0 && selectedVersionId === null) setSelectedVersionId(list[0].id);
-    }).catch(() => {});
+      if (list.length > 0) setSelectedVersionId(list[0].id);
+      else setSelectedVersionId(null);
+    }).catch(() => setVersions([]));
   }, [id]);
 
   useEffect(() => {
     if (!id) return;
     const params = {};
     if (selectedVersionId != null) params.versionId = selectedVersionId;
-    if (selectedExampleId != null) params.exampleId = selectedExampleId;
+    if (effectiveExampleIdForApi != null && typeof effectiveExampleIdForApi === 'number') params.exampleId = effectiveExampleIdForApi;
+    else if (selectedExampleId != null && typeof selectedExampleId === 'number') params.exampleId = selectedExampleId;
     const q = new URLSearchParams(params).toString();
     api.get(`/comments/component/${id}${q ? `?${q}` : ''}`).then((res) => setComments(res.data || [])).catch(() => setComments([]));
-  }, [id, selectedVersionId, selectedExampleId]);
+  }, [id, selectedVersionId, selectedExampleId, effectiveExampleIdForApi]);
 
 
   const selectedVersion = selectedVersionId != null ? versions.find((v) => v.id === selectedVersionId) : null;
   const fromSnapshot = selectedVersion?.content?.variationsSnapshot;
+  const compDefault = component?.defaultExample;
+  const compVars = normalizeVariations(component?.variations) || [];
   const allExamples = fromSnapshot && Array.isArray(fromSnapshot) && fromSnapshot.length > 0
-    ? fromSnapshot.map((s, i) => ({
-        id: s.id ?? `snap-${selectedVersion.id}-${i}`,
-        title: i === 0 ? 'Default' : (s.title || `Variação ${i}`),
-        slug: s.slug || (i === 0 ? 'default' : `v${i}`),
-        codeSnippet: s.codeSnippet ?? '',
-        codeCss: s.codeCss,
-        codeJs: s.codeJs,
-        description: s.description,
-      }))
+    ? fromSnapshot.map((s, i) => {
+        const id = s.id ?? `snap-${selectedVersion.id}-${i}`;
+        const effectiveExampleId = s.id != null ? s.id : (i === 0 ? compDefault?.id : compVars[i - 1]?.id);
+        return {
+          id,
+          effectiveExampleId,
+          title: i === 0 ? 'Default' : (s.title || `Variação ${i}`),
+          slug: s.slug || (i === 0 ? 'default' : `v${i}`),
+          codeSnippet: s.codeSnippet ?? '',
+          codeCss: s.codeCss,
+          codeJs: s.codeJs,
+          description: s.description,
+        };
+      })
     : [
-        ...(component?.defaultExample ? [{ ...component.defaultExample, title: 'Default', slug: 'default' }] : []),
-        ...(normalizeVariations(component?.variations) || []),
+        ...(compDefault ? [{ ...compDefault, title: 'Default', slug: 'default', effectiveExampleId: compDefault.id }] : []),
+        ...compVars.map((v) => ({ ...v, effectiveExampleId: v.id })),
       ];
   const currentExample = selectedExampleId != null
     ? allExamples.find((e) => e.id === selectedExampleId || e.id === Number(selectedExampleId))
     : allExamples[0];
   const currentCode = currentExample?.codeSnippet ?? '';
+  const effectiveExampleIdForApi = currentExample?.effectiveExampleId ?? currentExample?.id ?? selectedExampleId;
+
+  const loadComments = () => {
+    const params = {};
+    if (selectedVersionId != null) params.versionId = selectedVersionId;
+    const eid = effectiveExampleIdForApi != null && typeof effectiveExampleIdForApi === 'number' ? effectiveExampleIdForApi : selectedExampleId;
+    if (eid != null && typeof eid === 'number') params.exampleId = eid;
+    const q = new URLSearchParams(params).toString();
+    return api.get(`/comments/component/${id}${q ? `?${q}` : ''}`).then((res) => setComments(res.data || [])).catch(() => setComments([]));
+  };
 
   useEffect(() => {
     if (!component) return;
@@ -231,7 +266,7 @@ export default function ComponentDetail() {
   }, [component?.id, selectedVersionId, allExamples.length]);
 
   useEffect(() => {
-    const ids = ['title', 'default', ...(normalizeVariations(component?.variations).map((v, i) => `var-${v.id || i}`))];
+    const ids = ['title', 'preview-code-comments', 'documentation', 'versions'];
     const obs = new IntersectionObserver((entries) => {
       const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
       if (visible[0]) setActiveIndexId(visible[0].target.id);
@@ -260,9 +295,10 @@ export default function ComponentDetail() {
     if (!commentText.trim()) return;
     setSendingComment(true);
     try {
-      const { data } = await api.post(`/comments/component/${id}`, {
+      const exampleIdForApi = currentExample?.effectiveExampleId ?? currentExample?.id ?? selectedExampleId;
+      await api.post(`/comments/component/${id}`, {
         text: commentText.trim(),
-        exampleId: currentExample?.id ?? selectedExampleId ?? undefined,
+        exampleId: typeof exampleIdForApi === 'number' ? exampleIdForApi : undefined,
         versionId: selectedVersionId ?? undefined,
       });
       loadComments();
@@ -279,10 +315,11 @@ export default function ComponentDetail() {
     if (!replyText.trim()) return;
     setSendingComment(true);
     try {
+      const exampleIdForApi = currentExample?.effectiveExampleId ?? currentExample?.id ?? selectedExampleId;
       await api.post(`/comments/component/${id}`, {
         text: replyText.trim(),
         parentId,
-        exampleId: currentExample?.id ?? selectedExampleId ?? undefined,
+        exampleId: typeof exampleIdForApi === 'number' ? exampleIdForApi : undefined,
         versionId: selectedVersionId ?? undefined,
       });
       loadComments();
@@ -398,142 +435,175 @@ export default function ComponentDetail() {
           )}
         </div>
 
-        <section className="detail-card" id="default">
-          <h2>Default</h2>
-          <p className="detail-meta">Descrição</p>
-          <div className="usage-tabs section-tabs">
-            <button
-              type="button"
-              className={`usage-tab section-tab ${sectionTabs.default === 'preview' ? 'active' : ''}`}
-              onClick={() => setSectionTabs((t) => ({ ...t, default: 'preview' }))}
-            >Preview</button>
-            <button
-              type="button"
-              className={`usage-tab section-tab ${sectionTabs.default === 'code' ? 'active' : ''}`}
-              onClick={() => setSectionTabs((t) => ({ ...t, default: 'code' }))}
-            >Código</button>
-          </div>
-          {sectionTabs.default === 'code' ? (
-            <div className="code-block-wrap">
-              <button
-                type="button"
-                className="code-block-copy"
-                onClick={handleCopyCode}
-                title="Copiar"
-                aria-label="Copiar código"
+        <section className="detail-card detail-card-main" id="preview-code-comments">
+          <div className="detail-selectors">
+            <label className="detail-selector-label">
+              Versão:
+              <select
+                className="detail-select"
+                value={selectedVersionId ?? ''}
+                onChange={(e) => setSelectedVersionId(e.target.value ? Number(e.target.value) : null)}
               >
-                {copyFeedback ? (
-                  <span className="code-copy-feedback">Copiado!</span>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                )}
+                {versions.length === 0 && <option value="">—</option>}
+                {versions.map((v) => (
+                  <option key={v.id} value={v.id}>v{v.number}{v.isPublished ? ' (publicada)' : ''}</option>
+                ))}
+              </select>
+            </label>
+            <label className="detail-selector-label">
+              Variação:
+              <select
+                className="detail-select"
+                value={currentExample ? (selectedExampleId ?? currentExample.id) : ''}
+                onChange={(e) => setSelectedExampleId(e.target.value ? (allExamples.find((ex) => String(ex.id) === e.target.value)?.id ?? e.target.value) : null)}
+              >
+                {allExamples.map((ex) => (
+                  <option key={ex.id} value={ex.id}>{ex.title === 'Default' ? 'Default' : (ex.title || ex.slug || ex.id)}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="usage-tabs section-tabs">
+            <button type="button" className={`usage-tab section-tab ${mainTab === 'preview' ? 'active' : ''}`} onClick={() => setMainTab('preview')}>Preview</button>
+            <button type="button" className={`usage-tab section-tab ${mainTab === 'code' ? 'active' : ''}`} onClick={() => setMainTab('code')}>Código</button>
+            <button type="button" className={`usage-tab section-tab ${mainTab === 'comments' ? 'active' : ''}`} onClick={() => setMainTab('comments')}>Comentários ({totalComments})</button>
+          </div>
+          {mainTab === 'code' && (
+            <div className="code-block-wrap">
+              <button type="button" className="code-block-copy" onClick={handleCopyCode} title="Copiar" aria-label="Copiar código">
+                {copyFeedback ? <span className="code-copy-feedback">Copiado!</span> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>}
               </button>
               <div className="code-block-with-lines">
                 <div className="code-line-numbers" aria-hidden="true">
-                  {(() => {
-                    const code = usageCodeDefault || '// Nenhum código de uso definido.';
-                    const lines = code.split('\n');
-                    return lines.map((_, i) => (
-                      <span key={i} className="code-ln">{i + 1}</span>
-                    ));
-                  })()}
+                  {(currentCode || '// Nenhum código definido.').split('\n').map((_, i) => <span key={i} className="code-ln">{i + 1}</span>)}
                 </div>
                 <pre className="code-block">
-                  {(usageCodeDefault || '// Nenhum código de uso definido.')
-                    .split('\n')
-                    .map((line, i) => (
-                      <div key={i} className="code-line">
-                        <code>{highlightCode(line)}</code>
-                      </div>
-                    ))}
+                  {(currentCode || '// Nenhum código definido.').split('\n').map((line, i) => (
+                    <div key={i} className="code-line"><code>{highlightCode(line)}</code></div>
+                  ))}
                 </pre>
               </div>
             </div>
-          ) : (
+          )}
+          {mainTab === 'preview' && (
             <div className="usage-preview-wrap">
-              {usageCodeDefault && usageCodeDefault.trim() ? (
-                <iframe
-                  title="Pré-visualização"
-                  className="usage-preview-iframe"
-                  srcDoc={usageCodeDefault}
-                  sandbox="allow-same-origin"
-                />
+              {currentCode && currentCode.trim() ? (
+                <iframe title="Pré-visualização" className="usage-preview-iframe" srcDoc={currentCode} sandbox="allow-same-origin" />
               ) : (
                 <p className="detail-empty">Nenhum código de uso definido.</p>
               )}
             </div>
           )}
+          {mainTab === 'comments' && (
+            <div className="detail-comments-tab">
+              {comments.length === 0 ? (
+                <p className="detail-empty">Sem comentários para esta variação nesta versão.</p>
+              ) : (
+                <ul className="comment-list">
+                  {comments.map((c) => (
+                    <li key={c.id} className="comment-item">
+                      <span className="comment-author">{c.User?.name || 'Usuário'}</span>
+                      <span className="comment-date">{new Date(c.createdAt).toLocaleString('pt-BR')}</span>
+                      {editingId === c.id ? (
+                        <div className="comment-edit-box">
+                          <textarea value={editingText} onChange={(e) => setEditingText(e.target.value)} rows={2} className="comment-textarea" />
+                          <div className="comment-actions">
+                            <button type="button" className="btn btn-primary" onClick={() => handleEditComment(c.id)}>Salvar</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(null); setEditingText(''); }}>Cancelar</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="comment-text">{c.text}</p>
+                      )}
+                      {user && editingId !== c.id && (
+                        <div className="comment-actions">
+                          {user.id === c.User?.id && (
+                            <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(c.id); setEditingText(c.text); }}>Editar</button>
+                          )}
+                          <button type="button" className="btn btn-ghost" onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyText(''); }}>Responder</button>
+                        </div>
+                      )}
+                      {replyingTo === c.id && (
+                        <form onSubmit={(e) => handleReply(e, c.id)} className="comment-reply-form">
+                          <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Escreva uma resposta..." rows={2} className="comment-textarea" />
+                          <div className="comment-actions">
+                            <button type="submit" className="btn btn-primary" disabled={sendingComment || !replyText.trim()}>Enviar</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => { setReplyingTo(null); setReplyText(''); }}>Cancelar</button>
+                          </div>
+                        </form>
+                      )}
+                      {c.replies && c.replies.length > 0 && (
+                        <ul className="comment-replies">
+                          {[...c.replies].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map((r) => (
+                            <li key={r.id} className="comment-item comment-reply">
+                              <span className="comment-author">{r.User?.name || 'Usuário'}</span>
+                              <span className="comment-date">{new Date(r.createdAt).toLocaleString('pt-BR')}</span>
+                              {editingId === r.id ? (
+                                <div className="comment-edit-box">
+                                  <textarea value={editingText} onChange={(e) => setEditingText(e.target.value)} rows={2} className="comment-textarea" />
+                                  <div className="comment-actions">
+                                    <button type="button" className="btn btn-primary" onClick={() => handleEditComment(r.id)}>Salvar</button>
+                                    <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(null); setEditingText(''); }}>Cancelar</button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="comment-text">{r.text}</p>
+                              )}
+                              {user && user.id === r.User?.id && editingId !== r.id && (
+                                <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(r.id); setEditingText(r.text); }}>Editar</button>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {user ? (
+                <form onSubmit={handleSubmitComment} className="comment-form">
+                  <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Adicionar comentário..." rows={3} className="comment-textarea" />
+                  <button type="submit" className="btn btn-primary" disabled={sendingComment || !commentText.trim()}>
+                    {sendingComment ? 'Enviando...' : 'Comentar'}
+                  </button>
+                </form>
+              ) : (
+                <p className="comment-login-hint"><Link to="/login">Faça login</Link> para comentar.</p>
+              )}
+            </div>
+          )}
         </section>
 
-        {(normalizeVariations(component.variations).length > 0) && (
-          <div className="detail-variations-list">
-            {normalizeVariations(component.variations).map((v, i) => {
-              const key = `var-${v.id || i}`;
-              const code = v.codeSnippet || '';
-              return (
-                <section key={key} className="detail-card" id={key}>
-                  <h2>{v.title || `Variação ${i + 1}`}</h2>
-                  {v.description ? <p className="detail-meta">{v.description}</p> : <p className="detail-meta">Descrição</p>}
-                  <div className="usage-tabs section-tabs">
-                    <button
-                      type="button"
-                      className={`usage-tab section-tab ${sectionTabs[key] === 'preview' ? 'active' : ''}`}
-                      onClick={() => setSectionTabs((t) => ({ ...t, [key]: 'preview' }))}
-                    >Preview</button>
-                    <button
-                      type="button"
-                      className={`usage-tab section-tab ${sectionTabs[key] === 'code' ? 'active' : ''}`}
-                      onClick={() => setSectionTabs((t) => ({ ...t, [key]: 'code' }))}
-                    >Código</button>
-                  </div>
-                  {sectionTabs[key] === 'code' ? (
-                    <div className="code-block-wrap">
-                      <div className="code-block-with-lines">
-                        <div className="code-line-numbers" aria-hidden="true">
-                          {(() => {
-                            const c = code || '// Nenhum código definido.';
-                            const lines = c.split('\n');
-                            return lines.map((_, j) => (
-                              <span key={j} className="code-ln">{j + 1}</span>
-                            ));
-                          })()}
-                        </div>
-                        <pre className="code-block">
-                          {(code || '// Nenhum código definido.')
-                            .split('\n')
-                            .map((line, j) => (
-                              <div key={j} className="code-line">
-                                <code>{highlightCode(line)}</code>
-                              </div>
-                            ))}
-                        </pre>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="usage-preview-wrap">
-                      {code && code.trim() ? (
-                        <iframe
-                          title={`Pré-visualização ${v.title || i + 1}`}
-                          className="usage-preview-iframe"
-                          srcDoc={code}
-                          sandbox="allow-same-origin"
-                        />
-                      ) : (
-                        <p className="detail-empty">Nenhum código definido.</p>
-                      )}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
-          </div>
-        )}
+        <section className="detail-section detail-doc" id="documentation">
+          <h2>Documentação</h2>
+          {component.longDescriptionMd && (
+            <div className="detail-doc-block">
+              <h3>Descrição</h3>
+              <div className="detail-markdown" dangerouslySetInnerHTML={{ __html: simpleMarkdown(component.longDescriptionMd) }} />
+            </div>
+          )}
+          {component.dependenciesMd && (
+            <div className="detail-doc-block">
+              <h3>Dependências</h3>
+              <div className="detail-markdown" dangerouslySetInnerHTML={{ __html: simpleMarkdown(component.dependenciesMd) }} />
+            </div>
+          )}
+          {component.accessibilityMd && (
+            <div className="detail-doc-block">
+              <h3>Acessibilidade</h3>
+              <div className="detail-markdown" dangerouslySetInnerHTML={{ __html: simpleMarkdown(component.accessibilityMd) }} />
+            </div>
+          )}
+          {!component.longDescriptionMd && !component.dependenciesMd && !component.accessibilityMd && (
+            <p className="detail-empty">Nenhuma documentação adicional.</p>
+          )}
+        </section>
 
-        <section className="detail-section">
+        <section className="detail-section" id="versions">
           <h2>Histórico de versões</h2>
           {canEdit && (
             <button type="button" className="btn btn-ghost" onClick={handleSaveVersion} disabled={savingVersion} style={{ marginBottom: 'var(--spacing-md)' }}>
-              {savingVersion ? 'Salvando...' : 'Registrar versão atual'}
+              {savingVersion ? 'Salvando...' : 'Criar nova versão (rascunho)'}
             </button>
           )}
           {versions.length === 0 ? (
@@ -542,96 +612,14 @@ export default function ComponentDetail() {
             <ul className="version-list">
               {versions.map((v) => (
                 <li key={v.id}>
-                  <strong>v{v.number}</strong> — {v.description || 'Sem descrição'} —{' '}
-                  {new Date(v.createdAt).toLocaleDateString('pt-BR')}
+                  <strong>v{v.number}</strong>
+                  {v.isPublished && <span className="detail-badge detail-badge-published" style={{ marginLeft: '0.5rem' }}>Publicada</span>}
+                  {' — '}{new Date(v.createdAt).toLocaleDateString('pt-BR')}
+                  {v.createdBy?.name && ` — ${v.createdBy.name}`}
+                  {v.changelog && <div className="version-changelog">{String(v.changelog).slice(0, 120)}{String(v.changelog).length > 120 ? '…' : ''}</div>}
                 </li>
               ))}
             </ul>
-          )}
-        </section>
-
-        <section className="detail-section">
-          <h2>Comentários ({totalComments})</h2>
-          <ul className="comment-list">
-            {comments.map((c) => (
-              <li key={c.id} className="comment-item">
-                <span className="comment-author">{c.User?.name || 'Usuário'}</span>
-                <span className="comment-date">{new Date(c.createdAt).toLocaleString('pt-BR')}</span>
-                {editingId === c.id ? (
-                  <div className="comment-edit-box">
-                    <textarea
-                      value={editingText}
-                      onChange={(e) => setEditingText(e.target.value)}
-                      rows={2}
-                      className="comment-textarea"
-                    />
-                    <div className="comment-actions">
-                      <button type="button" className="btn btn-primary" onClick={() => handleEditComment(c.id)}>Salvar</button>
-                      <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(null); setEditingText(''); }}>Cancelar</button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="comment-text">{c.text}</p>
-                )}
-                {user && editingId !== c.id && (
-                  <div className="comment-actions">
-                    {user.id === c.User?.id && (
-                      <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(c.id); setEditingText(c.text); }}>Editar</button>
-                    )}
-                    <button type="button" className="btn btn-ghost" onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyText(''); }}>Responder</button>
-                  </div>
-                )}
-                {replyingTo === c.id && (
-                  <form onSubmit={(e) => handleReply(e, c.id)} className="comment-reply-form">
-                    <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Escreva uma resposta..." rows={2} className="comment-textarea" />
-                    <div className="comment-actions">
-                      <button type="submit" className="btn btn-primary" disabled={sendingComment || !replyText.trim()}>Enviar</button>
-                      <button type="button" className="btn btn-ghost" onClick={() => { setReplyingTo(null); setReplyText(''); }}>Cancelar</button>
-                    </div>
-                  </form>
-                )}
-                {c.replies && c.replies.length > 0 && (
-                  <ul className="comment-replies">
-                    {[...c.replies].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map((r) => (
-                      <li key={r.id} className="comment-item comment-reply">
-                        <span className="comment-author">{r.User?.name || 'Usuário'}</span>
-                        <span className="comment-date">{new Date(r.createdAt).toLocaleString('pt-BR')}</span>
-                        {editingId === r.id ? (
-                          <div className="comment-edit-box">
-                            <textarea value={editingText} onChange={(e) => setEditingText(e.target.value)} rows={2} className="comment-textarea" />
-                            <div className="comment-actions">
-                              <button type="button" className="btn btn-primary" onClick={() => handleEditComment(r.id)}>Salvar</button>
-                              <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(null); setEditingText(''); }}>Cancelar</button>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="comment-text">{r.text}</p>
-                        )}
-                        {user && user.id === r.User?.id && editingId !== r.id && (
-                          <button type="button" className="btn btn-ghost" onClick={() => { setEditingId(r.id); setEditingText(r.text); }}>Editar</button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-          {user ? (
-            <form onSubmit={handleSubmitComment} className="comment-form">
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Escreva um comentário..."
-                rows={3}
-                className="comment-textarea"
-              />
-              <button type="submit" className="btn btn-primary" disabled={sendingComment || !commentText.trim()}>
-                {sendingComment ? 'Enviando...' : 'Enviar comentário'}
-              </button>
-            </form>
-          ) : (
-            <p className="comment-login-hint"><Link to="/login">Faça login</Link> para comentar.</p>
           )}
         </section>
       </div>
@@ -640,13 +628,9 @@ export default function ComponentDetail() {
           <p className="detail-toc-title">Conteúdo</p>
           <ul className="detail-toc-list">
             <li><a href="#title" className={`detail-toc-link ${activeIndexId === 'title' ? 'active' : ''}`}>{component.title || component.name}</a></li>
-            <li><a href="#default" className={`detail-toc-link ${activeIndexId === 'default' ? 'active' : ''}`}>Default</a></li>
-            {normalizeVariations(component.variations).map((v, i) => {
-              const key = `var-${v.id || i}`;
-              return (
-                <li key={key}><a href={`#${key}`} className={`detail-toc-link ${activeIndexId === key ? 'active' : ''}`}>{v.title || `Variação ${i + 1}`}</a></li>
-              );
-            })}
+            <li><a href="#preview-code-comments" className={`detail-toc-link ${activeIndexId === 'preview-code-comments' ? 'active' : ''}`}>Preview / Código / Comentários</a></li>
+            <li><a href="#documentation" className={`detail-toc-link ${activeIndexId === 'documentation' ? 'active' : ''}`}>Documentação</a></li>
+            <li><a href="#versions" className={`detail-toc-link ${activeIndexId === 'versions' ? 'active' : ''}`}>Histórico de versões</a></li>
           </ul>
         </div>
       </aside>
