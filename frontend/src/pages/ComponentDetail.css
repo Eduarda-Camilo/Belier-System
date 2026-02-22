@@ -393,6 +393,71 @@
 }
 
 /* Botão Editar: default = só ícone + texto (sem fundo); hover = fundo azul, cantos arredondados */
+.detail-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+.detail-tag-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+}
+.detail-more-actions-wrap {
+  position: relative;
+}
+.btn-icon-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+.btn-icon-more:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.detail-more-actions-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  padding: 8px 0;
+  background: var(--color-bg-elevated, #2c2c2c);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+.detail-more-action-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+.detail-more-action-item:hover {
+  background: rgba(255,255,255,0.06);
+}
+.detail-more-action-danger:hover {
+  color: #e74c3c;
+}
+
 .page-header-actions {
   display: inline-flex;
   align-items: center;
@@ -487,6 +552,28 @@
   font-weight: 400;
   color: #ffffff;
   line-height: 1.5;
+}
+
+.delete-modal-confirm-wrap {
+  margin: 0 0 20px;
+}
+.delete-modal-confirm-wrap label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #fff;
+}
+.delete-modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 1rem;
+}
+.delete-modal-input::placeholder {
+  color: rgba(255,255,255,0.4);
 }
 
 .delete-modal-actions {

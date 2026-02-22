@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -97,23 +97,51 @@ export default function ComponentDetail() {
   const statusLabel = { draft: 'Rascunho', published: 'Publicado', archived: 'Arquivado' };
   const [savingVersion, setSavingVersion] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmSlug, setDeleteConfirmSlug] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [moreActionsOpen, setMoreActionsOpen] = useState(false);
+  const [selectedVersionId, setSelectedVersionId] = useState(null);
+  const [mainTab, setMainTab] = useState('preview');
+  const moreActionsRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const onOutside = (e) => {
+      if (moreActionsRef.current && !moreActionsRef.current.contains(e.target)) setMoreActionsOpen(false);
+    };
+    if (moreActionsOpen) {
+      document.addEventListener('click', onOutside);
+      return () => document.removeEventListener('click', onOutside);
+    }
+  }, [moreActionsOpen]);
 
   const totalComments = comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0);
   const loadComments = () => api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
 
+  const canArchive = canEdit;
+
   const handleDeleteComponent = async () => {
-    if (!id || !component) return;
+    if (!id || !component || deleteConfirmSlug !== (component.slug || '')) return;
     setIsDeleting(true);
     try {
       await api.delete(`/components/${id}`);
       setDeleteModalOpen(false);
-      navigate('/docs');
+      setDeleteConfirmSlug('');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Não foi possível excluir o componente.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    try {
+      await api.post(`/components/${id}/archive`);
+      setComponent((c) => (c ? { ...c, status: 'archived' } : null));
+      setMoreActionsOpen(false);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erro ao arquivar');
     }
   };
 
@@ -153,23 +181,54 @@ export default function ComponentDetail() {
     return () => { cancelled = true; };
   }, [id]);
 
+  const [selectedExampleId, setSelectedExampleId] = useState(null);
+
   useEffect(() => {
     if (!id) return;
-    api.get(`/versions/component/${id}`).then((res) => setVersions(res.data)).catch(() => {});
-    api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
+    api.get(`/versions/component/${id}`).then((res) => {
+      const list = res.data || [];
+      setVersions(list);
+      if (list.length > 0 && selectedVersionId === null) setSelectedVersionId(list[0].id);
+    }).catch(() => {});
   }, [id]);
 
   useEffect(() => {
+    if (!id) return;
+    const params = {};
+    if (selectedVersionId != null) params.versionId = selectedVersionId;
+    if (selectedExampleId != null) params.exampleId = selectedExampleId;
+    const q = new URLSearchParams(params).toString();
+    api.get(`/comments/component/${id}${q ? `?${q}` : ''}`).then((res) => setComments(res.data || [])).catch(() => setComments([]));
+  }, [id, selectedVersionId, selectedExampleId]);
+
+
+  const selectedVersion = selectedVersionId != null ? versions.find((v) => v.id === selectedVersionId) : null;
+  const fromSnapshot = selectedVersion?.content?.variationsSnapshot;
+  const allExamples = fromSnapshot && Array.isArray(fromSnapshot) && fromSnapshot.length > 0
+    ? fromSnapshot.map((s, i) => ({
+        id: s.id ?? `snap-${selectedVersion.id}-${i}`,
+        title: i === 0 ? 'Default' : (s.title || `Variação ${i}`),
+        slug: s.slug || (i === 0 ? 'default' : `v${i}`),
+        codeSnippet: s.codeSnippet ?? '',
+        codeCss: s.codeCss,
+        codeJs: s.codeJs,
+        description: s.description,
+      }))
+    : [
+        ...(component?.defaultExample ? [{ ...component.defaultExample, title: 'Default', slug: 'default' }] : []),
+        ...(normalizeVariations(component?.variations) || []),
+      ];
+  const currentExample = selectedExampleId != null
+    ? allExamples.find((e) => e.id === selectedExampleId || e.id === Number(selectedExampleId))
+    : allExamples[0];
+  const currentCode = currentExample?.codeSnippet ?? '';
+
+  useEffect(() => {
     if (!component) return;
-    const tabs = {};
-    tabs.default = 'preview';
-    const vars = normalizeVariations(component.variations);
-    for (let i = 0; i < vars.length; i++) {
-      const key = `var-${vars[i].id || i}`;
-      tabs[key] = 'preview';
+    if (allExamples.length > 0 && (selectedExampleId == null || !allExamples.some((e) => e.id === selectedExampleId || e.id === Number(selectedExampleId)))) {
+      setSelectedExampleId(allExamples[0]?.id ?? null);
     }
-    setSectionTabs(tabs);
-  }, [component]);
+  }, [component?.id, selectedVersionId, allExamples.length]);
 
   useEffect(() => {
     const ids = ['title', 'default', ...(normalizeVariations(component?.variations).map((v, i) => `var-${v.id || i}`))];
@@ -201,7 +260,11 @@ export default function ComponentDetail() {
     if (!commentText.trim()) return;
     setSendingComment(true);
     try {
-      const { data } = await api.post(`/comments/component/${id}`, { text: commentText.trim() });
+      const { data } = await api.post(`/comments/component/${id}`, {
+        text: commentText.trim(),
+        exampleId: currentExample?.id ?? selectedExampleId ?? undefined,
+        versionId: selectedVersionId ?? undefined,
+      });
       loadComments();
       setCommentText('');
     } catch (err) {
@@ -216,7 +279,12 @@ export default function ComponentDetail() {
     if (!replyText.trim()) return;
     setSendingComment(true);
     try {
-      await api.post(`/comments/component/${id}`, { text: replyText.trim(), parentId });
+      await api.post(`/comments/component/${id}`, {
+        text: replyText.trim(),
+        parentId,
+        exampleId: currentExample?.id ?? selectedExampleId ?? undefined,
+        versionId: selectedVersionId ?? undefined,
+      });
       loadComments();
       setReplyText('');
       setReplyingTo(null);
@@ -250,9 +318,8 @@ export default function ComponentDetail() {
     );
   }
 
-  const usageCodeDefault = component.defaultExample?.codeSnippet ?? component.documentation ?? '';
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(usageCodeDefault || '').then(() => {
+    navigator.clipboard.writeText(currentCode || '').then(() => {
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 1500);
     });
@@ -275,23 +342,56 @@ export default function ComponentDetail() {
                   <IconEdit /> Editar
                 </Link>
               )}
-              {canDelete && (
+              <button type="button" className="btn-edit-header" onClick={handleCopyCode}>
+                {copyFeedback ? 'Copiado!' : 'Copiar código'}
+              </button>
+              <a href={`/api/components/${id}/zip`} className="btn-edit-header" download target="_blank" rel="noopener noreferrer">
+                Baixar ZIP
+              </a>
+              <div className="detail-more-actions-wrap" ref={moreActionsRef}>
                 <button
                   type="button"
-                  className="btn-delete-header"
-                  onClick={() => setDeleteModalOpen(true)}
-                  aria-label="Excluir componente"
+                  className="btn-icon-more"
+                  onClick={() => setMoreActionsOpen((o) => !o)}
+                  aria-expanded={moreActionsOpen}
+                  aria-haspopup="true"
+                  aria-label="Mais ações"
                 >
-                  <IconTrash /> Excluir componente
+                  ⋯
                 </button>
-              )}
+                {moreActionsOpen && (
+                  <div className="detail-more-actions-menu">
+                    {canArchive && (
+                      <button type="button" className="detail-more-action-item" onClick={handleArchive}>
+                        Arquivar componente
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        type="button"
+                        className="detail-more-action-item detail-more-action-danger"
+                        onClick={() => { setMoreActionsOpen(false); setDeleteModalOpen(true); setDeleteConfirmSlug(''); }}
+                      >
+                        Excluir componente
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          {component.Category && (
-            <span className="detail-meta">Categoria: {component.Category.name}</span>
+          {Array.isArray(component.tags) && component.tags.length > 0 && (
+            <div className="detail-tags-wrap">
+              {component.tags.map((tag, i) => (
+                <span key={i} className="detail-tag-chip">{tag}</span>
+              ))}
+            </div>
           )}
           {component.responsible && (
             <span className="detail-meta">Responsável: {component.responsible.name}</span>
+          )}
+          {component.updatedAt && (
+            <span className="detail-meta">Última atualização: {new Date(component.updatedAt).toLocaleString('pt-BR')}</span>
           )}
           {(component.shortDescription || component.description) && (
             <p className="detail-description">{component.shortDescription || component.description}</p>
@@ -356,7 +456,7 @@ export default function ComponentDetail() {
                   title="Pré-visualização"
                   className="usage-preview-iframe"
                   srcDoc={usageCodeDefault}
-                  sandbox="allow-scripts"
+                  sandbox="allow-same-origin"
                 />
               ) : (
                 <p className="detail-empty">Nenhum código de uso definido.</p>
@@ -416,7 +516,7 @@ export default function ComponentDetail() {
                           title={`Pré-visualização ${v.title || i + 1}`}
                           className="usage-preview-iframe"
                           srcDoc={code}
-                          sandbox="allow-scripts"
+                          sandbox="allow-same-origin"
                         />
                       ) : (
                         <p className="detail-empty">Nenhum código definido.</p>
@@ -558,16 +658,28 @@ export default function ComponentDetail() {
               <span className="delete-modal-icon-x">×</span>
             </div>
             <h2 id="delete-modal-title" className="delete-modal-title">
-              Excluir o componente {component.title || component.name}?
+              Excluir componente permanentemente?
             </h2>
             <p className="delete-modal-body">
-              Tem certeza que deseja excluir o componente {component.title || component.name}? Essa ação é destrutiva e não pode ser desfeita.
+              Isso apagará o componente, versões, variações e comentários. Essa ação não pode ser desfeita.
             </p>
+            <div className="delete-modal-confirm-wrap">
+              <label htmlFor="delete-confirm-slug">Digite o slug para confirmar:</label>
+              <input
+                id="delete-confirm-slug"
+                type="text"
+                value={deleteConfirmSlug}
+                onChange={(e) => setDeleteConfirmSlug(e.target.value)}
+                placeholder={component.slug || ''}
+                className="delete-modal-input"
+                autoComplete="off"
+              />
+            </div>
             <div className="delete-modal-actions">
               <button
                 type="button"
                 className="delete-modal-btn-cancel"
-                onClick={() => setDeleteModalOpen(false)}
+                onClick={() => { setDeleteModalOpen(false); setDeleteConfirmSlug(''); }}
                 disabled={isDeleting}
               >
                 Cancelar
@@ -576,7 +688,7 @@ export default function ComponentDetail() {
                 type="button"
                 className="delete-modal-btn-delete"
                 onClick={handleDeleteComponent}
-                disabled={isDeleting}
+                disabled={isDeleting || deleteConfirmSlug !== (component.slug || '')}
               >
                 {isDeleting ? 'Excluindo...' : 'Excluir'}
               </button>

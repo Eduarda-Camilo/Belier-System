@@ -11,6 +11,7 @@ async function listByComponent(req, res, next) {
     const versions = await Version.findAll({
       where: { componentId },
       order: [['number', 'DESC']],
+      include: [{ model: User, as: 'createdBy', attributes: ['id', 'name'] }],
     });
     res.json(versions);
   } catch (err) {

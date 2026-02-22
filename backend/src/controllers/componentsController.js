@@ -275,6 +275,7 @@ async function publish(req, res, next) {
       accessibilityMd: component.accessibilityMd,
       tags: component.tags,
       variationsSnapshot: examples.map((e) => ({
+        id: e.id,
         title: e.title,
         slug: e.slug,
         description: e.description,
