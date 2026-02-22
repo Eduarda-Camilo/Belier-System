@@ -7,7 +7,7 @@
 }
 
 .layout-header {
-  background: transparent;
+  background: linear-gradient(160deg, #0d1117 0%, #0f1419 25%, #131a22 50%, #161d27 75%, #1c2128 100%);
   position: sticky;
   top: 0;
   z-index: 100;
