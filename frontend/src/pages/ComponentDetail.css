@@ -392,7 +392,30 @@
   flex-wrap: wrap;
 }
 
+/* Botão Editar: default = só ícone + texto (sem fundo); hover = fundo azul, cantos arredondados */
 .btn-edit-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-edit-header:hover {
+  background: #2B8BE0;
+  color: #fff;
+}
+
+.btn-edit-header svg {
   flex-shrink: 0;
 }
 

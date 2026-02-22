@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import { IconEdit } from '../components/Icons';
 import './ComponentDetail.css';
 
 /** Destaque de sintaxe simples para HTML/CSS: retorna array de elementos React. */
@@ -251,7 +252,9 @@ export default function ComponentDetail() {
               </span>
             </div>
             {canEdit && (
-              <Link to={`/components/${id}/edit`} className="btn btn-primary btn-edit-header">Editar</Link>
+              <Link to={`/components/${id}/edit`} className="btn-edit-header">
+              <IconEdit /> Editar
+            </Link>
             )}
           </div>
           {component.Category && (
