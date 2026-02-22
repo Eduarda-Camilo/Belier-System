@@ -165,7 +165,7 @@
 
 .layout-sidebar {
   background: transparent;
-  padding: 16px 0 0;
+  padding: 16px 0 0 24px;
   overflow-y: auto;
   position: sticky;
   top: 0;
@@ -268,9 +268,9 @@
   opacity: 0.8;
 }
 
-/* Figma: itens da lista de componentes — padding 8px 16px 8px 56px (indent), selected #0040a64c */
+/* Itens da lista de componentes: mesmo espaçamento dos outros itens do menu (4px 16px) */
 .layout-side-components a {
-  padding: 8px 16px 8px 56px;
+  padding: 4px 16px;
 }
 
 .layout-side-components a.active {
@@ -278,12 +278,12 @@
 }
 
 .layout-side-components .layout-side-empty {
-  padding: 8px 16px 8px 56px;
+  padding: 4px 16px;
 }
 
 .layout-side-empty {
   color: rgba(255, 255, 255, 0.7);
-  padding: 8px 16px 8px 56px;
+  padding: 4px 16px;
   font-size: 14px;
   font-weight: 500;
 }

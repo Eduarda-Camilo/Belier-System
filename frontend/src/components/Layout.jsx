@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -17,6 +17,7 @@ function getInitials(user) {
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [components, setComponents] = useState([]);
   const [q, setQ] = useState('');
   const [componentsOpen, setComponentsOpen] = useState(true);
@@ -36,8 +37,13 @@ export default function Layout() {
     const name = (c.title || c.name || '').toLowerCase();
     return name.includes(q.toLowerCase());
   });
+  const firstComponent = filtered.length > 0 ? filtered[0] : null;
 
   const navLinkClass = ({ isActive }) => `layout-nav-link ${isActive ? 'active' : ''}`;
+  const componentesNavClass = ({ isActive }) => {
+    const onComponentPage = location.pathname.startsWith('/components/') && location.pathname !== '/components' && location.pathname !== '/components/new';
+    return `layout-nav-link ${isActive || onComponentPage ? 'active' : ''}`;
+  };
   const sideLinkClass = ({ isActive }) => (isActive ? 'active' : '');
 
   return (
@@ -57,9 +63,15 @@ export default function Layout() {
             <a href={FIGMA_URL} target="_blank" rel="noopener noreferrer" className="layout-nav-link">
               <img src="/figma.svg" alt="" className="layout-nav-figma-icon" aria-hidden /> Figma
             </a>
-            <NavLink to="/" className={navLinkClass} end>
-              <IconComponentes /> Componentes
-            </NavLink>
+            {firstComponent ? (
+              <NavLink to={`/components/${firstComponent.id}`} className={componentesNavClass}>
+                <IconComponentes /> Componentes
+              </NavLink>
+            ) : (
+              <NavLink to="/" className={navLinkClass} end>
+                <IconComponentes /> Componentes
+              </NavLink>
+            )}
           </nav>
           <div className="layout-header-right">
             <div className="layout-search-wrap">

@@ -40,7 +40,7 @@ export default function Notifications() {
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Notificações</h1>
+        <h1>Inbox</h1>
         {unreadCount > 0 && (
           <button type="button" className="btn btn-ghost" onClick={markAllAsRead}>
             Marcar todas como lidas
