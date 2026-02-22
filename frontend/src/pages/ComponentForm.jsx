@@ -174,6 +174,7 @@ export default function ComponentForm() {
       const titleVal = form.title.trim();
       const payload = {
         title: titleVal,
+        name: titleVal, // alguns proxies/endpoints esperam "name"; mantém compatibilidade
         shortDescription: form.shortDescription.trim(),
         slug: form.slug.trim().toLowerCase(),
         tags: form.tags,
@@ -253,8 +254,10 @@ export default function ComponentForm() {
       navigate(`/components/${componentId}`, { replace: true });
     } catch (err) {
       let msg = err.response?.data?.error || (err.response?.status === 401 ? 'Faça login para continuar.' : err.response?.status === 403 ? 'Sem permissão para esta ação.' : err.message || 'Erro ao salvar.');
-      // No formulário de componente não existe campo "Nome"; o correto é "Título"
-      if (msg === 'Nome é obrigatório') msg = 'Título é obrigatório (preencha o campo "Título" nas informações básicas).';
+      // Se a API devolver "Nome é obrigatório" é sinal de que a requisição caiu no endpoint errado (registro)
+      if (msg === 'Nome é obrigatório') {
+        msg = 'A requisição não chegou ao servidor correto. Configure a URL da API no deploy: defina VITE_API_URL com o endereço do backend (ex.: https://seu-backend.onrender.com/api).';
+      }
       setError(msg);
     } finally {
       setSaving(false);
@@ -430,7 +433,7 @@ export default function ComponentForm() {
             <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving || loading}>{saving ? 'Salvando...' : 'Salvar'}</button>
           </div>
         </header>
-        {error && <div className="page-error" role="alert">{error === 'Nome é obrigatório' ? 'Título é obrigatório (preencha o campo "Título" nas informações básicas).' : error}</div>}
+        {error && <div className="page-error" role="alert">{error}</div>}
         {loading ? (
           <div className="component-form-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
             <p className="page-loading" style={{ margin: 0 }}>Carregando componente...</p>
