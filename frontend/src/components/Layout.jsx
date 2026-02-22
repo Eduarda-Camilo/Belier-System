@@ -19,6 +19,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const [components, setComponents] = useState([]);
   const [q, setQ] = useState('');
+  const [componentsOpen, setComponentsOpen] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -92,20 +93,33 @@ export default function Layout() {
               <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
               <li><NavLink to="/categories" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
               <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><img src="/figma.svg" alt="" className="layout-side-figma-icon" aria-hidden /> Figma</a></li>
-              <li><NavLink to="/" className={sideLinkClass} end><IconComponentes /> Componentes</NavLink></li>
+              <li>
+                <button
+                  type="button"
+                  className="layout-side-toggle"
+                  onClick={() => setComponentsOpen((o) => !o)}
+                  aria-expanded={componentsOpen}
+                  aria-label={componentsOpen ? 'Fechar lista de componentes' : 'Abrir lista de componentes'}
+                >
+                  <IconComponentes />
+                  <span className="layout-side-toggle-text">Componentes</span>
+                  <span className="layout-side-arrow" aria-hidden>{componentsOpen ? '▼' : '▶'}</span>
+                </button>
+              </li>
             </ul>
-            <p className="layout-side-title">Componentes</p>
-            <ul className="layout-side-list">
-              {filtered.length === 0 ? (
-                <li className="layout-side-empty">Nenhum componente</li>
-              ) : (
-                filtered.map((c) => (
-                  <li key={c.id}>
-                    <NavLink to={`/components/${c.id}`} className={sideLinkClass}>{c.title || c.name}</NavLink>
-                  </li>
-                ))
-              )}
-            </ul>
+            {componentsOpen && (
+              <ul className="layout-side-list layout-side-components">
+                {filtered.length === 0 ? (
+                  <li className="layout-side-empty">Nenhum componente</li>
+                ) : (
+                  filtered.map((c) => (
+                    <li key={c.id}>
+                      <NavLink to={`/components/${c.id}`} className={sideLinkClass}>{c.title || c.name}</NavLink>
+                    </li>
+                  ))
+                )}
+              </ul>
+            )}
           </nav>
         </aside>
         <section className="layout-content">
