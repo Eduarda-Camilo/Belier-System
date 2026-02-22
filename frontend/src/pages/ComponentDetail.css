@@ -36,10 +36,11 @@
 }
 
 .detail-description {
-  margin: var(--spacing-md) 0 0;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--color-text);
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #ffffff;
 }
 
 .detail-section {
@@ -86,41 +87,41 @@
   border-bottom-color: var(--color-primary);
 }
 
-/* Pills (Preview | Código) no estilo Figma */
+/* Pills (Preview | Código) — Figma: ativo #0090f9, inativo #22272ab2, texto #cbd4d6 */
 .section-tabs {
   border-bottom: none;
-  margin-bottom: var(--spacing-md);
-  gap: var(--spacing-sm);
+  margin-bottom: 16px;
+  gap: 0;
   display: flex;
 }
 
 .section-tab {
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border: none;
+  border-radius: 8px;
   padding: 8px 16px;
-  font-size: 0.9rem;
-  background: var(--color-surface-elevated);
-  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  background: #22272ab2;
+  color: #cbd4d6;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .section-tab:hover {
-  color: var(--color-text);
+  color: #ffffff;
 }
 
 .section-tab.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
+  background: #0090f9;
+  color: #fff;
 }
 
 .usage-preview-wrap {
-  background: rgba(30, 30, 30, 0.6);
-  border-radius: 14px;
-  padding: var(--spacing-lg);
+  background: #ffffff0d;
+  border: 1px solid #ffffff0d;
+  border-radius: 12px;
+  padding: 48px;
   min-height: 120px;
-  border: 1px solid var(--color-border);
   backdrop-filter: blur(6px);
 }
 
@@ -348,24 +349,56 @@
   }
 }
 
+/* Figma recheio: padding 0 48px 0 64px, gap 24px entre seções */
 .detail-content {
   width: 100%;
+  padding: 0 48px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Título do componente: 36px bold */
+.detail-content .page-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 40px;
+  color: #ffffff;
+}
+
+/* Títulos das seções (Default, Disabled...): 24px bold */
+.detail-card h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  color: #ffffff;
+}
+
+.detail-card .detail-meta {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #ffffff;
 }
 
 .detail-card {
-  background: rgba(33, 38, 45, 0.7);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .detail-variations-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 24px;
 }
 
 .detail-toc {
@@ -375,16 +408,18 @@
 }
 
 .detail-toc-inner {
-  background: rgba(33, 38, 45, 0.85);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--spacing-md);
-  backdrop-filter: blur(8px);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 
+/* Figma sumário: título "Conteúdo" 14px weight 500, branco */
 .detail-toc-title {
-  margin: 0 0 var(--spacing-sm);
-  font-weight: 600;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
 }
 
 .detail-toc-list {
@@ -393,22 +428,30 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
 }
 
+/* Figma: links padding 8px 16px 8px 24px, border-radius 8px; ativo #0040a64c */
 .detail-toc-link {
   display: block;
-  padding: 8px 10px;
-  border-radius: var(--radius);
-  color: var(--color-text);
+  padding: 8px 16px 8px 24px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
   text-decoration: none;
 }
 
 .detail-toc-link:hover {
-  background: var(--color-surface-elevated);
+  background: rgba(0, 64, 166, 0.2);
 }
 
 .detail-toc-link.active {
-  background: var(--color-primary);
-  color: white;
+  background: #0040a64c;
+  color: #fff;
+}
+
+/* Itens de variação com indent maior (Figma: 48px) */
+.detail-toc-list li:nth-child(n+3) .detail-toc-link {
+  padding-left: 48px;
 }

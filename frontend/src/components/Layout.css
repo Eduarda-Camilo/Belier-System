@@ -154,9 +154,10 @@
   width: 100%;
 }
 
+/* Figma: menu lateral width 207px, gap 4px, padding 16px 0 0 */
 .layout-with-sidebar {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 207px 1fr;
   gap: 0;
   width: 100%;
   min-height: 0;
@@ -164,12 +165,13 @@
 
 .layout-sidebar {
   background: transparent;
-  padding: var(--spacing-xl) var(--spacing-md);
+  padding: 16px 0 0;
   overflow-y: auto;
   position: sticky;
   top: 0;
   align-self: start;
   max-height: calc(100vh - 56px);
+  width: 207px;
 }
 
 .layout-side-list {
@@ -181,32 +183,34 @@
   gap: 4px;
 }
 
+/* Figma: item padding 4px 16px, gap 16px, border-radius 8px, 14px weight 500, ícone 24px */
 .layout-side-list a {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  color: var(--color-text);
+  gap: 16px;
+  padding: 4px 16px;
+  border-radius: 8px;
+  color: #ffffff;
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 14px;
+  font-weight: 500;
   transition: background 0.15s, color 0.15s;
 }
 
 .layout-side-list a:hover {
-  background: var(--color-surface-elevated);
-  color: var(--color-text);
+  background: rgba(0, 64, 166, 0.2);
+  color: #fff;
 }
 
 .layout-side-list a.active {
-  background: #2f4060;
+  background: #0040a64c;
   color: #fff;
 }
 
 .layout-side-list a svg {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   opacity: 0.9;
 }
 
@@ -215,37 +219,38 @@
 }
 
 .layout-side-figma-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 
-/* Botão "Componentes" que abre/fecha a lista — setinha na extremidade direita, hover azul escuro */
+/* Figma: botão Componentes — mesmo padding/gap, hover azul escuro; setinha à direita */
 .layout-side-toggle {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 10px;
+  gap: 16px;
+  padding: 4px 16px;
+  border-radius: 8px;
   border: none;
   background: transparent;
-  color: var(--color-text);
-  font-size: 1rem;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   text-align: left;
 }
 
 .layout-side-toggle:hover {
-  background: #2f4060;
+  background: #0040a64c;
   color: #fff;
 }
 
 .layout-side-toggle svg {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   opacity: 0.9;
 }
 
@@ -263,14 +268,24 @@
   opacity: 0.8;
 }
 
-.layout-side-components {
-  margin-top: 4px;
+/* Figma: itens da lista de componentes — padding 8px 16px 8px 56px (indent), selected #0040a64c */
+.layout-side-components a {
+  padding: 8px 16px 8px 56px;
+}
+
+.layout-side-components a.active {
+  background: #0040a64c;
+}
+
+.layout-side-components .layout-side-empty {
+  padding: 8px 16px 8px 56px;
 }
 
 .layout-side-empty {
-  color: var(--color-text-muted);
-  padding: 12px 14px;
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px 8px 56px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .layout-content {
