@@ -38,6 +38,8 @@ Component.hasMany(Example, { foreignKey: 'componentId' });
 // Versão e Comentário pertencem a um Componente
 Version.belongsTo(Component, { foreignKey: 'componentId' });
 Component.hasMany(Version, { foreignKey: 'componentId' });
+Version.belongsTo(User, { as: 'createdBy', foreignKey: 'userId' });
+User.hasMany(Version, { foreignKey: 'userId' });
 
 Comment.belongsTo(Component, { foreignKey: 'componentId' });
 Component.hasMany(Comment, { foreignKey: 'componentId' });

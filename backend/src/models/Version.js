@@ -21,6 +21,18 @@ module.exports = (sequelize) => {
       references: { model: 'components', key: 'id' },
       onDelete: 'CASCADE', // Se o componente for apagado, apaga as versões também
     },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: 'users', key: 'id' },
+      onDelete: 'SET NULL',
+      comment: 'Quem registrou esta versão (atualizou o componente)',
+    },
+    variationTitle: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: 'Se a atualização foi em uma variante, nome da variante',
+    },
     number: {
       type: DataTypes.INTEGER,
       allowNull: false,

@@ -31,12 +31,15 @@ export function IconComponentes() {
   );
 }
 
+/** Ícone cloud_sync: nuvem com setas curvas de sincronização (ChangeLog). */
 export function IconChangelog() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-      <path d="M4 12 a10 10 0 0 1 8-8" />
+      <path d="M18 10h-1.26A5 5 0 0 0 7 10H5.74a4 4 0 0 0 0 8h12.52a4 4 0 0 0 0-8z" />
+      <path d="M7 14.5l-1.5 1.5 1.5 1.5" />
+      <path d="M7 14.5a5 5 0 0 1 5-5" />
+      <path d="M17 9.5l1.5-1.5L17 6.5" />
+      <path d="M17 9.5a5 5 0 0 0-5 5" />
     </svg>
   );
 }
