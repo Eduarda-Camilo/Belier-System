@@ -7,6 +7,7 @@ export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [inboxFilter, setInboxFilter] = useState('todas');
 
   const load = () => {
     api.get('/notifications')
@@ -34,25 +35,51 @@ export default function Notifications() {
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const filteredNotifications =
+    inboxFilter === 'nao-lidas' ? notifications.filter((n) => !n.read) : notifications;
 
   if (loading) return <div className="page-loading">Carregando...</div>;
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h1>Inbox</h1>
-        {unreadCount > 0 && (
-          <button type="button" className="btn btn-ghost" onClick={markAllAsRead}>
-            Marcar todas como lidas
+      <div className="page-header page-header-inbox">
+        <div className="page-header-inbox-top">
+          <h1>Inbox</h1>
+          {unreadCount > 0 && (
+            <button type="button" className="btn btn-ghost" onClick={markAllAsRead}>
+              Marcar todas como lidas
+            </button>
+          )}
+        </div>
+        <div className="segmented" role="tablist" aria-label="Filtrar inbox">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={inboxFilter === 'todas'}
+            className={`segmented-segment ${inboxFilter === 'todas' ? 'segmented-segment-active' : ''}`}
+            onClick={() => setInboxFilter('todas')}
+          >
+            Todas
           </button>
-        )}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={inboxFilter === 'nao-lidas'}
+            className={`segmented-segment ${inboxFilter === 'nao-lidas' ? 'segmented-segment-active' : ''}`}
+            onClick={() => setInboxFilter('nao-lidas')}
+          >
+            Não lidas
+          </button>
+        </div>
       </div>
       {error && <div className="page-error">{error}</div>}
-      {notifications.length === 0 ? (
-        <p className="page-empty">Nenhuma notificação.</p>
+      {filteredNotifications.length === 0 ? (
+        <p className="page-empty">
+          {inboxFilter === 'nao-lidas' ? 'Nenhuma notificação não lida.' : 'Nenhuma notificação.'}
+        </p>
       ) : (
         <ul className="notification-list">
-          {notifications.map((n) => (
+          {filteredNotifications.map((n) => (
             <li key={n.id} className={`notification-item card ${n.read ? 'notification-read' : ''}`}>
               <div className="notification-body">
                 <p className="notification-text">
