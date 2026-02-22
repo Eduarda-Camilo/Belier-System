@@ -6,7 +6,7 @@
 const { Component, User, Example, Version, ChangelogEntry, Notification } = require('../models');
 const { Op } = require('sequelize');
 
-const SLUG_REGEX = /^[a-z0-9-]+$/;
+const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 function validateSlug(slug) {
   if (!slug || typeof slug !== 'string') return { ok: false, error: 'Slug é obrigatório' };
@@ -98,6 +98,8 @@ async function create(req, res, next) {
     const longDescriptionMd = body.longDescriptionMd != null ? String(body.longDescriptionMd).trim() : null;
     const dependenciesMd = body.dependenciesMd != null ? String(body.dependenciesMd).trim() : null;
     const accessibilityMd = body.accessibilityMd != null ? String(body.accessibilityMd).trim() : null;
+    const importPackage = body.importPackage != null ? String(body.importPackage).trim().replace(/\s+/g, '') || null : null;
+    const importName = body.importName != null ? String(body.importName).trim().replace(/\s+/g, '') || null : null;
 
     if (!title || title.length < 2) {
       return res.status(400).json({ error: 'Título é obrigatório (mínimo 2 caracteres)' });
@@ -126,6 +128,8 @@ async function create(req, res, next) {
       longDescriptionMd,
       dependenciesMd,
       accessibilityMd,
+      importPackage,
+      importName,
       name: title,
       description: shortDescription,
       responsibleId: req.user.id,
@@ -185,6 +189,8 @@ async function update(req, res, next) {
     if (body.longDescriptionMd !== undefined) component.longDescriptionMd = body.longDescriptionMd != null ? String(body.longDescriptionMd).trim() : null;
     if (body.dependenciesMd !== undefined) component.dependenciesMd = body.dependenciesMd != null ? String(body.dependenciesMd).trim() : null;
     if (body.accessibilityMd !== undefined) component.accessibilityMd = body.accessibilityMd != null ? String(body.accessibilityMd).trim() : null;
+    if (body.importPackage !== undefined) component.importPackage = body.importPackage != null ? String(body.importPackage).trim().replace(/\s+/g, '') || null : null;
+    if (body.importName !== undefined) component.importName = body.importName != null ? String(body.importName).trim().replace(/\s+/g, '') || null : null;
 
     if (body.status === 'published') {
       const defaultEx = await Example.findOne({ where: { componentId: id, type: 'default' } });

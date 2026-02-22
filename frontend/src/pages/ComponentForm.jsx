@@ -35,7 +35,7 @@ function ChipsInput({ values, onChange, placeholder, parseToken }) {
   );
 }
 
-const SLUG_REGEX = /^[a-z0-9-]+$/;
+const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export default function ComponentForm() {
   const { id } = useParams();
@@ -56,12 +56,15 @@ export default function ComponentForm() {
     slug: '',
     tags: [],
     referenceUrl: '',
+    importPackage: '',
+    importName: '',
     longDescriptionMd: '',
     dependenciesMd: '',
     accessibilityMd: '',
   });
   const [defaultExample, setDefaultExample] = useState({
     id: null,
+    description: '',
     codeSnippet: '',
     codeCss: '',
     codeJs: '',
@@ -85,6 +88,8 @@ export default function ComponentForm() {
           slug: c.slug || '',
           tags: Array.isArray(c.tags) ? c.tags : [],
           referenceUrl: c.referenceUrl || '',
+          importPackage: c.importPackage || '',
+          importName: c.importName || '',
           longDescriptionMd: c.longDescriptionMd || c.documentation || '',
           dependenciesMd: c.dependenciesMd || '',
           accessibilityMd: c.accessibilityMd || '',
@@ -93,12 +98,13 @@ export default function ComponentForm() {
         if (def) {
           setDefaultExample({
             id: def.id,
+            description: def.description || '',
             codeSnippet: def.codeSnippet || '',
             codeCss: def.codeCss || '',
             codeJs: def.codeJs || '',
           });
         } else {
-          setDefaultExample({ id: null, codeSnippet: '', codeCss: '', codeJs: '' });
+          setDefaultExample({ id: null, description: '', codeSnippet: '', codeCss: '', codeJs: '' });
         }
         const vars = c.variations || [];
         setVariations(vars.map((v, i) => ({
@@ -166,13 +172,14 @@ export default function ComponentForm() {
     setError('');
     setSaving(true);
     try {
-      // Payload sem category/categoryId (campo Categoria removido do formulário)
       const payload = {
         title: form.title.trim(),
         shortDescription: form.shortDescription.trim(),
         slug: form.slug.trim().toLowerCase(),
         tags: form.tags,
         referenceUrl: form.referenceUrl.trim() || null,
+        importPackage: form.importPackage.trim().replace(/\s+/g, '') || null,
+        importName: form.importName.trim().replace(/\s+/g, '') || null,
         longDescriptionMd: form.longDescriptionMd.trim() || null,
         dependenciesMd: form.dependenciesMd.trim() || null,
         accessibilityMd: form.accessibilityMd.trim() || null,
@@ -246,6 +253,7 @@ export default function ComponentForm() {
         } catch (_) {}
       }
       window.dispatchEvent(new CustomEvent('components-updated'));
+      if (!isEdit) setToast('Componente criado');
       navigate(`/components/${componentId}`, { replace: true });
     } catch (err) {
       const msg = err.response?.data?.error || (err.response?.status === 401 ? 'Faça login para continuar.' : err.response?.status === 403 ? 'Sem permissão para esta ação.' : err.message || 'Erro ao salvar.');
@@ -260,6 +268,7 @@ export default function ComponentForm() {
       type: 'default',
       title: 'Default',
       slug: 'default',
+      description: defaultExample.description || null,
       codeSnippet: defaultExample.codeSnippet || '',
       codeCss: defaultExample.codeCss || null,
       codeJs: defaultExample.codeJs || null,
@@ -278,7 +287,7 @@ export default function ComponentForm() {
       const v = variations[i];
       const payload = {
         type: 'variation',
-        title: v.title,
+        title: v.title || `Variação ${i + 1}`,
         slug: (v.slug || slugify(v.title) || `var-${i + 1}`).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         description: v.description || null,
         order: i,
@@ -337,7 +346,6 @@ export default function ComponentForm() {
       slug: '',
       description: '',
       order: v.length,
-      props: [],
       codeSnippet: '',
       codeCss: '',
       codeJs: '',
@@ -352,11 +360,31 @@ export default function ComponentForm() {
     }
   };
 
+  const duplicateDefaultAsVariation = () => {
+    setVariations((v) => [
+      ...v,
+      {
+        id: undefined,
+        title: 'Default (cópia)',
+        slug: 'default-copia',
+        description: defaultExample.description || '',
+        order: v.length,
+        codeSnippet: defaultExample.codeSnippet || '',
+        codeCss: defaultExample.codeCss || '',
+        codeJs: defaultExample.codeJs || '',
+      },
+    ]);
+  };
+
   const duplicateVariation = (index) => {
+    if (index === -1) {
+      duplicateDefaultAsVariation();
+      return;
+    }
     const src = variations[index];
     setVariations((v) => [
       ...v.slice(0, index + 1),
-      { ...src, id: undefined, title: (src.title || '') + ' (cópia)', slug: ((src.slug || '').replace(/-copia\d*$/, '') || 'var') + '-copia', order: index + 1, props: Array.isArray(src.props) ? [...src.props] : [] },
+      { ...src, id: undefined, title: (src.title || '') + ' (cópia)', slug: ((src.slug || '').replace(/-copia\d*$/, '') || 'var') + '-copia', order: index + 1 },
       ...v.slice(index + 1).map((x, i) => ({ ...x, order: index + 2 + i })),
     ]);
   };
@@ -389,118 +417,126 @@ export default function ComponentForm() {
     setVariationCollapsed((c) => ({ ...c, [key]: !c[key] }));
   };
 
-  const cancelUrl = isEdit ? `/components/${id}` : '/';
+  const cancelUrl = isEdit ? `/components/${id}` : '/components';
 
   return (
     <div className="page page-component-form">
       <div className="component-form">
-        <div className="component-form-header">
+        <header className="component-form-header">
           <h1 className="page-title">{isEdit ? 'Editar componente' : 'Novo componente'}</h1>
           <div className="component-form-actions component-form-actions-text">
-            {isEdit ? (
-              <>
-                <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar edição</button>
-                <button type="button" className="btn btn-ghost btn-ghost-danger" onClick={openDeleteModal} disabled={loading}><IconTrash /> Excluir componente</button>
-                <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving || loading}>{saving ? 'Salvando...' : 'Salvar edição'}</button>
-              </>
-            ) : (
-              <>
-                <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar</button>
-                <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</button>
-              </>
+            <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar</button>
+            {isEdit && (
+              <button type="button" className="btn btn-ghost btn-ghost-danger" onClick={openDeleteModal} disabled={loading}><IconTrash /> Excluir componente</button>
             )}
+            <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving || loading}>{saving ? 'Salvando...' : 'Salvar'}</button>
           </div>
-        </div>
-        {error && <div className="page-error">{error}</div>}
+        </header>
+        {error && <div className="page-error" role="alert">{error}</div>}
         {loading ? (
           <div className="component-form-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
             <p className="page-loading" style={{ margin: 0 }}>Carregando componente...</p>
           </div>
         ) : (
         <div className="component-form-body">
-          {/* Bloco 1: Informações básicas */}
-          <section className="form-section">
-            <h2 className="form-section-title">Informações básicas</h2>
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Título *</span>
-              </div>
-              <div className="form-field-input">
-                <input name="title" value={form.title} onChange={handleChange} required placeholder="Ex.: Botão primário" minLength={2} />
-              </div>
+          {/* Seção A — Informações básicas */}
+          <section className="form-section" aria-labelledby="section-a">
+            <h2 id="section-a" className="form-section-title">Informações básicas</h2>
+            <p className="form-section-desc">Dados essenciais do componente.</p>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-title">Título *</label>
+              <input id="form-title" name="title" value={form.title} onChange={handleChange} required placeholder="Ex.: Botão" minLength={2} aria-describedby="form-title-helper" />
+              <p id="form-title-helper" className="form-helper">Nome principal do componente no catálogo e na documentação.</p>
+              {form.title.length > 0 && form.title.length < 2 && <p className="form-helper form-helper-error">Mínimo 2 caracteres.</p>}
             </div>
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Slug *</span>
-                <span className="form-field-desc">Identificador único (apenas letras minúsculas, números e hífen).</span>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-slug">Slug *</label>
+              <div className="form-field-slug">
+                <input id="form-slug" name="slug" value={form.slug} onChange={handleChange} required placeholder="ex.: botao" aria-describedby="form-slug-helper" />
+                <button type="button" className="form-link" onClick={suggestSlug}>Gerar do título</button>
               </div>
-              <div className="form-field-input form-field-slug">
-                <input name="slug" value={form.slug} onChange={handleChange} required placeholder="ex.: botao-primario" pattern="[a-z0-9\-]+" title="Apenas letras minúsculas, números e hífen" />
-                <button type="button" className="btn btn-ghost btn-sm" onClick={suggestSlug}>Gerar do título</button>
-              </div>
+              <p id="form-slug-helper" className="form-helper">Identificador único (sem acentos) usado na URL e no sistema. Use letras minúsculas e hífen.</p>
+              {form.slug && (
+                <p className={`form-helper ${slugCheck && !slugCheck.available ? 'form-helper-error' : 'form-helper-slug'}`}>
+                  {slugCheck === null ? 'Verificando...' : slugCheck.available ? 'Slug disponível' : (slugCheck.error || 'Slug já existe')}
+                </p>
+              )}
             </div>
-            {form.slug && (
-              <p className="form-helper form-helper-slug">
-                {slugCheck === null ? 'Verificando...' : slugCheck.available ? 'Slug disponível' : (slugCheck.error || 'Slug já existe')}
-              </p>
-            )}
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Descrição curta *</span>
-                <span className="form-field-desc">Mínimo 10 caracteres.</span>
-              </div>
-              <div className="form-field-input">
-                <textarea name="shortDescription" value={form.shortDescription} onChange={handleChange} rows={3} placeholder="Descreva o uso do componente..." minLength={10} />
-              </div>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-shortDescription">Descrição curta *</label>
+              <textarea id="form-shortDescription" name="shortDescription" value={form.shortDescription} onChange={handleChange} rows={3} placeholder="Resumo em 1–2 frases sobre quando usar este componente." minLength={10} aria-describedby="form-shortDescription-helper" />
+              <p id="form-shortDescription-helper" className="form-helper">Aparece no card/lista do componente e no topo da documentação.</p>
+              {form.shortDescription.length > 0 && form.shortDescription.length < 10 && <p className="form-helper form-helper-error">Mínimo 10 caracteres.</p>}
             </div>
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Tags *</span>
-                <span className="form-field-desc">Use tags para facilitar a busca (ex.: formulário, navegação, feedback). Mínimo 1.</span>
-              </div>
-              <div className="form-field-input">
-                <ChipsInput values={form.tags} onChange={(tags) => setForm((f) => ({ ...f, tags }))} placeholder="Digite e Enter para adicionar" />
-              </div>
+
+            <div className="form-field-block">
+              <label className="form-field-name">Tags *</label>
+              <ChipsInput values={form.tags} onChange={(tags) => setForm((f) => ({ ...f, tags }))} placeholder="Digite e pressione Enter (ex.: formulário, navegação, feedback)" />
+              <p className="form-helper">Use tags para facilitar a busca e a organização. Recomendado: 2–5 tags.</p>
+              {form.tags.length === 0 && (error && error.includes('tag') ? <p className="form-helper form-helper-error">Adicione ao menos uma tag.</p> : null)}
             </div>
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Link de referência <span className="form-field-optional">(opcional)</span></span>
-              </div>
-              <div className="form-field-input">
-                <input name="referenceUrl" value={form.referenceUrl} onChange={handleChange} type="url" placeholder="https://..." />
-              </div>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-referenceUrl">Link de referência <span className="form-field-optional">(opcional)</span></label>
+              <input id="form-referenceUrl" name="referenceUrl" value={form.referenceUrl} onChange={handleChange} type="url" placeholder="https://…" aria-describedby="form-referenceUrl-helper" />
+              <p id="form-referenceUrl-helper" className="form-helper">Link para referência externa (Figma, docs, issue, benchmark ou implementação existente).</p>
             </div>
           </section>
 
-          {/* Bloco 2: Documentação (Markdown) */}
-          <section className="form-section">
-            <h2 className="form-section-title">Documentação (Markdown)</h2>
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Descrição longa <span className="form-field-optional">(opcional)</span></span>
-                <span className="form-field-desc">Quando usar / Quando não usar…</span>
-              </div>
-              <div className="form-field-input">
-                <textarea name="longDescriptionMd" value={form.longDescriptionMd} onChange={handleChange} rows={5} placeholder="Quando usar / Quando não usar…" className="code-snippet-textarea" />
-              </div>
+          {/* Seção B — Como importar */}
+          <section className="form-section" aria-labelledby="section-b">
+            <h2 id="section-b" className="form-section-title">Como importar</h2>
+            <p className="form-section-desc">Informações de importação (opcional).</p>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-importPackage">Pacote (import)</label>
+              <input id="form-importPackage" value={form.importPackage} onChange={(e) => setForm((f) => ({ ...f, importPackage: e.target.value }))} placeholder="@belier/ui" aria-describedby="form-importPackage-helper" />
+              <p id="form-importPackage-helper" className="form-helper">Caminho do pacote usado para importar este componente quando houver biblioteca instalada.</p>
             </div>
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Dependências <span className="form-field-optional">(opcional)</span></span>
-                <span className="form-field-desc">Tokens, framework, dados necessários…</span>
-              </div>
-              <div className="form-field-input">
-                <textarea name="dependenciesMd" value={form.dependenciesMd} onChange={handleChange} rows={3} placeholder="Tokens, framework, dados necessários…" className="code-snippet-textarea" />
-              </div>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-importName">Nome exportado</label>
+              <input id="form-importName" value={form.importName} onChange={(e) => setForm((f) => ({ ...f, importName: e.target.value }))} placeholder="Button" aria-describedby="form-importName-helper" />
+              <p id="form-importName-helper" className="form-helper">Nome do export do componente. Ex.: Button, Input, Card.</p>
             </div>
-            <div className="form-row">
-              <div className="form-field-label">
-                <span className="form-field-name">Acessibilidade <span className="form-field-optional">(opcional)</span></span>
-                <span className="form-field-desc">Teclado, foco, aria-label, contraste…</span>
-              </div>
-              <div className="form-field-input">
-                <textarea name="accessibilityMd" value={form.accessibilityMd} onChange={handleChange} rows={3} placeholder="Teclado, foco, aria-label, contraste…" className="code-snippet-textarea" />
-              </div>
+
+            <div className="form-snippet-block">
+              <span className="form-snippet-title">Snippet de importação</span>
+              {form.importPackage.trim() && form.importName.trim() ? (
+                <div className="form-snippet-code-wrap">
+                  <pre className="form-snippet-code">{`import { ${form.importName.trim()} } from "${form.importPackage.trim()}";`}</pre>
+                  <button type="button" className="form-link" onClick={() => { navigator.clipboard.writeText(`import { ${form.importName.trim()} } from "${form.importPackage.trim()}";`); setToast('Copiado'); }}>Copiar</button>
+                </div>
+              ) : (
+                <p className="form-helper">Preencha Pacote e Nome exportado para gerar o snippet de importação.</p>
+              )}
+            </div>
+          </section>
+
+          {/* Seção C — Documentação (Markdown) */}
+          <section className="form-section" aria-labelledby="section-c">
+            <h2 id="section-c" className="form-section-title">Documentação</h2>
+            <p className="form-section-desc">Conteúdo em Markdown (opcional).</p>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-longDescriptionMd">Descrição longa (Docs)</label>
+              <textarea id="form-longDescriptionMd" name="longDescriptionMd" value={form.longDescriptionMd} onChange={handleChange} rows={6} placeholder={`Quando usar\n- …\n\nQuando não usar\n- …`} className="form-textarea-lg code-snippet-textarea" aria-describedby="form-longDescriptionMd-helper" />
+              <p id="form-longDescriptionMd-helper" className="form-helper">Texto principal da documentação. Descreva quando usar, quando evitar e regras importantes.</p>
+            </div>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-dependenciesMd">Dependências</label>
+              <textarea id="form-dependenciesMd" name="dependenciesMd" value={form.dependenciesMd} onChange={handleChange} rows={3} placeholder="Ex.: Usa tokens do tema, classes utilitárias, lista de itens, ícones…" className="code-snippet-textarea" aria-describedby="form-dependenciesMd-helper" />
+              <p id="form-dependenciesMd-helper" className="form-helper">Pré-requisitos para usar o componente (tokens, classes, dados, bibliotecas).</p>
+            </div>
+
+            <div className="form-field-block">
+              <label className="form-field-name" htmlFor="form-accessibilityMd">Acessibilidade</label>
+              <textarea id="form-accessibilityMd" name="accessibilityMd" value={form.accessibilityMd} onChange={handleChange} rows={3} placeholder={`- Foco visível\n- Navegação por teclado\n- aria-label quando necessário`} className="code-snippet-textarea" aria-describedby="form-accessibilityMd-helper" />
+              <p id="form-accessibilityMd-helper" className="form-helper">Regras mínimas de acessibilidade e comportamento esperado.</p>
             </div>
           </section>
 
@@ -526,13 +562,15 @@ export default function ComponentForm() {
             </section>
           )}
 
-          {/* Bloco 3: Variações (Default + outras) */}
-          <section className="form-section form-section-variations">
+          {/* Seção D — Variações */}
+          <section className="form-section form-section-variations" aria-labelledby="section-d">
             <div className="variations-section-header">
-              <h2 className="form-section-title">Variações</h2>
-              <button type="button" className="btn btn-primary btn-sm" onClick={addVariation}>Adicionar variação</button>
+              <div>
+                <h2 id="section-d" className="form-section-title">Variações</h2>
+                <p className="form-section-desc">Crie subcomponentes/variações como Default, Small, Com ícone e Loading. Cada variação tem seu próprio preview, código, comentários e changelog.</p>
+              </div>
+              <button type="button" className="btn btn-ghost btn-sm variations-add-btn" onClick={addVariation}>+ Adicionar variação</button>
             </div>
-            <p className="form-section-desc">A variação Default é obrigatória e não pode ser removida. Código da Default é obrigatório para publicar.</p>
 
             <div className="variations-content">
               {/* Card Default (fixo) */}
@@ -540,8 +578,27 @@ export default function ComponentForm() {
                 <div className="variation-card-header">
                   <span className="variation-card-title">Default</span>
                   <span className="variation-badge">Default</span>
+                  <div className="variation-card-actions">
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => duplicateVariation(-1)}>Duplicar</button>
+                    <button type="button" className="btn btn-ghost btn-sm variation-remove-disabled" disabled aria-label="Default não pode ser removida">Remover</button>
+                  </div>
                 </div>
                 <div className="variation-card-fields">
+                  <div className="variation-field">
+                    <label className="variation-field-label">Nome da variação *</label>
+                    <input value="Default" readOnly disabled aria-describedby="default-name-helper" />
+                    <p id="default-name-helper" className="form-helper">Nome exibido na documentação e nos seletores.</p>
+                  </div>
+                  <div className="variation-field">
+                    <label className="variation-field-label">Slug da variação *</label>
+                    <input value="default" readOnly disabled aria-describedby="default-slug-helper" />
+                    <p id="default-slug-helper" className="form-helper">Identificador da variação dentro do componente. Use kebab-case.</p>
+                  </div>
+                  <div className="variation-field">
+                    <label className="variation-field-label">Descrição</label>
+                    <textarea value={defaultExample.description} onChange={(e) => setDefaultExample((d) => ({ ...d, description: e.target.value }))} rows={2} placeholder="Descreva as características únicas" aria-describedby="default-desc-helper" />
+                    <p id="default-desc-helper" className="form-helper">O que diferencia esta variação?</p>
+                  </div>
                   <div className="variation-field">
                     <label className="variation-field-label">Código *</label>
                     <CodeEditor
@@ -552,91 +609,90 @@ export default function ComponentForm() {
                       onToggleExpand={() => setDefaultEditorExpanded((e) => !e)}
                       placeholder="HTML/JSX do exemplo"
                     />
+                    <p className="form-helper">Exemplo de uso desta variação. Este código será exibido na documentação e usado no preview.</p>
                     {!defaultExample.codeSnippet?.trim() && <p className="form-helper form-helper-error">Código obrigatório para publicar.</p>}
                   </div>
                 </div>
                 <details className="form-advanced-details">
-                  <summary>Avançado (CSS / JS)</summary>
+                  <summary>Avançado</summary>
                   <div className="variation-field">
-                    <label className="variation-field-label">CSS</label>
-                    <textarea value={defaultExample.codeCss} onChange={(e) => setDefaultExample((d) => ({ ...d, codeCss: e.target.value }))} rows={3} className="code-snippet-textarea" placeholder="Opcional" />
+                    <label className="variation-field-label">CSS (opcional)</label>
+                    <textarea value={defaultExample.codeCss} onChange={(e) => setDefaultExample((d) => ({ ...d, codeCss: e.target.value }))} rows={3} className="code-snippet-textarea" placeholder="Estilos adicionais" />
+                    <p className="form-helper">Estilos adicionais para esta variação.</p>
                   </div>
                   <div className="variation-field">
-                    <label className="variation-field-label">JS</label>
-                    <textarea value={defaultExample.codeJs} onChange={(e) => setDefaultExample((d) => ({ ...d, codeJs: e.target.value }))} rows={3} className="code-snippet-textarea" placeholder="Opcional" />
+                    <label className="variation-field-label">JavaScript (opcional)</label>
+                    <textarea value={defaultExample.codeJs} onChange={(e) => setDefaultExample((d) => ({ ...d, codeJs: e.target.value }))} rows={3} className="code-snippet-textarea" placeholder="Scripts adicionais" />
+                    <p className="form-helper">Scripts adicionais para esta variação (apenas para armazenamento).</p>
                   </div>
                 </details>
               </div>
 
-              {variations.length > 0 && (
-                <ul className="variations-list">
-                  {variations.map((v, i) => {
-                    const key = v.id || `var-${i}`;
-                    const collapsed = variationCollapsed[key];
-                    const expanded = variationEditorExpanded[key];
-                    return (
-                      <li key={key} className="variation-card">
-                        <div className="variation-card-header">
-                          <span className="variation-card-title">{v.title?.trim() ? v.title : `Variação ${i + 1}`}</span>
-                          <div className="variation-card-actions">
-                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => moveVariationUp(i)} disabled={i === 0} title="Mover para cima">↑</button>
-                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => moveVariationDown(i)} disabled={i === variations.length - 1} title="Mover para baixo">↓</button>
-                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => duplicateVariation(i)}>Duplicar</button>
-                            <button type="button" className="btn btn-ghost btn-sm btn-danger-sm" onClick={() => removeVariation(i)}>Excluir</button>
+              {variations.map((v, i) => {
+                const key = v.id || `var-${i}`;
+                const collapsed = variationCollapsed[key];
+                const expanded = variationEditorExpanded[key];
+                return (
+                  <div key={key} className="variation-card">
+                    <div className="variation-card-header">
+                      <span className="variation-card-title">{v.title?.trim() || `Variação ${i + 1}`}</span>
+                      <div className="variation-card-actions">
+                        <button type="button" className="btn btn-ghost btn-sm" onClick={() => duplicateVariation(i)}>Duplicar</button>
+                        <button type="button" className="btn btn-ghost btn-sm btn-danger-sm" onClick={() => removeVariation(i)}>Remover</button>
+                      </div>
+                    </div>
+                    {!collapsed && (
+                      <>
+                        <div className="variation-card-fields">
+                          <div className="variation-field">
+                            <label className="variation-field-label">Nome da variação *</label>
+                            <input value={v.title} onChange={(e) => updateVariation(i, 'title', e.target.value)} placeholder="Ex.: Small" />
+                            <p className="form-helper">Nome exibido na documentação e nos seletores.</p>
+                          </div>
+                          <div className="variation-field">
+                            <label className="variation-field-label">Slug da variação *</label>
+                            <input value={v.slug} onChange={(e) => updateVariation(i, 'slug', e.target.value)} placeholder="ex.: small" />
+                            <p className="form-helper">Identificador da variação dentro do componente. Use kebab-case.</p>
+                          </div>
+                          <div className="variation-field">
+                            <label className="variation-field-label">Descrição</label>
+                            <textarea value={v.description} onChange={(e) => updateVariation(i, 'description', e.target.value)} rows={2} placeholder="Descreva as características únicas" />
+                            <p className="form-helper">O que diferencia esta variação?</p>
+                          </div>
+                          <div className="variation-field">
+                            <label className="variation-field-label">Código *</label>
+                            <CodeEditor
+                              value={v.codeSnippet}
+                              onChange={(val) => updateVariation(i, 'codeSnippet', val)}
+                              onCopy={() => setToast('Copiado')}
+                              expanded={expanded}
+                              onToggleExpand={() => setVariationEditorExpanded((prev) => ({ ...prev, [key]: !prev[key] }))}
+                              placeholder="HTML/JSX"
+                            />
+                            <p className="form-helper">Exemplo de uso desta variação. Este código será exibido na documentação e usado no preview.</p>
                           </div>
                         </div>
-                        {!collapsed && (
-                          <>
-                            <div className="variation-card-fields">
-                              <div className="variation-field">
-                                <label className="variation-field-label">Título *</label>
-                                <input value={v.title} onChange={(e) => updateVariation(i, 'title', e.target.value)} placeholder="Ex.: Small, Icon" />
-                              </div>
-                              <div className="variation-field variation-field-secondary">
-                                <label className="variation-field-label variation-field-label-secondary">Slug</label>
-                                <input value={v.slug} onChange={(e) => updateVariation(i, 'slug', e.target.value)} placeholder="ex.: small, icon (kebab-case)" />
-                              </div>
-                              <div className="variation-field">
-                                <label className="variation-field-label">Descrição</label>
-                                <textarea value={v.description} onChange={(e) => updateVariation(i, 'description', e.target.value)} rows={2} placeholder="Opcional" />
-                              </div>
-                              <div className="variation-field variation-field-secondary">
-                                <label className="variation-field-label variation-field-label-secondary">Props (chips)</label>
-                                <ChipsInput values={v.props || []} onChange={(props) => updateVariation(i, 'props', props)} placeholder="chave:valor" parseToken={(raw) => raw.trim()} />
-                              </div>
-                              <div className="variation-field">
-                                <label className="variation-field-label">Código *</label>
-                                <CodeEditor
-                                  value={v.codeSnippet}
-                                  onChange={(val) => updateVariation(i, 'codeSnippet', val)}
-                                  onCopy={() => setToast('Copiado')}
-                                  expanded={expanded}
-                                  onToggleExpand={() => setVariationEditorExpanded((prev) => ({ ...prev, [key]: !prev[key] }))}
-                                  placeholder="HTML/JSX"
-                                />
-                              </div>
-                            </div>
-                            <details className="form-advanced-details">
-                              <summary>Avançado (CSS / JS)</summary>
-                              <div className="variation-field">
-                                <label className="variation-field-label">CSS</label>
-                                <textarea value={v.codeCss} onChange={(e) => updateVariation(i, 'codeCss', e.target.value)} rows={2} className="code-snippet-textarea" />
-                              </div>
-                              <div className="variation-field">
-                                <label className="variation-field-label">JS</label>
-                                <textarea value={v.codeJs} onChange={(e) => updateVariation(i, 'codeJs', e.target.value)} rows={2} className="code-snippet-textarea" />
-                              </div>
-                            </details>
-                          </>
-                        )}
-                        <button type="button" className="variation-card-toggle" onClick={() => toggleVariationCollapsed(key)} aria-expanded={!collapsed}>
-                          {collapsed ? '▶ Expandir' : '▼ Recolher'}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+                        <details className="form-advanced-details">
+                          <summary>Avançado</summary>
+                          <div className="variation-field">
+                            <label className="variation-field-label">CSS (opcional)</label>
+                            <textarea value={v.codeCss} onChange={(e) => updateVariation(i, 'codeCss', e.target.value)} rows={2} className="code-snippet-textarea" placeholder="Estilos adicionais" />
+                            <p className="form-helper">Estilos adicionais para esta variação.</p>
+                          </div>
+                          <div className="variation-field">
+                            <label className="variation-field-label">JavaScript (opcional)</label>
+                            <textarea value={v.codeJs} onChange={(e) => updateVariation(i, 'codeJs', e.target.value)} rows={2} className="code-snippet-textarea" placeholder="Scripts (armazenamento)" />
+                            <p className="form-helper">Scripts adicionais para esta variação (apenas para armazenamento).</p>
+                          </div>
+                        </details>
+                      </>
+                    )}
+                    <button type="button" className="variation-card-toggle" onClick={() => toggleVariationCollapsed(key)} aria-expanded={!collapsed}>
+                      {collapsed ? '▶ Expandir' : '▼ Recolher'}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </section>
 

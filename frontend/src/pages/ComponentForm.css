@@ -12,7 +12,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 24px;
 }
 
 .component-form-header h1.page-title {
@@ -84,7 +84,140 @@
 .component-form-body {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: 0;
+}
+
+/* 1 coluna: labels acima, 24px entre seções, 16px entre campos */
+.form-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.form-section-desc {
+  margin: 0 0 4px;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.form-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field-block .form-field-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.form-field-block input,
+.form-field-block textarea {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+  font-size: 1rem;
+}
+
+.form-field-block textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-field-block input:focus,
+.form-field-block textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-field-block input::placeholder,
+.form-field-block textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.9;
+}
+
+.form-field-block input:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.form-textarea-lg {
+  min-height: 140px;
+}
+
+/* Link estilo texto (Gerar do título, Copiar) */
+.form-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.form-link:hover {
+  text-decoration: underline;
+}
+
+.form-field-block .form-field-slug {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.form-field-block .form-field-slug input {
+  flex: 1;
+}
+
+/* Snippet de importação (Seção B) */
+.form-snippet-block {
+  margin-top: 8px;
+  padding: 16px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.form-snippet-title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.form-snippet-code-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.form-snippet-code {
+  flex: 1;
+  margin: 0;
+  padding: 12px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre;
 }
 
 .component-form .page-error {
@@ -221,11 +354,27 @@
   outline: none;
 }
 
-/* Sections */
-.form-section {
-  margin-top: var(--spacing-xl);
-  padding-top: var(--spacing-xl);
-  border-top: 1px solid var(--color-border);
+/* Variations section header: título + botão à direita */
+.variations-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: 8px;
+}
+
+.variations-section-header .form-section-title {
+  margin: 0;
+}
+
+.variations-add-btn {
+  flex-shrink: 0;
+}
+
+.variation-remove-disabled:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .form-section-title {
@@ -274,7 +423,13 @@
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: var(--spacing-lg);
+  padding: 24px;
+}
+
+.variation-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .variation-card-header {

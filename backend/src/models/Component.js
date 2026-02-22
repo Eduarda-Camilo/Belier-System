@@ -50,10 +50,15 @@ module.exports = (sequelize) => {
         this.setDataValue('tags', value != null ? JSON.stringify(Array.isArray(value) ? value : []) : null);
       },
     },
+    importPackage: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: 'Pacote de importação (ex.: @belier/ui)',
+    },
     importName: {
       type: DataTypes.STRING(100),
       allowNull: true,
-      comment: 'Nome técnico no código (ex.: Button)',
+      comment: 'Nome do export do componente (ex.: Button)',
     },
     referenceUrl: {
       type: DataTypes.STRING(500),
