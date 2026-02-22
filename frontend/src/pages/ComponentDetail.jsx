@@ -222,14 +222,6 @@ export default function ComponentDetail() {
     }
   };
 
-  const usageCodeDefault = component.defaultExample?.codeSnippet ?? component.documentation ?? '';
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(usageCodeDefault || '').then(() => {
-      setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 1500);
-    });
-  };
-
   if (loading) return <div className="page-loading">Carregando...</div>;
   if (error && !component) return <div className="page-error">{error}</div>;
   if (!component) {
@@ -240,6 +232,14 @@ export default function ComponentDetail() {
       </div>
     );
   }
+
+  const usageCodeDefault = component.defaultExample?.codeSnippet ?? component.documentation ?? '';
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(usageCodeDefault || '').then(() => {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 1500);
+    });
+  };
 
   return (
     <div className="page detail-content-grid">
