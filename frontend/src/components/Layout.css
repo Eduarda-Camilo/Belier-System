@@ -1,11 +1,13 @@
+/* Um único gradiente de fundo para TUDO (header, sidebar, conteúdo) */
 .layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(160deg, #0d1117 0%, #0f1419 25%, #131a22 50%, #161d27 75%, #1c2128 100%);
 }
 
 .layout-header {
-  background: var(--color-surface);
+  background: transparent;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -161,7 +163,7 @@
 }
 
 .layout-sidebar {
-  background: #1a1a1a;
+  background: transparent;
   padding: var(--spacing-xl) var(--spacing-md);
   overflow-y: auto;
   position: sticky;
@@ -236,7 +238,7 @@
 .layout-content {
   min-height: 0;
   padding: var(--spacing-lg);
-  background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #1a1f2e 70%, #21262d 100%);
+  background: transparent;
   overflow-y: auto;
 }
 

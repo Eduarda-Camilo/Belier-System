@@ -105,36 +105,35 @@ export default function ComponentDetail() {
     setError('');
     setComponent(null);
     setLoading(true);
-    const normalize = (res) => (res?.data != null ? res.data : res);
-    const setData = (raw) => {
-      const data = raw && typeof raw === 'object' && (raw.data != null ? raw.data : raw);
+    let cancelled = false;
+    const apply = (data) => {
+      if (cancelled) return;
       if (data && typeof data === 'object' && (data.id != null || data.name || data.title)) {
-        setComponent(data);
+        setComponent(Array.isArray(data) ? data[0] : data);
       } else {
-        setError(raw?.error || 'Resposta inválida do servidor.');
+        setError(data?.error || 'Resposta inválida do servidor.');
       }
     };
-    api.get(`/components/${id}`, { params: { include: 'examples' } })
+    const url = `/components/${id}`;
+    api.get(url, { params: { include: 'examples' } })
       .then((res) => {
-        const body = normalize(res);
-        setData(body);
+        const body = res?.data;
+        apply(body);
       })
       .catch(() =>
-        api.get(`/components/${id}`).then((res) => {
-          const body = normalize(res);
-          setData(body);
-        })
+        api.get(url).then((res) => apply(res?.data))
       )
       .catch((err) => {
+        if (cancelled) return;
         if (err.response?.status === 404) {
           setComponent(null);
           setError('');
           return;
         }
-        const msg = err.response?.data?.error || err.message || 'Não foi possível carregar o componente. Verifique a conexão.';
-        setError(msg);
+        setError(err.response?.data?.error || err.message || 'Não foi possível carregar o componente. Verifique a conexão.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [id]);
 
   useEffect(() => {

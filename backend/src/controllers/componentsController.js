@@ -50,7 +50,11 @@ async function list(req, res, next) {
 
 async function getOne(req, res, next) {
   try {
-    const { id } = req.params;
+    const rawId = req.params.id;
+    const id = rawId && /^\d+$/.test(String(rawId)) ? Number(rawId) : null;
+    if (id == null) {
+      return res.status(404).json({ error: 'Componente não encontrado' });
+    }
     const includeExamples = req.query.include === 'examples';
     const baseInclude = [
       { model: Category, as: 'Category', attributes: ['id', 'name', 'description'] },
