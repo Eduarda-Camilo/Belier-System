@@ -258,6 +258,10 @@ export default function ComponentForm() {
       if (msg === 'Nome é obrigatório') {
         msg = 'A requisição não chegou ao servidor correto. Configure a URL da API no deploy: defina VITE_API_URL com o endereço do backend (ex.: https://seu-backend.onrender.com/api).';
       }
+      // Backend antigo pode devolver "Categoria é obrigatória"; aqui não existe categoria, é o campo Tags
+      if (msg === 'Categoria é obrigatória') {
+        msg = 'Informe ao menos uma tag (adicione ao menos uma no campo Tags acima).';
+      }
       setError(msg);
     } finally {
       setSaving(false);
@@ -477,7 +481,7 @@ export default function ComponentForm() {
               <label className="form-field-name">Tags *</label>
               <ChipsInput values={form.tags} onChange={(tags) => setForm((f) => ({ ...f, tags }))} placeholder="Digite e pressione Enter (ex.: formulário, navegação, feedback)" />
               <p className="form-helper">Use tags para facilitar a busca e a organização. Recomendado: 2–5 tags.</p>
-              {form.tags.length === 0 && (error && error.includes('tag') ? <p className="form-helper form-helper-error">Adicione ao menos uma tag.</p> : null)}
+              {form.tags.length === 0 && (error && (error.includes('tag') || error.includes('ao menos uma tag')) ? <p className="form-helper form-helper-error">Adicione ao menos uma tag.</p> : null)}
             </div>
 
             <div className="form-field-block">
