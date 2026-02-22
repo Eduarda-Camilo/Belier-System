@@ -43,9 +43,13 @@ User.hasMany(Version, { foreignKey: 'userId' });
 
 Comment.belongsTo(Component, { foreignKey: 'componentId' });
 Component.hasMany(Comment, { foreignKey: 'componentId' });
+Comment.belongsTo(Version, { foreignKey: 'versionId' });
+Version.hasMany(Comment, { foreignKey: 'versionId' });
+Comment.belongsTo(Example, { foreignKey: 'exampleId' });
+Example.hasMany(Comment, { foreignKey: 'exampleId' });
 
 // Comentário pertence a um Usuário (autor)
-Comment.belongsTo(User, { foreignKey: 'userId' });
+Comment.belongsTo(User, { as: 'User', foreignKey: 'userId' });
 User.hasMany(Comment, { foreignKey: 'userId' });
 
 // Respostas: comentário pode ter parentId (resposta a outro comentário)

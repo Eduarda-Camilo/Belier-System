@@ -31,6 +31,11 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: 'Obrigatório para variation; para default pode ser fixo "Default"',
     },
+    slug: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: 'Slug único dentro do componente (default = "default")',
+    },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
@@ -60,6 +65,14 @@ module.exports = (sequelize) => {
       },
     },
     codeSnippet: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    codeCss: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    codeJs: {
       type: DataTypes.TEXT,
       allowNull: true,
     },

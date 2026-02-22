@@ -21,6 +21,20 @@ module.exports = (sequelize) => {
       references: { model: 'components', key: 'id' },
       onDelete: 'CASCADE',
     },
+    versionId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: 'versions', key: 'id' },
+      onDelete: 'CASCADE',
+      comment: 'Comentário por versão',
+    },
+    exampleId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: 'examples', key: 'id' },
+      onDelete: 'CASCADE',
+      comment: 'Comentário por variação (example)',
+    },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,

@@ -8,8 +8,12 @@ const { Op } = require('sequelize');
 async function listByComponent(req, res, next) {
   try {
     const { componentId } = req.params;
+    const { versionId, exampleId } = req.query;
+    const where = { componentId, parentId: null };
+    if (versionId != null && versionId !== '') where.versionId = Number(versionId);
+    if (exampleId != null && exampleId !== '') where.exampleId = Number(exampleId);
     const comments = await Comment.findAll({
-      where: { componentId, parentId: null },
+      where,
       include: [
         { model: User, as: 'User', attributes: ['id', 'name', 'email'] },
         {
@@ -30,7 +34,7 @@ async function listByComponent(req, res, next) {
 async function create(req, res, next) {
   try {
     const { componentId } = req.params;
-    const { text, parentId } = req.body;
+    const { text, parentId, versionId, exampleId } = req.body;
     if (!text || !text.trim()) {
       return res.status(400).json({ error: 'Texto do comentário é obrigatório' });
     }
@@ -48,6 +52,8 @@ async function create(req, res, next) {
       componentId: Number(componentId),
       userId: req.user.id,
       parentId: isReply ? Number(parentId) : null,
+      versionId: versionId != null && versionId !== '' ? Number(versionId) : null,
+      exampleId: exampleId != null && exampleId !== '' ? Number(exampleId) : null,
       text: text.trim(),
     });
     if (isReply && parentComment && parentComment.userId !== req.user.id) {

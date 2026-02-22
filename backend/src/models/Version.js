@@ -42,6 +42,16 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    changelog: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Changelog da versão (obrigatório ao publicar)',
+    },
+    isPublished: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     content: {
       type: DataTypes.TEXT,
       allowNull: true,

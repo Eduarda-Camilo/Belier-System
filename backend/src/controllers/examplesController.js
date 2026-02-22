@@ -30,7 +30,7 @@ async function listByComponent(req, res, next) {
 async function create(req, res, next) {
   try {
     const { componentId } = req.params;
-    const { type, title, description, order, propsTokens, codeSnippet, codeCustom, renderConfig } = req.body;
+    const { type, title, slug, description, order, propsTokens, codeSnippet, codeCss, codeJs, codeCustom, renderConfig } = req.body;
 
     const component = await Component.findByPk(componentId);
     if (!component) {
@@ -54,10 +54,13 @@ async function create(req, res, next) {
       componentId: Number(componentId),
       type: type || 'variation',
       title: type === 'default' ? 'Default' : (title ? String(title).trim() : null),
+      slug: type === 'default' ? 'default' : (slug ? String(slug).trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : null),
       description: description ? String(description).trim() : null,
       order: type === 'default' ? 0 : (Number(order) ?? 0),
       propsTokens: Array.isArray(propsTokens) ? propsTokens : [],
       codeSnippet: codeSnippet != null ? String(codeSnippet).trim() : null,
+      codeCss: codeCss != null ? String(codeCss).trim() : null,
+      codeJs: codeJs != null ? String(codeJs).trim() : null,
       codeCustom: Boolean(codeCustom),
       renderConfig: renderConfig || null,
     };
@@ -72,7 +75,7 @@ async function create(req, res, next) {
 async function update(req, res, next) {
   try {
     const { componentId, id } = req.params;
-    const { title, description, order, propsTokens, codeSnippet, codeCustom, renderConfig } = req.body;
+    const { title, slug, description, order, propsTokens, codeSnippet, codeCss, codeJs, codeCustom, renderConfig } = req.body;
 
     const example = await Example.findOne({ where: { id, componentId } });
     if (!example) {
@@ -90,8 +93,11 @@ async function update(req, res, next) {
     }
 
     if (description !== undefined) example.description = description ? String(description).trim() : null;
+    if (example.type === 'variation' && slug !== undefined) example.slug = slug ? String(slug).trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : null;
     if (propsTokens !== undefined) example.propsTokens = Array.isArray(propsTokens) ? propsTokens : example.propsTokens;
     if (codeSnippet !== undefined) example.codeSnippet = codeSnippet != null ? String(codeSnippet).trim() : null;
+    if (codeCss !== undefined) example.codeCss = codeCss != null ? String(codeCss).trim() : null;
+    if (codeJs !== undefined) example.codeJs = codeJs != null ? String(codeJs).trim() : null;
     if (codeCustom !== undefined) example.codeCustom = Boolean(codeCustom);
     if (renderConfig !== undefined) example.renderConfig = renderConfig || null;
 

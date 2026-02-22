@@ -3,7 +3,7 @@
  * Criar/editar: admin e designer; publicar/arquivar: admin; listar/ver: todos.
  */
 
-const { Component, Category, User, Example } = require('../models');
+const { Component, Category, User, Example, Version } = require('../models');
 const { Op } = require('sequelize');
 
 const SLUG_REGEX = /^[a-z0-9-]+$/;
@@ -57,7 +57,6 @@ async function getOne(req, res, next) {
     }
     const includeExamples = req.query.include === 'examples';
     const baseInclude = [
-      { model: Category, as: 'Category', attributes: ['id', 'name', 'description'] },
       { model: User, as: 'responsible', attributes: ['id', 'name', 'email'] },
     ];
     let component = await Component.findByPk(id, {
@@ -71,7 +70,7 @@ async function getOne(req, res, next) {
         const withExamples = await Component.findByPk(id, {
           include: [
             ...baseInclude,
-            { model: Example, attributes: ['id', 'type', 'title', 'description', 'order', 'propsTokens', 'codeSnippet', 'codeCustom', 'renderConfig'] },
+            { model: Example, attributes: ['id', 'type', 'title', 'slug', 'description', 'order', 'propsTokens', 'codeSnippet', 'codeCss', 'codeJs', 'codeCustom', 'renderConfig'] },
           ],
         });
         if (withExamples && withExamples.Examples) {
@@ -100,16 +99,19 @@ async function create(req, res, next) {
     const shortDescription = body.shortDescription != null ? String(body.shortDescription).trim() : (body.description && String(body.description).trim());
     const slug = body.slug != null ? String(body.slug).trim() : '';
     const tags = Array.isArray(body.tags) ? body.tags : [];
-    const categoryId = body.categoryId != null ? Number(body.categoryId) : null;
-    const status = body.status || 'draft';
-    const importName = body.importName ? String(body.importName).trim() : null;
     const referenceUrl = body.referenceUrl ? String(body.referenceUrl).trim() : null;
+    const longDescriptionMd = body.longDescriptionMd != null ? String(body.longDescriptionMd).trim() : null;
+    const dependenciesMd = body.dependenciesMd != null ? String(body.dependenciesMd).trim() : null;
+    const accessibilityMd = body.accessibilityMd != null ? String(body.accessibilityMd).trim() : null;
 
     if (!title || title.length < 2) {
       return res.status(400).json({ error: 'Título é obrigatório (mínimo 2 caracteres)' });
     }
     if (!shortDescription || shortDescription.length < 10) {
       return res.status(400).json({ error: 'Descrição curta é obrigatória (mínimo 10 caracteres)' });
+    }
+    if (!tags || tags.length < 1) {
+      return res.status(400).json({ error: 'Informe ao menos uma tag' });
     }
     const slugCheck = validateSlug(slug);
     if (!slugCheck.ok) return res.status(400).json({ error: slugCheck.error });
@@ -125,17 +127,17 @@ async function create(req, res, next) {
       shortDescription,
       slug: slugValue,
       tags,
-      importName,
       referenceUrl,
+      longDescriptionMd,
+      dependenciesMd,
+      accessibilityMd,
       name: title,
       description: shortDescription,
-      categoryId: categoryId != null ? Number(categoryId) : null,
       responsibleId: req.user.id,
-      status,
+      status: 'draft',
     });
     const withAssociations = await Component.findByPk(component.id, {
       include: [
-        { model: Category, as: 'Category', attributes: ['id', 'name'] },
         { model: User, as: 'responsible', attributes: ['id', 'name', 'email'] },
       ],
     });
@@ -182,25 +184,25 @@ async function update(req, res, next) {
       if (existingSlug) return res.status(400).json({ error: 'Este slug já está em uso. Escolha outro.' });
       component.slug = slugValue;
     }
-    if (body.tags !== undefined) component.tags = Array.isArray(body.tags) ? body.tags : component.tags;
-    if (body.importName !== undefined) component.importName = body.importName ? String(body.importName).trim() : null;
+    if (body.tags !== undefined) {
+      const t = Array.isArray(body.tags) ? body.tags : [];
+      if (t.length < 1) return res.status(400).json({ error: 'Informe ao menos uma tag' });
+      component.tags = t;
+    }
     if (body.referenceUrl !== undefined) component.referenceUrl = body.referenceUrl ? String(body.referenceUrl).trim() : null;
-    if (body.categoryId !== undefined) component.categoryId = body.categoryId ? Number(body.categoryId) : null;
+    if (body.longDescriptionMd !== undefined) component.longDescriptionMd = body.longDescriptionMd != null ? String(body.longDescriptionMd).trim() : null;
+    if (body.dependenciesMd !== undefined) component.dependenciesMd = body.dependenciesMd != null ? String(body.dependenciesMd).trim() : null;
+    if (body.accessibilityMd !== undefined) component.accessibilityMd = body.accessibilityMd != null ? String(body.accessibilityMd).trim() : null;
 
-    if (body.status !== undefined) {
-      if (body.status === 'published') {
-        const defaultEx = await Example.findOne({ where: { componentId: id, type: 'default' } });
-        if (!defaultEx) {
-          return res.status(400).json({ error: 'Não é possível publicar: cadastre o Exemplo Default com código ou props.' });
-        }
-        if (!defaultEx.codeSnippet || !defaultEx.codeSnippet.trim()) {
-          const tokens = defaultEx.propsTokens || [];
-          if (tokens.length === 0) {
-            return res.status(400).json({ error: 'Não é possível publicar: o Exemplo Default precisa de código ou props.' });
-          }
-        }
+    if (body.status === 'published') {
+      const defaultEx = await Example.findOne({ where: { componentId: id, type: 'default' } });
+      if (!defaultEx) {
+        return res.status(400).json({ error: 'Não é possível publicar: cadastre o Exemplo Default com código.' });
       }
-      component.status = body.status;
+      if (!defaultEx.codeSnippet || !defaultEx.codeSnippet.trim()) {
+        return res.status(400).json({ error: 'Default é obrigatório para publicar: preencha o código da variação Default.' });
+      }
+      component.status = 'published';
     }
 
     await component.save();
@@ -227,6 +229,77 @@ async function remove(req, res, next) {
   }
 }
 
+async function archive(req, res, next) {
+  try {
+    const { id } = req.params;
+    const component = await Component.findByPk(id);
+    if (!component) return res.status(404).json({ error: 'Componente não encontrado' });
+    component.status = 'archived';
+    await component.save();
+    res.json(component);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function publish(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { changelog } = req.body;
+    const component = await Component.findByPk(id, {
+      include: [{ model: User, as: 'responsible', attributes: ['id', 'name'] }],
+    });
+    if (!component) return res.status(404).json({ error: 'Componente não encontrado' });
+    const defaultEx = await Example.findOne({ where: { componentId: id, type: 'default' } });
+    if (!defaultEx || !defaultEx.codeSnippet || !defaultEx.codeSnippet.trim()) {
+      return res.status(400).json({ error: 'Default é obrigatório para publicar: preencha o código da variação Default.' });
+    }
+    if (!changelog || !String(changelog).trim()) {
+      return res.status(400).json({ error: 'Changelog é obrigatório para publicar.' });
+    }
+    const lastVersion = await Version.findOne({
+      where: { componentId: id },
+      order: [['number', 'DESC']],
+    });
+    const nextNumber = lastVersion ? lastVersion.number + 1 : 1;
+    const examples = await Example.findAll({
+      where: { componentId: id },
+      order: [['type', 'ASC'], ['order', 'ASC']],
+    });
+    const content = {
+      title: component.title,
+      name: component.name,
+      shortDescription: component.shortDescription,
+      longDescriptionMd: component.longDescriptionMd,
+      dependenciesMd: component.dependenciesMd,
+      accessibilityMd: component.accessibilityMd,
+      tags: component.tags,
+      variationsSnapshot: examples.map((e) => ({
+        title: e.title,
+        slug: e.slug,
+        description: e.description,
+        codeSnippet: e.codeSnippet,
+        codeCss: e.codeCss,
+        codeJs: e.codeJs,
+      })),
+    };
+    await Version.create({
+      componentId: id,
+      userId: req.user.id,
+      number: nextNumber,
+      description: `Versão ${nextNumber}`,
+      changelog: String(changelog).trim(),
+      isPublished: true,
+      content,
+    });
+    component.status = 'published';
+    await component.save();
+    res.json(component);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function checkSlug(req, res, next) {
   try {
     const { slug } = req.query;
@@ -244,4 +317,4 @@ async function checkSlug(req, res, next) {
   }
 }
 
-module.exports = { list, getOne, create, update, remove, checkSlug };
+module.exports = { list, getOne, create, update, remove, archive, publish, checkSlug };

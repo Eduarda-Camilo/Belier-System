@@ -91,6 +91,21 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    longDescriptionMd: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Descrição longa em Markdown',
+    },
+    dependenciesMd: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Dependências em Markdown',
+    },
+    accessibilityMd: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Acessibilidade em Markdown',
+    },
     usagePreview: {
       type: DataTypes.TEXT,
       allowNull: true,
