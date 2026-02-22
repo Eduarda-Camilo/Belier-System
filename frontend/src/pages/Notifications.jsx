@@ -163,10 +163,8 @@ export default function Notifications() {
   }, [searchParams, setSearchParams]);
 
   const unreadCount = data.unread_count;
-  const filteredItems = useMemo(() => {
-    if (tab === 'nao-lidas') return data.items.filter((n) => !n.readAt);
-    return data.items;
-  }, [tab, data.items]);
+  // A API já retorna só não lidas quando tab=unread; não é necessário filtrar de novo.
+  const filteredItems = data.items;
 
   const groups = useMemo(() => groupByDate(filteredItems), [filteredItems]);
 
@@ -241,10 +239,6 @@ export default function Notifications() {
   }, [setSearchParams]);
 
   const hasActiveFilters = range || (type && type !== 'all') || author;
-
-  if (loading && data.items.length === 0) {
-    return <div className="page-loading">Carregando...</div>;
-  }
 
   return (
     <div className="page inbox-page">
@@ -333,27 +327,28 @@ export default function Notifications() {
 
       {error && <div className="page-error">{error}</div>}
 
-      {tab === 'nao-lidas' && filteredItems.length === 0 && !loading && (
+      {loading && data.items.length === 0 ? (
+        <div className="inbox-loading-inline">
+          <p className="page-loading" style={{ margin: 0 }}>Carregando notificações...</p>
+        </div>
+      ) : tab === 'nao-lidas' && filteredItems.length === 0 ? (
         <div className="inbox-empty-state inbox-empty-unread">
           <p className="inbox-empty-title">Você está em dia 🎉</p>
           <p className="inbox-empty-desc">Nenhuma notificação não lida.</p>
-          <Link to="/notifications?tab=todas" className="btn btn-ghost">Ver todas</Link>
+          <Link to="/inbox?tab=todas" className="btn btn-ghost">Ver todas</Link>
         </div>
-      )}
-
-      {tab !== 'nao-lidas' && filteredItems.length === 0 && hasActiveFilters && !loading && (
+      ) : tab !== 'nao-lidas' && filteredItems.length === 0 && hasActiveFilters ? (
         <div className="inbox-empty-state">
           <p className="inbox-empty-title">Nenhuma notificação encontrada para estes filtros.</p>
           <button type="button" className="btn btn-ghost" onClick={clearFilters}>Limpar filtros</button>
         </div>
-      )}
-
-      {tab !== 'nao-lidas' && filteredItems.length === 0 && !hasActiveFilters && !loading && (
+      ) : tab !== 'nao-lidas' && filteredItems.length === 0 && !hasActiveFilters ? (
         <p className="page-empty">Nenhuma notificação.</p>
-      )}
+      ) : null}
 
-      {filteredItems.length > 0 && (
+      {filteredItems.length > 0 ? (
         <div className="inbox-list-wrap">
+          {loading && <p className="inbox-updating" aria-live="polite">Atualizando…</p>}
           {groups.today.length > 0 && (
             <section className="inbox-group">
               <h2 className="inbox-group-title">Hoje</h2>
@@ -443,7 +438,11 @@ export default function Notifications() {
             </div>
           )}
         </div>
-      )}
+      ) : loading && data.items.length > 0 ? (
+        <div className="inbox-loading-inline">
+          <p className="page-loading" style={{ margin: 0 }}>Atualizando...</p>
+        </div>
+      ) : null}
 
       {toast && (
         <div className="inbox-toast" role="status">

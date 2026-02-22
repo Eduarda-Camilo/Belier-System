@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { IconEdit, IconTrash } from '../components/Icons';
+import { IconEdit } from '../components/Icons';
 import './ComponentDetail.css';
 
 /** Destaque de sintaxe simples para HTML/CSS: retorna array de elementos React. */
@@ -453,30 +453,6 @@ export default function ComponentDetail() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="page page-loading-wrap" role="status" aria-live="polite" style={{ minHeight: '200px', padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p className="page-loading" style={{ margin: 0, color: 'var(--color-text)', fontSize: '1rem' }}>Carregando...</p>
-      </div>
-    );
-  }
-  if (error && !component) {
-    return (
-      <div className="page page-error-wrap" role="alert" style={{ minHeight: '120px', padding: '2rem' }}>
-        <p className="page-error" style={{ margin: 0 }}>{error}</p>
-        <Link to="/components" className="btn btn-ghost" style={{ marginTop: '1rem' }}>← Voltar à lista</Link>
-      </div>
-    );
-  }
-  if (!component) {
-    return (
-      <div className="page" style={{ padding: '2rem' }}>
-        <p className="page-loading" style={{ margin: 0 }}>Componente não encontrado.</p>
-        <Link to="/components" className="btn btn-ghost" style={{ marginTop: '1rem' }}>← Voltar à lista</Link>
-      </div>
-    );
-  }
-
   const handleCopyCode = () => {
     navigator.clipboard.writeText(currentCode || '').then(() => {
       setCopyFeedback(true);
@@ -487,6 +463,22 @@ export default function ComponentDetail() {
   return (
     <div className="page detail-content-grid">
       <div className="detail-content">
+        {loading ? (
+          <div className="detail-loading-inline" role="status" aria-live="polite" style={{ minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <p className="page-loading" style={{ margin: 0 }}>Carregando componente...</p>
+          </div>
+        ) : error && !component ? (
+          <div style={{ padding: '2rem' }}>
+            <p className="page-error">{error}</p>
+            <Link to="/components" className="btn btn-ghost" style={{ marginTop: '1rem' }}>← Voltar à lista</Link>
+          </div>
+        ) : !component ? (
+          <div style={{ padding: '2rem' }}>
+            <p className="page-empty">Componente não encontrado.</p>
+            <Link to="/components" className="btn btn-ghost" style={{ marginTop: '1rem' }}>← Voltar à lista</Link>
+          </div>
+        ) : (
+        <>
         <div className="page-header" id="title">
           <div className="page-header-row">
             <div className="page-header-left">
@@ -750,7 +742,10 @@ export default function ComponentDetail() {
             <p className="detail-empty">Nenhuma documentação adicional.</p>
           )}
         </section>
+        </>
+        )}
       </div>
+      {!loading && component && (
       <aside className="detail-toc" aria-label="Conteúdo">
         <div className="detail-toc-inner">
           <p className="detail-toc-title">Conteúdo</p>
@@ -761,6 +756,7 @@ export default function ComponentDetail() {
           </ul>
         </div>
       </aside>
+      )}
 
       {deleteModalOpen && (
         <div className="delete-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">

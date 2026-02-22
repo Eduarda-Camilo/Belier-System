@@ -389,8 +389,6 @@ export default function ComponentForm() {
     setVariationCollapsed((c) => ({ ...c, [key]: !c[key] }));
   };
 
-  if (loading) return <div className="page-loading">Carregando...</div>;
-
   const cancelUrl = isEdit ? `/components/${id}` : '/';
 
   return (
@@ -402,8 +400,8 @@ export default function ComponentForm() {
             {isEdit ? (
               <>
                 <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar edição</button>
-                <button type="button" className="btn btn-ghost btn-ghost-danger" onClick={openDeleteModal}><IconTrash /> Excluir componente</button>
-                <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving}>{saving ? 'Salvando...' : 'Salvar edição'}</button>
+                <button type="button" className="btn btn-ghost btn-ghost-danger" onClick={openDeleteModal} disabled={loading}><IconTrash /> Excluir componente</button>
+                <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving || loading}>{saving ? 'Salvando...' : 'Salvar edição'}</button>
               </>
             ) : (
               <>
@@ -414,6 +412,11 @@ export default function ComponentForm() {
           </div>
         </div>
         {error && <div className="page-error">{error}</div>}
+        {loading ? (
+          <div className="component-form-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+            <p className="page-loading" style={{ margin: 0 }}>Carregando componente...</p>
+          </div>
+        ) : (
         <div className="component-form-body">
           {/* Bloco 1: Informações básicas */}
           <section className="form-section">
@@ -639,6 +642,7 @@ export default function ComponentForm() {
 
           {toast && <div className="form-toast" role="status">{toast}</div>}
         </div>
+        )}
       </div>
 
       {publishModalOpen && (

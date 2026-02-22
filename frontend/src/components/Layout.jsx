@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { ComponentsProvider, useComponents } from '../contexts/ComponentsContext';
 import api from '../services/api';
 import ErrorBoundary from './ErrorBoundary';
 import { IconInbox, IconDocs, IconComponentes, IconSearch, IconUser, IconKey, IconLogout, IconUsers, IconChangelog } from './Icons';
@@ -15,11 +16,11 @@ function getInitials(user) {
   return (user.name[0] || 'U').toUpperCase();
 }
 
-export default function Layout() {
+function LayoutContent() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [components, setComponents] = useState([]);
+  const { components, refetch: refetchComponents } = useComponents();
   const [q, setQ] = useState('');
   const [componentsOpen, setComponentsOpen] = useState(true);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -43,21 +44,11 @@ export default function Layout() {
     navigate('/login');
   };
 
-  const refetchComponents = () => {
-    api.get('/components')
-      .then((res) => setComponents(res.data || []))
-      .catch(() => setComponents([]));
-  };
-
-  useEffect(() => {
-    refetchComponents();
-  }, []);
-
   useEffect(() => {
     const onComponentsUpdated = () => refetchComponents();
     window.addEventListener('components-updated', onComponentsUpdated);
     return () => window.removeEventListener('components-updated', onComponentsUpdated);
-  }, []);
+  }, [refetchComponents]);
 
   const fetchInboxUnread = () => {
     api.get('/notifications/unread-count')
@@ -121,7 +112,7 @@ export default function Layout() {
             <NavLink to="/docs" className={navLinkClass}>
               <IconDocs /> Docs
             </NavLink>
-            <NavLink to="/notifications" className={navLinkClass} end>
+            <NavLink to="/inbox" className={navLinkClass} end>
               <IconInbox /> Inbox
               {inboxUnreadCount > 0 && (
                 <span className="layout-inbox-badge" aria-label={`${inboxUnreadCount} não lidas`}>
@@ -227,7 +218,7 @@ export default function Layout() {
             <ul className="layout-side-list">
               <li><NavLink to="/docs" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
               <li>
-                <NavLink to="/notifications" className={sideLinkClass} end>
+                <NavLink to="/inbox" className={sideLinkClass} end>
                   <IconInbox /> Inbox
                   {inboxUnreadCount > 0 && (
                     <span className="layout-inbox-badge" aria-label={`${inboxUnreadCount} não lidas`}>
@@ -346,5 +337,13 @@ export default function Layout() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Layout() {
+  return (
+    <ComponentsProvider>
+      <LayoutContent />
+    </ComponentsProvider>
   );
 }

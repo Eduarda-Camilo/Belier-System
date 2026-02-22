@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { useComponents } from '../contexts/ComponentsContext';
 import './Docs.css';
 
 const TOC_IDS = [
@@ -69,14 +69,8 @@ function DocAccordionItem({ title, description, children, open, onToggle }) {
 export default function Docs() {
   const [activeId, setActiveId] = useState('');
   const [faqOpen, setFaqOpen] = useState(null);
-  const [firstComponentId, setFirstComponentId] = useState(null);
-
-  useEffect(() => {
-    api.get('/components').then((res) => {
-      const list = res.data || [];
-      if (list.length > 0) setFirstComponentId(list[0].id);
-    }).catch(() => {});
-  }, []);
+  const { components } = useComponents();
+  const firstComponentId = components.length > 0 ? components[0].id : null;
 
   useEffect(() => {
     const obs = new IntersectionObserver(

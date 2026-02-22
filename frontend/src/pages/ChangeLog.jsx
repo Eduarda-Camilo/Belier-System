@@ -101,18 +101,24 @@ export default function ChangeLog() {
     if (type && type !== 'all') params.type = type;
     if (author) params.author = author;
     setLoading(true);
+    setError('');
     api
       .get('/versions/changelog', { params })
       .then((res) => {
         const d = res.data || {};
+        setError('');
         setData({
-          items: d.items || [],
+          items: Array.isArray(d.items) ? d.items : [],
           total_count: d.total_count ?? 0,
           page: d.page ?? 1,
           page_count: d.page_count ?? 1,
         });
       })
-      .catch((err) => setError(err.response?.data?.error || 'Erro ao carregar o changelog.'))
+      .catch((err) => {
+        const msg = err.response?.data?.error || err.message || 'Erro ao carregar o changelog.';
+        setError(msg);
+        setData((prev) => ({ ...prev, items: [] }));
+      })
       .finally(() => setLoading(false));
   }, [range, type, author, page]);
 
@@ -141,13 +147,11 @@ export default function ChangeLog() {
   const startItem = (data.page - 1) * LIMIT + 1;
   const endItem = Math.min(data.page * LIMIT, data.total_count);
 
-  if (loading && data.items.length === 0) return <div className="page-loading">Carregando...</div>;
-
   return (
     <div className="page changelog-page">
       <div className="changelog-page-header">
         <h1 className="page-title">Changelog</h1>
-        <span className="changelog-total">{data.total_count} atualizações</span>
+        <span className="changelog-total">{loading && data.items.length === 0 ? '—' : `${data.total_count} atualizações`}</span>
       </div>
 
       <div className="changelog-filters">
@@ -192,11 +196,15 @@ export default function ChangeLog() {
         </div>
       </div>
 
-      {error && <div className="page-error">{error}</div>}
+      {error && <div className="page-error" role="alert">{error}</div>}
 
-      {!loading && cards.length === 0 && !error && (
-        <p className="page-empty">Nenhuma atualização registrada para os filtros selecionados.</p>
-      )}
+      {loading && data.items.length === 0 ? (
+        <div style={{ display: 'flex', justifyContent: 'center', minHeight: 160, alignItems: 'center' }}>
+          <p className="page-loading" style={{ margin: 0 }}>Carregando...</p>
+        </div>
+      ) : !loading && cards.length === 0 && !error ? (
+        <p className="page-empty">Nenhuma atualização no changelog para os filtros selecionados. Altere os filtros ou aguarde novas publicações.</p>
+      ) : null}
 
       {cards.length > 0 && (
         <>

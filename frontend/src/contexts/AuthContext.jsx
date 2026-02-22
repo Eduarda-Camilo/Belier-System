@@ -11,15 +11,18 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     const saved = localStorage.getItem('user');
     if (token && saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.id || parsed.email)) setUser(parsed);
+      } catch (_) {}
+      setLoading(false);
       api.get('/auth/me')
-        .then((res) => {
-          setUser(res.data.user);
-        })
+        .then((res) => setUser(res.data.user))
         .catch(() => {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-        })
-        .finally(() => setLoading(false));
+          setUser(null);
+        });
     } else {
       setLoading(false);
     }

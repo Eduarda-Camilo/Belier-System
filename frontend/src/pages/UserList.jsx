@@ -88,8 +88,6 @@ export default function UserList() {
 
   const profileLabel = { admin: 'Admin', designer: 'Designer', developer: 'Desenvolvedor' };
 
-  if (loading) return <div className="page-loading">Carregando...</div>;
-
   return (
     <div className="page">
       <div className="page-header">
@@ -126,6 +124,11 @@ export default function UserList() {
         </form>
       )}
       <div className="user-table-wrap">
+        {loading ? (
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <p className="page-loading" style={{ margin: 0 }}>Carregando usuários...</p>
+          </div>
+        ) : (
         <table className="user-table">
           <thead>
             <tr>
@@ -150,8 +153,9 @@ export default function UserList() {
             ))}
           </tbody>
         </table>
+        )}
       </div>
-      {users.length === 0 && !showForm && <p className="page-empty">Nenhum usuário.</p>}
+      {!loading && users.length === 0 && !showForm && <p className="page-empty">Nenhum usuário.</p>}
     </div>
   );
 }

@@ -114,6 +114,12 @@
   min-width: 140px;
 }
 
+.inbox-updating {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
 .inbox-list-wrap {
   margin-top: var(--spacing-md);
 }
@@ -289,4 +295,12 @@
 
 .inbox-toast button {
   flex-shrink: 0;
+}
+
+.inbox-loading-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  padding: var(--spacing-lg);
 }

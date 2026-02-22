@@ -5,6 +5,7 @@
 
 const { Op } = require('sequelize');
 const { Version, Component, Example, User, ChangelogEntry } = require('../models');
+const { parseRange } = require('../utils/dateRange');
 
 async function listByComponent(req, res, next) {
   try {
@@ -69,31 +70,6 @@ async function create(req, res, next) {
   }
 }
 
-function parseRange(range) {
-  const now = new Date();
-  const start = new Date(now);
-  const end = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-  switch (range) {
-    case 'today':
-      return { start: new Date(start), end: new Date(now) };
-    case 'yesterday':
-      start.setDate(start.getDate() - 1);
-      end.setDate(end.getDate() - 1);
-      end.setHours(23, 59, 59, 999);
-      return { start, end };
-    case '7d':
-      start.setDate(start.getDate() - 7);
-      return { start, end: new Date(now) };
-    case '15d':
-      start.setDate(start.getDate() - 15);
-      return { start, end: new Date(now) };
-    default:
-      return null;
-  }
-}
-
 async function listChangelog(req, res, next) {
   try {
     const { range, type, author, page = '1', limit = '50' } = req.query;
@@ -127,24 +103,25 @@ async function listChangelog(req, res, next) {
       limit: limitNum,
       offset,
       include: [
-        { model: Component, as: 'Component', attributes: ['id', 'name', 'title', 'slug'] },
-        { model: Version, as: 'Version', attributes: ['id', 'number', 'isPublished', 'content'] },
+        { model: Component, as: 'Component', attributes: ['id', 'name', 'title', 'slug'], required: true },
+        { model: Version, as: 'Version', attributes: ['id', 'number', 'isPublished', 'content'], required: false },
         { model: Example, as: 'Example', attributes: ['id', 'title', 'slug', 'codeSnippet'], required: false },
       ],
     });
 
-    const items = rows.map((entry) => {
+    const items = (rows || []).map((entry) => {
       const plain = entry.get ? entry.get({ plain: true }) : entry;
+      const version = plain?.Version;
       return {
-        id: plain.componentVersionId,
+        id: plain.componentVersionId ?? plain.id,
         componentId: plain.componentId,
-        Component: plain.Component,
+        Component: plain?.Component ?? null,
         createdAt: plain.createdAt,
-        variationTitle: plain.Example?.title ?? null,
+        variationTitle: plain?.Example?.title ?? null,
         createdBy: { name: plain.authorName || 'Desconhecido' },
-        isPublished: plain.Version?.isPublished ?? false,
-        content: plain.Version?.content ?? null,
-        Example: plain.Example,
+        isPublished: version?.isPublished ?? false,
+        content: version?.content ?? null,
+        Example: plain?.Example ?? null,
       };
     });
 
@@ -156,6 +133,7 @@ async function listChangelog(req, res, next) {
       page_count: pageCount,
     });
   } catch (err) {
+    console.error('[listChangelog]', err.message || err);
     next(err);
   }
 }
