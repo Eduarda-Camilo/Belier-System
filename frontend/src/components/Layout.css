@@ -23,22 +23,30 @@
   flex-wrap: wrap;
 }
 
-/* Logo branca #ffffff */
+/* Brand: ovelhinha (azul) + texto Belier */
 .layout-brand {
   display: flex;
   align-items: center;
+  gap: 10px;
   text-decoration: none;
   flex-shrink: 0;
+  color: #fff;
 }
 
 .layout-brand:hover {
   opacity: 0.9;
+  color: #fff;
 }
 
 .layout-logo {
   height: 36px;
   width: auto;
   display: block;
+}
+
+.layout-brand-text {
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .layout-nav {

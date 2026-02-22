@@ -86,8 +86,9 @@ export default function Layout() {
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-inner">
-          <Link to="/" className="layout-brand">
-            <img src="/logo.svg" alt="Belier" className="layout-logo" />
+          <Link to="/categories" className="layout-brand">
+            <img src="/ovelhinha.svg" alt="" className="layout-logo" aria-hidden />
+            <span className="layout-brand-text">Belier</span>
           </Link>
           <nav className="layout-nav">
             <NavLink to="/notifications" className={navLinkClass} end>
