@@ -86,15 +86,15 @@ export default function Layout() {
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-inner">
-          <Link to={firstComponent ? `/components/${firstComponent.id}` : '/docs'} className="layout-brand">
+          <Link to="/docs" className="layout-brand">
             <img src="/logo.svg" alt="Belier" className="layout-logo" />
           </Link>
           <nav className="layout-nav">
-            <NavLink to="/notifications" className={navLinkClass} end>
-              <IconInbox /> Inbox
-            </NavLink>
             <NavLink to="/docs" className={navLinkClass}>
               <IconDocs /> Docs
+            </NavLink>
+            <NavLink to="/notifications" className={navLinkClass} end>
+              <IconInbox /> Inbox
             </NavLink>
             <a href={FIGMA_URL} target="_blank" rel="noopener noreferrer" className="layout-nav-link">
               <img src="/figma.svg" alt="" className="layout-nav-figma-icon" aria-hidden /> Figma
@@ -192,8 +192,8 @@ export default function Layout() {
         <aside className="layout-sidebar">
           <nav>
             <ul className="layout-side-list">
-              <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
               <li><NavLink to="/docs" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
+              <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
               <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><img src="/figma.svg" alt="" className="layout-side-figma-icon" aria-hidden /> Figma</a></li>
               <li><NavLink to="/changelog" className={sideLinkClass}><IconChangelog /> ChangeLog</NavLink></li>
               <li>
