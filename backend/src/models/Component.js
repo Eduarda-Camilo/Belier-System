@@ -3,7 +3,7 @@
  *
  * Campos principais (novo escopo): title, shortDescription, slug, tags, status.
  * Mantidos para compatibilidade: name (= title), description (= shortDescription),
- * categoryId, responsibleId, documentation, usagePreview, variations.
+ * responsibleId, documentation, usagePreview, variations.
  * - 1 Component tem 1 Example type=default e N Examples type=variation (modelo Example).
  */
 
@@ -74,12 +74,6 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Compatibilidade: igual a shortDescription',
-    },
-    categoryId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: { model: 'categories', key: 'id' },
-      onDelete: 'SET NULL',
     },
     responsibleId: {
       type: DataTypes.INTEGER,

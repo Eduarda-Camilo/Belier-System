@@ -6,7 +6,7 @@
  * e temos acesso aos modelos já conectados e com as associations definidas.
  *
  * Associations (relacionamentos):
- * - Component pertence a Category e ao User (responsável).
+ * - Component pertence ao User (responsável).
  * - Version e Comment pertencem a Component; Comment pertence a User.
  * - Notification pertence a User, Comment e Component (para saber quem, em qual comentário e em qual componente).
  */
@@ -14,9 +14,8 @@
 const sequelize = require('../config/database');
 
 // Carrega cada modelo passando a instância do Sequelize.
-// A ordem importa: primeiro os que não dependem de outros (User, Category).
+// A ordem importa: primeiro os que não dependem de outros (User).
 const User = require('./User')(sequelize);
-const Category = require('./Category')(sequelize);
 const Component = require('./Component')(sequelize);
 const Example = require('./Example')(sequelize);
 const Version = require('./Version')(sequelize);
@@ -25,10 +24,6 @@ const Comment = require('./Comment')(sequelize);
 const Notification = require('./Notification')(sequelize);
 
 // --- Relacionamentos ---
-
-// Componente pertence a uma Categoria e tem um Usuário responsável
-Component.belongsTo(Category, { foreignKey: 'categoryId' });
-Category.hasMany(Component, { foreignKey: 'categoryId' });
 
 Component.belongsTo(User, { as: 'responsible', foreignKey: 'responsibleId' });
 User.hasMany(Component, { foreignKey: 'responsibleId' });
@@ -90,7 +85,6 @@ async function syncDatabase(options = {}) {
 module.exports = {
   sequelize,
   User,
-  Category,
   Component,
   Example,
   Version,

@@ -163,7 +163,7 @@ export default function Docs() {
           <div className="docs-stepper">
             <div className="docs-stepper-card" id="1-encontrar-um-componente">
               <h3>1) Encontrar um componente</h3>
-              <p>Acesse Components e use a busca para localizar pelo nome, categoria ou tag.</p>
+              <p>Acesse Components e use a busca para localizar pelo nome ou tag.</p>
               <ul className="docs-list-bullets">
                 <li>confirmar o padrão correto antes de implementar</li>
                 <li>comparar variações e estados</li>
