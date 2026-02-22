@@ -86,7 +86,7 @@ export default function Layout() {
     <div className="layout">
       <header className="layout-header">
         <div className="layout-header-inner">
-          <Link to="/categories" className="layout-brand">
+          <Link to={firstComponent ? `/components/${firstComponent.id}` : '/docs'} className="layout-brand">
             <img src="/logo.svg" alt="Belier" className="layout-logo" />
           </Link>
           <nav className="layout-nav">

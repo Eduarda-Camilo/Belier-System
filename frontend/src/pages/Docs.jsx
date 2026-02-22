@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../services/api';
 import './Docs.css';
 
 const TOC_IDS = [
@@ -68,6 +69,14 @@ function DocAccordionItem({ title, description, children, open, onToggle }) {
 export default function Docs() {
   const [activeId, setActiveId] = useState('');
   const [faqOpen, setFaqOpen] = useState(null);
+  const [firstComponentId, setFirstComponentId] = useState(null);
+
+  useEffect(() => {
+    api.get('/components').then((res) => {
+      const list = res.data || [];
+      if (list.length > 0) setFirstComponentId(list[0].id);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -260,7 +269,11 @@ export default function Docs() {
             <li>abra um comentário no componente mais próximo</li>
             <li>ou crie uma solicitação interna (conforme o fluxo do projeto)</li>
           </ul>
-          <Link to="/" className="btn btn-primary docs-cta">Ir para Componentes</Link>
+          {firstComponentId ? (
+            <Link to={`/components/${firstComponentId}`} className="btn btn-primary docs-cta">Ir para Componentes</Link>
+          ) : (
+            <span className="btn btn-primary docs-cta" aria-disabled>Ir para Componentes</span>
+          )}
         </section>
 
         <footer className="docs-footer">
