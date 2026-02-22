@@ -20,18 +20,6 @@ export function IconDocs() {
   );
 }
 
-export function IconFigma() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M8 24a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4h0a4 4 0 0 1-4 4h0a4 4 0 0 1-4-4z" fill="#F24E1E" />
-      <path d="M8 12a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4h0a4 4 0 0 1-4 4h0a4 4 0 0 1-4-4z" fill="#FF7262" />
-      <path d="M8 0h4a4 4 0 0 1 0 8h-4a4 4 0 0 1 0-8z" fill="#A259FF" />
-      <path d="M0 12a4 4 0 0 1 4-4h4a4 4 0 0 1 0 8H4a4 4 0 0 1-4-4z" fill="#1ABCFE" />
-      <path d="M8 12a4 4 0 0 1 4-4h4a4 4 0 0 1 0 8h-4a4 4 0 0 1-4-4z" fill="#0ACF83" />
-    </svg>
-  );
-}
-
 export function IconComponentes() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

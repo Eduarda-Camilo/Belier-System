@@ -34,7 +34,7 @@ export default function Login() {
     return () => clearInterval(t);
   }, []);
 
-  if (user) return <Navigate to="/components" replace />;
+  if (user) return <Navigate to="/" replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,7 +42,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email.trim(), password.trim());
-      navigate('/components');
+      navigate('/');
     } catch (err) {
       const msg = !err?.response
         ? 'Não foi possível conectar à API. Você configurou o backend e a variável VITE_API_URL na Vercel?'

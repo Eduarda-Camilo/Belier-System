@@ -5,7 +5,7 @@ Aplicação React (Vite) para gerenciamento e documentação de componentes (Des
 ## Estrutura
 
 - `src/components/` — Layout (header, menu, conteúdo)
-- `src/pages/` — Login, ComponentList, ComponentDetail, ComponentForm, CategoryList, Notifications, UserList
+- `src/pages/` — Login, ComponentDetail, ComponentForm, CategoryList, Notifications, UserList
 - `src/services/api.js` — cliente axios com token JWT
 - `src/contexts/AuthContext.jsx` — usuário logado e login/logout
 - `src/styles/theme.css` — variáveis de tema (cores, espaçamentos); altere aqui ao aplicar novo layout

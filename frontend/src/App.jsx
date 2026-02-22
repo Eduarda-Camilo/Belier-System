@@ -2,7 +2,6 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import ComponentList from './pages/ComponentList';
 import ComponentDetail from './pages/ComponentDetail';
 import ComponentForm from './pages/ComponentForm';
 import CategoryList from './pages/CategoryList';

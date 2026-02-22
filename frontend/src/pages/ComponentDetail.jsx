@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import './ComponentDetail.css';
@@ -17,7 +17,6 @@ function highlightCode(str) {
   const s = str;
   while (i < s.length) {
     if (s[i] === '<') {
-      const start = i;
       i++;
       push('code-punctuation', '<');
       if (s[i] === '/') { push('code-punctuation', '/'); i++; }
@@ -76,7 +75,6 @@ function normalizeVariations(variations) {
 
 export default function ComponentDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [component, setComponent] = useState(null);
   const [versions, setVersions] = useState([]);
