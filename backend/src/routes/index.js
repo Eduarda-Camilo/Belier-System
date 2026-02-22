@@ -9,7 +9,6 @@ const express = require('express');
 const router = express.Router();
 
 const authRoutes = require('./auth');
-const categoriesRoutes = require('./categories');
 const componentsRoutes = require('./components');
 const versionsRoutes = require('./versions');
 const commentsRoutes = require('./comments');
@@ -17,7 +16,6 @@ const notificationsRoutes = require('./notifications');
 const usersRoutes = require('./users');
 
 router.use('/auth', authRoutes);
-router.use('/categories', categoriesRoutes);
 router.use('/components', componentsRoutes);
 router.use('/versions', versionsRoutes);
 router.use('/comments', commentsRoutes);

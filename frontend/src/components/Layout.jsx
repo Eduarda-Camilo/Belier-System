@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-do
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import ErrorBoundary from './ErrorBoundary';
 import { IconInbox, IconDocs, IconComponentes, IconSearch, IconUser, IconKey, IconLogout, IconUsers, IconChangelog } from './Icons';
 import './Layout.css';
 
@@ -226,7 +227,9 @@ export default function Layout() {
           </nav>
         </aside>
         <section className="layout-content">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </section>
       </main>
 

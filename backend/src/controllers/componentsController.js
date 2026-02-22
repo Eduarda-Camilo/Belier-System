@@ -3,7 +3,7 @@
  * Criar/editar: admin e designer; publicar/arquivar: admin; listar/ver: todos.
  */
 
-const { Component, Category, User, Example, Version } = require('../models');
+const { Component, User, Example, Version } = require('../models');
 const { Op } = require('sequelize');
 
 const SLUG_REGEX = /^[a-z0-9-]+$/;
@@ -18,10 +18,8 @@ function validateSlug(slug) {
 
 async function list(req, res, next) {
   try {
-    const { categoryId, status, q } = req.query;
+    const { status, q } = req.query;
     const where = {};
-
-    if (categoryId) where.categoryId = categoryId;
     if (status) where.status = status;
     if (q && q.trim()) {
       const term = `%${q.trim()}%`;
@@ -36,10 +34,7 @@ async function list(req, res, next) {
 
     const components = await Component.findAll({
       where,
-      include: [
-        { model: Category, as: 'Category', attributes: ['id', 'name'] },
-        { model: User, as: 'responsible', attributes: ['id', 'name', 'email'] },
-      ],
+      include: [{ model: User, as: 'responsible', attributes: ['id', 'name', 'email'] }],
       order: [['name', 'ASC']],
     });
     res.json(components);
@@ -155,10 +150,7 @@ async function update(req, res, next) {
     const { id } = req.params;
     const body = req.body;
     const component = await Component.findByPk(id, {
-      include: [
-        { model: Category, as: 'Category', attributes: ['id', 'name'] },
-        { model: User, as: 'responsible', attributes: ['id', 'name', 'email'] },
-      ],
+      include: [{ model: User, as: 'responsible', attributes: ['id', 'name', 'email'] }],
     });
     if (!component) {
       return res.status(404).json({ error: 'Componente não encontrado' });

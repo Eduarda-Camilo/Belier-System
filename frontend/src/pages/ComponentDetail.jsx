@@ -171,10 +171,34 @@ export default function ComponentDetail() {
     const apply = (data) => {
       if (cancelled) return;
       const obj = data && typeof data === 'object' ? (data.component ?? data) : null;
-      if (obj && (obj.id != null || obj.name != null || obj.title != null)) {
-        setComponent(Array.isArray(obj) ? obj[0] : obj);
+      const one = Array.isArray(obj) ? obj[0] : obj;
+      if (one && (one.id != null || one.name != null || one.title != null)) {
+        try {
+          const plain = {
+            id: one.id,
+            name: one.name,
+            title: one.title,
+            slug: one.slug,
+            status: one.status,
+            shortDescription: one.shortDescription,
+            description: one.description,
+            longDescriptionMd: one.longDescriptionMd,
+            dependenciesMd: one.dependenciesMd,
+            accessibilityMd: one.accessibilityMd,
+            tags: Array.isArray(one.tags) ? one.tags : [],
+            referenceUrl: one.referenceUrl,
+            responsibleId: one.responsibleId,
+            responsible: one.responsible ? { id: one.responsible.id, name: one.responsible.name, email: one.responsible.email } : null,
+            updatedAt: one.updatedAt,
+            defaultExample: one.defaultExample ? { id: one.defaultExample.id, title: one.defaultExample.title, slug: one.defaultExample.slug, description: one.defaultExample.description, codeSnippet: one.defaultExample.codeSnippet, codeCss: one.defaultExample.codeCss, codeJs: one.defaultExample.codeJs } : null,
+            variations: Array.isArray(one.variations) ? one.variations.map((v) => ({ id: v.id, title: v.title, slug: v.slug, description: v.description, codeSnippet: v.codeSnippet, codeCss: v.codeCss, codeJs: v.codeJs })) : [],
+          };
+          setComponent(plain);
+        } catch (e) {
+          setError('Dados do componente inválidos.');
+        }
       } else {
-        setError((obj && obj.error) || (data && data.error) || 'Resposta inválida do servidor.');
+        setError((one && one.error) || (data && data.error) || 'Resposta inválida do servidor.');
       }
     };
     const url = `/components/${id}`;
@@ -235,10 +259,10 @@ export default function ComponentDetail() {
   const compVars = normalizeVariations(component?.variations) || [];
   const allExamples = fromSnapshot && Array.isArray(fromSnapshot) && fromSnapshot.length > 0
     ? fromSnapshot.map((s, i) => {
-        const id = s.id ?? `snap-${selectedVersion.id}-${i}`;
-        const effectiveExampleId = s.id != null ? s.id : (i === 0 ? compDefault?.id : compVars[i - 1]?.id);
+        const snapId = s?.id ?? `snap-${selectedVersion?.id ?? 0}-${i}`;
+        const effectiveExampleId = s?.id != null ? s.id : (i === 0 ? compDefault?.id : compVars[i - 1]?.id);
         return {
-          id,
+          id: snapId,
           effectiveExampleId,
           title: i === 0 ? 'Default' : (s.title || `Variação ${i}`),
           slug: s.slug || (i === 0 ? 'default' : `v${i}`),
@@ -353,13 +377,26 @@ export default function ComponentDetail() {
     }
   };
 
-  if (loading) return <div className="page-loading">Carregando...</div>;
-  if (error && !component) return <div className="page-error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="page page-loading-wrap" role="status" aria-live="polite" style={{ minHeight: '200px', padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p className="page-loading" style={{ margin: 0, color: 'var(--color-text)', fontSize: '1rem' }}>Carregando...</p>
+      </div>
+    );
+  }
+  if (error && !component) {
+    return (
+      <div className="page page-error-wrap" role="alert" style={{ minHeight: '120px', padding: '2rem' }}>
+        <p className="page-error" style={{ margin: 0 }}>{error}</p>
+        <Link to="/components" className="btn btn-ghost" style={{ marginTop: '1rem' }}>← Voltar à lista</Link>
+      </div>
+    );
+  }
   if (!component) {
     return (
-      <div className="page">
-        <p className="page-loading">Componente não encontrado.</p>
-        <Link to="/components" className="btn btn-ghost">← Voltar à lista</Link>
+      <div className="page" style={{ padding: '2rem' }}>
+        <p className="page-loading" style={{ margin: 0 }}>Componente não encontrado.</p>
+        <Link to="/components" className="btn btn-ghost" style={{ marginTop: '1rem' }}>← Voltar à lista</Link>
       </div>
     );
   }
