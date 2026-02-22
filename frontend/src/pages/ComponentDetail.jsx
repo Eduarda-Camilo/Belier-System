@@ -243,27 +243,27 @@ export default function ComponentDetail() {
     <div className="page detail-content-grid">
       <div className="detail-content">
         <div className="page-header" id="title">
-          <div>
-            <Link to="/components" className="back-link">← Componentes</Link>
-            <h1>{component.title || component.name}</h1>
-            <span className={`detail-badge detail-badge-${component.status}`}>
-              {statusLabel[component.status]}
-            </span>
-            {component.Category && (
-              <span className="detail-meta">Categoria: {component.Category.name}</span>
-            )}
-            {component.responsible && (
-              <span className="detail-meta">Responsável: {component.responsible.name}</span>
+          <div className="page-header-row">
+            <div className="page-header-left">
+              <h1>{component.title || component.name}</h1>
+              <span className={`detail-badge detail-badge-${component.status}`}>
+                {statusLabel[component.status]}
+              </span>
+            </div>
+            {canEdit && (
+              <Link to={`/components/${id}/edit`} className="btn btn-primary btn-edit-header">Editar</Link>
             )}
           </div>
-          {canEdit && (
-            <Link to={`/components/${id}/edit`} className="btn btn-primary">Editar</Link>
+          {component.Category && (
+            <span className="detail-meta">Categoria: {component.Category.name}</span>
+          )}
+          {component.responsible && (
+            <span className="detail-meta">Responsável: {component.responsible.name}</span>
+          )}
+          {(component.shortDescription || component.description) && (
+            <p className="detail-description">{component.shortDescription || component.description}</p>
           )}
         </div>
-
-        {(component.shortDescription || component.description) && (
-          <p className="detail-description">{component.shortDescription || component.description}</p>
-        )}
 
         <section className="detail-card" id="default">
           <h2>Default</h2>
