@@ -7,6 +7,7 @@ import ComponentForm from './pages/ComponentForm';
 import CategoryList from './pages/CategoryList';
 import Notifications from './pages/Notifications';
 import UserList from './pages/UserList';
+import ChangeLog from './pages/ChangeLog';
 
 function ProtectedRoute({ children, allowedProfiles }) {
   const { user, loading } = useAuth();
@@ -32,6 +33,7 @@ export default function App() {
         </Route>
         <Route path="categories" element={<CategoryList />} />
         <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+        <Route path="changelog" element={<ProtectedRoute><ChangeLog /></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><div className="page"><h1>Perfil</h1><p>Em breve.</p></div></ProtectedRoute>} />
         <Route path="profile/trocar-senha" element={<ProtectedRoute><div className="page"><h1>Trocar senha</h1><p>Em breve.</p></div></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute allowedProfiles={['admin']}><UserList /></ProtectedRoute>} />

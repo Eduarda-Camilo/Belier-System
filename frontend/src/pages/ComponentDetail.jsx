@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { IconEdit } from '../components/Icons';
+import { IconEdit, IconTrash } from '../components/Icons';
 import './ComponentDetail.css';
 
 /** Destaque de sintaxe simples para HTML/CSS: retorna array de elementos React. */
@@ -93,11 +93,29 @@ export default function ComponentDetail() {
   const [activeIndexId, setActiveIndexId] = useState('title');
 
   const canEdit = ['admin', 'designer'].includes(user?.profile);
+  const canDelete = user?.profile === 'admin';
   const statusLabel = { draft: 'Rascunho', published: 'Publicado', archived: 'Arquivado' };
   const [savingVersion, setSavingVersion] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const totalComments = comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0);
   const loadComments = () => api.get(`/comments/component/${id}`).then((res) => setComments(res.data)).catch(() => {});
+
+  const handleDeleteComponent = async () => {
+    if (!id || !component) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/components/${id}`);
+      setDeleteModalOpen(false);
+      navigate('/docs');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Não foi possível excluir o componente.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -251,11 +269,23 @@ export default function ComponentDetail() {
                 {statusLabel[component.status]}
               </span>
             </div>
-            {canEdit && (
-              <Link to={`/components/${id}/edit`} className="btn-edit-header">
-              <IconEdit /> Editar
-            </Link>
-            )}
+            <div className="page-header-actions">
+              {canEdit && (
+                <Link to={`/components/${id}/edit`} className="btn-edit-header">
+                  <IconEdit /> Editar
+                </Link>
+              )}
+              {canDelete && (
+                <button
+                  type="button"
+                  className="btn-delete-header"
+                  onClick={() => setDeleteModalOpen(true)}
+                  aria-label="Excluir componente"
+                >
+                  <IconTrash /> Excluir componente
+                </button>
+              )}
+            </div>
           </div>
           {component.Category && (
             <span className="detail-meta">Categoria: {component.Category.name}</span>
@@ -520,6 +550,40 @@ export default function ComponentDetail() {
           </ul>
         </div>
       </aside>
+
+      {deleteModalOpen && (
+        <div className="delete-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+          <div className="delete-modal">
+            <div className="delete-modal-icon" aria-hidden="true">
+              <span className="delete-modal-icon-x">×</span>
+            </div>
+            <h2 id="delete-modal-title" className="delete-modal-title">
+              Excluir o componente {component.title || component.name}?
+            </h2>
+            <p className="delete-modal-body">
+              Tem certeza que deseja excluir o componente {component.title || component.name}? Essa ação é destrutiva e não pode ser desfeita.
+            </p>
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                className="delete-modal-btn-cancel"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="delete-modal-btn-delete"
+                onClick={handleDeleteComponent}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

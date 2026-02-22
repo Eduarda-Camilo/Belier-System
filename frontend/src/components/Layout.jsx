@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-do
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { IconInbox, IconDocs, IconComponentes, IconSearch, IconUser, IconKey, IconLogout } from './Icons';
+import { IconInbox, IconDocs, IconComponentes, IconSearch, IconUser, IconKey, IconLogout, IconUsers } from './Icons';
 import './Layout.css';
 
 const FIGMA_URL = 'https://www.figma.com';
@@ -99,6 +99,9 @@ export default function Layout() {
             <a href={FIGMA_URL} target="_blank" rel="noopener noreferrer" className="layout-nav-link">
               <img src="/figma.svg" alt="" className="layout-nav-figma-icon" aria-hidden /> Figma
             </a>
+            <NavLink to="/changelog" className={navLinkClass}>
+              ChangeLog
+            </NavLink>
             {firstComponent ? (
               <NavLink to={`/components/${firstComponent.id}`} className={componentesNavClass}>
                 <IconComponentes /> Componentes
@@ -147,6 +150,14 @@ export default function Layout() {
                       <div className="avatar-modal-sep" />
                       <div className="avatar-modal-menu">
                         <Link
+                          to="/users"
+                          className={`avatar-modal-item ${location.pathname === '/users' ? 'selected' : ''}`}
+                          onClick={() => setAvatarMenuOpen(false)}
+                          role="menuitem"
+                        >
+                          <IconUsers /> Usuários
+                        </Link>
+                        <Link
                           to="/profile"
                           className={`avatar-modal-item ${location.pathname === '/profile' ? 'selected' : ''}`}
                           onClick={() => setAvatarMenuOpen(false)}
@@ -184,6 +195,7 @@ export default function Layout() {
               <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
               <li><NavLink to="/categories" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
               <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><img src="/figma.svg" alt="" className="layout-side-figma-icon" aria-hidden /> Figma</a></li>
+              <li><NavLink to="/changelog" className={sideLinkClass}>ChangeLog</NavLink></li>
               <li>
                 <button
                   type="button"
