@@ -167,12 +167,14 @@ export default function ComponentDetail() {
     setComponent(null);
     setLoading(true);
     let cancelled = false;
+    const done = () => { if (!cancelled) setLoading(false); };
     const apply = (data) => {
       if (cancelled) return;
-      if (data && typeof data === 'object' && (data.id != null || data.name || data.title)) {
-        setComponent(Array.isArray(data) ? data[0] : data);
+      const obj = data && typeof data === 'object' ? (data.component ?? data) : null;
+      if (obj && (obj.id != null || obj.name != null || obj.title != null)) {
+        setComponent(Array.isArray(obj) ? obj[0] : obj);
       } else {
-        setError(data?.error || 'Resposta inválida do servidor.');
+        setError((obj && obj.error) || (data && data.error) || 'Resposta inválida do servidor.');
       }
     };
     const url = `/components/${id}`;
@@ -181,17 +183,21 @@ export default function ComponentDetail() {
         const body = res?.data;
         apply(body);
       })
-      .catch(() =>
-        api.get(url).then((res) => apply(res?.data))
-      )
       .catch((err) => {
         if (cancelled) return;
-        if (err.response?.status === 404) {
-          setComponent(null);
-          setError('');
-          return;
-        }
-        setError(err.response?.data?.error || err.message || 'Não foi possível carregar o componente. Verifique a conexão.');
+        if (err.response?.status === 401) return;
+        api.get(url)
+          .then((res) => apply(res?.data))
+          .catch((retryErr) => {
+            if (cancelled) return;
+            if (retryErr.response?.status === 404) {
+              setComponent(null);
+              setError('');
+              return;
+            }
+            setError(retryErr.response?.data?.error || retryErr.message || 'Não foi possível carregar o componente. Verifique a conexão.');
+          })
+          .finally(done);
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };

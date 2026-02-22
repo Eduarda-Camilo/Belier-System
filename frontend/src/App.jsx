@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import ComponentDetail from './pages/ComponentDetail';
 import ComponentForm from './pages/ComponentForm';
 import Docs from './pages/Docs';
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<FirstComponentRedirect />} />
         <Route path="components" element={<Outlet />}>
