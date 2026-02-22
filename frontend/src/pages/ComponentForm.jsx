@@ -172,9 +172,12 @@ export default function ComponentForm() {
     setError('');
     setSaving(true);
     try {
+      const titleVal = form.title.trim();
       const payload = {
-        title: form.title.trim(),
+        title: titleVal,
+        name: titleVal,
         shortDescription: form.shortDescription.trim(),
+        description: form.shortDescription.trim(),
         slug: form.slug.trim().toLowerCase(),
         tags: form.tags,
         referenceUrl: form.referenceUrl.trim() || null,
