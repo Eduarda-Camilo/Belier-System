@@ -20,6 +20,7 @@ const Category = require('./Category')(sequelize);
 const Component = require('./Component')(sequelize);
 const Example = require('./Example')(sequelize);
 const Version = require('./Version')(sequelize);
+const ChangelogEntry = require('./ChangelogEntry')(sequelize);
 const Comment = require('./Comment')(sequelize);
 const Notification = require('./Notification')(sequelize);
 
@@ -40,6 +41,15 @@ Version.belongsTo(Component, { foreignKey: 'componentId' });
 Component.hasMany(Version, { foreignKey: 'componentId' });
 Version.belongsTo(User, { as: 'createdBy', foreignKey: 'userId' });
 User.hasMany(Version, { foreignKey: 'userId' });
+
+ChangelogEntry.belongsTo(Component, { foreignKey: 'componentId' });
+Component.hasMany(ChangelogEntry, { foreignKey: 'componentId' });
+ChangelogEntry.belongsTo(Version, { foreignKey: 'componentVersionId' });
+Version.hasMany(ChangelogEntry, { foreignKey: 'componentVersionId' });
+ChangelogEntry.belongsTo(Example, { foreignKey: 'exampleId' });
+Example.hasMany(ChangelogEntry, { foreignKey: 'exampleId' });
+ChangelogEntry.belongsTo(User, { as: 'author', foreignKey: 'authorUserId' });
+User.hasMany(ChangelogEntry, { foreignKey: 'authorUserId' });
 
 Comment.belongsTo(Component, { foreignKey: 'componentId' });
 Component.hasMany(Comment, { foreignKey: 'componentId' });
@@ -63,6 +73,10 @@ Notification.belongsTo(Comment, { foreignKey: 'commentId' });
 Comment.hasMany(Notification, { foreignKey: 'commentId' });
 Notification.belongsTo(Component, { foreignKey: 'componentId' });
 Component.hasMany(Notification, { foreignKey: 'componentId' });
+Notification.belongsTo(Version, { foreignKey: 'versionId' });
+Version.hasMany(Notification, { foreignKey: 'versionId' });
+Notification.belongsTo(Example, { foreignKey: 'exampleId' });
+Example.hasMany(Notification, { foreignKey: 'exampleId' });
 
 /**
  * Sincroniza o banco: cria as tabelas se não existirem (sync).
@@ -80,6 +94,7 @@ module.exports = {
   Component,
   Example,
   Version,
+  ChangelogEntry,
   Comment,
   Notification,
   syncDatabase,

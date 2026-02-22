@@ -3,7 +3,7 @@
  * Criar/editar: admin e designer; publicar/arquivar: admin; listar/ver: todos.
  */
 
-const { Component, User, Example, Version } = require('../models');
+const { Component, User, Example, Version, ChangelogEntry, Notification } = require('../models');
 const { Op } = require('sequelize');
 
 const SLUG_REGEX = /^[a-z0-9-]+$/;
@@ -110,7 +110,7 @@ async function create(req, res, next) {
     }
     const slugCheck = validateSlug(slug);
     if (!slugCheck.ok) return res.status(400).json({ error: slugCheck.error });
-    const slugValue = slugCheck.value;
+    const slugValue = slugCheck.value.toLowerCase();
 
     const existingSlug = await Component.findOne({ where: { slug: slugValue } });
     if (existingSlug) {
@@ -171,7 +171,7 @@ async function update(req, res, next) {
     if (body.slug !== undefined) {
       const slugCheck = validateSlug(body.slug);
       if (!slugCheck.ok) return res.status(400).json({ error: slugCheck.error });
-      const slugValue = slugCheck.value;
+      const slugValue = slugCheck.value.toLowerCase();
       const existingSlug = await Component.findOne({ where: { slug: slugValue, id: { [Op.ne]: id } } });
       if (existingSlug) return res.status(400).json({ error: 'Este slug já está em uso. Escolha outro.' });
       component.slug = slugValue;
@@ -198,7 +198,10 @@ async function update(req, res, next) {
     }
 
     await component.save();
-    res.json(component);
+    const updated = await Component.findByPk(id, {
+      include: [{ model: User, as: 'responsible', attributes: ['id', 'name', 'email'] }],
+    });
+    res.json(updated || component);
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError' && err.fields && err.fields.slug) {
       return res.status(400).json({ error: 'Este slug já está em uso. Escolha outro.' });
@@ -276,7 +279,7 @@ async function publish(req, res, next) {
         codeJs: e.codeJs,
       })),
     };
-    await Version.create({
+    const newVersion = await Version.create({
       componentId: id,
       userId: req.user.id,
       number: nextNumber,
@@ -285,9 +288,149 @@ async function publish(req, res, next) {
       isPublished: true,
       content,
     });
+    await ChangelogEntry.create({
+      componentId: id,
+      componentVersionId: newVersion.id,
+      exampleId: null,
+      authorUserId: req.user.id,
+      authorName: req.user.name || null,
+      message: String(changelog).trim(),
+      changeType: 'PUBLISH',
+    });
     component.status = 'published';
     await component.save();
+    if (component.responsibleId && component.responsibleId !== req.user.id) {
+      await Notification.create({
+        userId: component.responsibleId,
+        type: 'VERSION_PUBLISHED',
+        componentId: id,
+        versionId: newVersion.id,
+        previewText: String(changelog).trim().slice(0, 300),
+        actorUserId: req.user.id,
+        actorName: req.user.name || null,
+      });
+    }
     res.json(component);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /components/:id/changelog — lista entradas de changelog do componente (Opção A: por variação, todas as versões). */
+async function listComponentChangelog(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { variant_id: variantId, page = '1', limit = '50' } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+    const offset = (pageNum - 1) * limitNum;
+
+    const where = { componentId: id };
+    if (variantId != null && variantId !== '') {
+      where.exampleId = Number(variantId) || null;
+    }
+
+    const { count, rows } = await ChangelogEntry.findAndCountAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: limitNum,
+      offset,
+      include: [
+        { model: Version, as: 'Version', attributes: ['id', 'number', 'isPublished', 'createdAt'] },
+        { model: Example, as: 'Example', attributes: ['id', 'title', 'slug'], required: false },
+      ],
+    });
+
+    const pageCount = Math.ceil(count / limitNum) || 1;
+    res.json({
+      items: rows,
+      total_count: count,
+      page: pageNum,
+      page_count: pageCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /components/:id/record-changelog — após edição: cria versão rascunho e uma entrada de changelog por exemplo (variação) atual. */
+async function recordChangelog(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { message, changedExampleIds } = req.body;
+    const component = await Component.findByPk(id);
+    if (!component) return res.status(404).json({ error: 'Componente não encontrado' });
+
+    const examples = await Example.findAll({
+      where: { componentId: id },
+      order: [['type', 'ASC'], ['order', 'ASC']],
+    });
+    const defaultEx = examples.find((e) => e.type === 'default');
+    const content = {
+      title: component.title,
+      name: component.name,
+      shortDescription: component.shortDescription,
+      longDescriptionMd: component.longDescriptionMd,
+      dependenciesMd: component.dependenciesMd,
+      accessibilityMd: component.accessibilityMd,
+      tags: component.tags,
+      variationsSnapshot: examples.map((e) => ({
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        description: e.description,
+        codeSnippet: e.codeSnippet,
+        codeCss: e.codeCss,
+        codeJs: e.codeJs,
+      })),
+    };
+
+    const lastVersion = await Version.findOne({
+      where: { componentId: id },
+      order: [['number', 'DESC']],
+    });
+    const nextNumber = lastVersion ? lastVersion.number + 1 : 1;
+    const version = await Version.create({
+      componentId: id,
+      userId: req.user ? req.user.id : null,
+      number: nextNumber,
+      description: `Versão ${nextNumber}`,
+      isPublished: false,
+      content,
+    });
+
+    const authorName = req.user ? (req.user.name || null) : null;
+    const authorUserId = req.user ? req.user.id : null;
+    const msg = message && String(message).trim() ? String(message).trim() : 'Alteração registrada';
+
+    const idsToRecord = Array.isArray(changedExampleIds) && changedExampleIds.length > 0
+      ? changedExampleIds.map(Number).filter((n) => n && examples.some((e) => e.id === n))
+      : examples.map((e) => e.id);
+    if (idsToRecord.length > 0) {
+      for (const exampleId of idsToRecord) {
+        await ChangelogEntry.create({
+          componentId: id,
+          componentVersionId: version.id,
+          exampleId,
+          authorUserId,
+          authorName,
+          message: msg,
+          changeType: 'EDIT',
+        });
+      }
+    } else {
+      await ChangelogEntry.create({
+        componentId: id,
+        componentVersionId: version.id,
+        exampleId: defaultEx ? defaultEx.id : null,
+        authorUserId,
+        authorName,
+        message: msg,
+        changeType: 'EDIT',
+      });
+    }
+
+    res.status(201).json({ version, message: 'Changelog registrado' });
   } catch (err) {
     next(err);
   }
@@ -310,4 +453,4 @@ async function checkSlug(req, res, next) {
   }
 }
 
-module.exports = { list, getOne, create, update, remove, archive, publish, checkSlug };
+module.exports = { list, getOne, create, update, remove, archive, publish, checkSlug, listComponentChangelog, recordChangelog };

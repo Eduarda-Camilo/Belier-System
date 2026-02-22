@@ -1,28 +1,16 @@
 /**
- * Modelo Notification (notificação para o usuário).
- * Tipos: COMMENT_CREATED, VERSION_PUBLISHED, STATUS_CHANGED, MENTION.
- * read_at null = não lida.
+ * Entrada de changelog por variação/versão.
+ * Uma entrada por alteração (edição ou publicação) associada a component_id, version_id e variant (example_id).
  */
 
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  const Notification = sequelize.define('Notification', {
+  const ChangelogEntry = sequelize.define('ChangelogEntry', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-    },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: { model: 'users', key: 'id' },
-      onDelete: 'CASCADE',
-    },
-    type: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-      defaultValue: 'COMMENT_CREATED',
     },
     componentId: {
       type: DataTypes.INTEGER,
@@ -30,13 +18,7 @@ module.exports = (sequelize) => {
       references: { model: 'components', key: 'id' },
       onDelete: 'CASCADE',
     },
-    commentId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: { model: 'comments', key: 'id' },
-      onDelete: 'CASCADE',
-    },
-    versionId: {
+    componentVersionId: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: { model: 'versions', key: 'id' },
@@ -47,36 +29,33 @@ module.exports = (sequelize) => {
       allowNull: true,
       references: { model: 'examples', key: 'id' },
       onDelete: 'SET NULL',
+      comment: 'Variação (subcomponente) afetada; null = apenas docs/publicação',
     },
-    previewText: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    actorUserId: {
+    authorUserId: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: { model: 'users', key: 'id' },
       onDelete: 'SET NULL',
     },
-    actorName: {
+    authorName: {
       type: DataTypes.STRING(200),
       allowNull: true,
     },
-    readAt: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    read: {
-      type: DataTypes.BOOLEAN,
+    message: {
+      type: DataTypes.TEXT,
       allowNull: false,
-      defaultValue: false,
+    },
+    changeType: {
+      type: DataTypes.ENUM('EDIT', 'PUBLISH'),
+      allowNull: false,
+      defaultValue: 'EDIT',
     },
   }, {
-    tableName: 'notifications',
+    tableName: 'changelog_entries',
     timestamps: true,
     updatedAt: false,
     underscored: true,
   });
 
-  return Notification;
+  return ChangelogEntry;
 };

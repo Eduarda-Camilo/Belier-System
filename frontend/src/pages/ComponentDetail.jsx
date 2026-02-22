@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { IconEdit, IconTrash } from '../components/Icons';
@@ -92,8 +92,47 @@ function simpleMarkdown(md) {
   return `<p>${s}</p>`;
 }
 
+function ChangelogEntryItem({ entry }) {
+  const [expanded, setExpanded] = useState(false);
+  const msg = entry.message || '';
+  const firstLine = msg.split('\n')[0] || '';
+  const hasMore = msg.includes('\n') || msg.length > 120;
+  const short = msg.length <= 120 ? msg : msg.slice(0, 120) + '…';
+  const dateStr = entry.createdAt ? new Date(entry.createdAt).toLocaleString('pt-BR') : '';
+  const tag = entry.changeType === 'PUBLISH' ? 'Publicação' : 'Edição';
+  return (
+    <li className="detail-changelog-entry">
+      <div className="detail-changelog-entry-header">
+        <span className="detail-changelog-entry-title">{firstLine || 'Alteração'}</span>
+        <span className="detail-changelog-entry-meta">
+          {dateStr}
+          {' · '}
+          {entry.authorName || 'Desconhecido'}
+          {entry.changeType && (
+            <span className="detail-changelog-entry-tag">{tag}</span>
+          )}
+        </span>
+      </div>
+      <div className="detail-changelog-entry-body">
+        {expanded ? (
+          <div className="detail-changelog-entry-message" dangerouslySetInnerHTML={{ __html: simpleMarkdown(msg) }} />
+        ) : (
+          <p className="detail-changelog-entry-preview">{short}</p>
+        )}
+        {hasMore && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setExpanded(!expanded)}>
+            {expanded ? 'Ver menos' : 'Ver mais'}
+          </button>
+        )}
+      </div>
+    </li>
+  );
+}
+
 export default function ComponentDetail() {
   const { id } = useParams();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [component, setComponent] = useState(null);
   const [versions, setVersions] = useState([]);
@@ -112,14 +151,14 @@ export default function ComponentDetail() {
   const canEdit = ['admin', 'designer'].includes(user?.profile);
   const canDelete = user?.profile === 'admin';
   const statusLabel = { draft: 'Rascunho', published: 'Publicado', archived: 'Arquivado' };
-  const [savingVersion, setSavingVersion] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteConfirmSlug, setDeleteConfirmSlug] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [moreActionsOpen, setMoreActionsOpen] = useState(false);
   const [selectedVersionId, setSelectedVersionId] = useState(null);
-  const [mainTab, setMainTab] = useState('preview');
+  const [mainTab, setMainTab] = useState(() => (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'changelog' ? 'changelog' : 'preview'));
   const moreActionsRef = useRef(null);
+  const commentsTabRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -225,7 +264,7 @@ export default function ComponentDetail() {
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, location.key]);
 
   const [selectedExampleId, setSelectedExampleId] = useState(null);
 
@@ -297,8 +336,23 @@ export default function ComponentDetail() {
     }
   }, [component?.id, selectedVersionId, allExamples.length]);
 
+  const versionParam = searchParams.get('version');
+  const variantParam = searchParams.get('variant');
   useEffect(() => {
-    const ids = ['title', 'preview-code-comments', 'documentation', 'versions'];
+    if (!versionParam && !variantParam) return;
+    if (versionsList.length > 0 && versionParam) {
+      const vid = parseInt(versionParam, 10);
+      if (!Number.isNaN(vid) && versionsList.some((v) => v.id === vid)) setSelectedVersionId(vid);
+    }
+    if (allExamples.length > 0 && variantParam) {
+      const decoded = decodeURIComponent(variantParam).toLowerCase().replace(/\s+/g, '-');
+      const ex = allExamples.find((e) => (e.slug || String(e.title || '').toLowerCase().replace(/\s+/g, '-')) === decoded);
+      if (ex) setSelectedExampleId(ex.id);
+    }
+  }, [versionParam, variantParam, versionsList, allExamples]);
+
+  useEffect(() => {
+    const ids = ['title', 'preview-code-comments', 'documentation'];
     const obs = new IntersectionObserver((entries) => {
       const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
       if (visible[0]) setActiveIndexId(visible[0].target.id);
@@ -310,17 +364,40 @@ export default function ComponentDetail() {
     return () => obs.disconnect();
   }, [component]);
 
-  const handleSaveVersion = async () => {
-    setSavingVersion(true);
-    try {
-      const { data } = await api.post(`/versions/component/${id}`, { description: `Versão ${versionsList.length + 1}` });
-      setVersions((prev) => [data, ...prev]);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao registrar versão');
-    } finally {
-      setSavingVersion(false);
+  const tabParam = searchParams.get('tab');
+  const commentParam = searchParams.get('comment');
+  useEffect(() => {
+    if (tabParam === 'changelog') setMainTab('changelog');
+  }, [tabParam]);
+  useEffect(() => {
+    if (commentParam) setMainTab('comments');
+  }, [commentParam]);
+
+  useEffect(() => {
+    if (!commentParam || !commentsTabRef.current || comments.length === 0) return;
+    const id = String(commentParam).trim();
+    if (!id) return;
+    const el = commentsTabRef.current.querySelector(`[data-comment-id="${id}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      el.classList.add('comment-item-highlight');
+      const t = setTimeout(() => el.classList.remove('comment-item-highlight'), 2500);
+      return () => clearTimeout(t);
     }
-  };
+  }, [commentParam, mainTab, comments.length]);
+
+  const [changelogEntries, setChangelogEntries] = useState([]);
+  const [changelogLoading, setChangelogLoading] = useState(false);
+  useEffect(() => {
+    if (!id) return;
+    const variantId = effectiveExampleIdForApi != null && typeof effectiveExampleIdForApi === 'number' ? effectiveExampleIdForApi : null;
+    setChangelogLoading(true);
+    const params = variantId != null ? { variant_id: variantId } : {};
+    api.get(`/components/${id}/changelog`, { params })
+      .then((res) => setChangelogEntries(res.data?.items ?? []))
+      .catch(() => setChangelogEntries([]))
+      .finally(() => setChangelogLoading(false));
+  }, [id, effectiveExampleIdForApi]);
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
@@ -513,6 +590,18 @@ export default function ComponentDetail() {
             <button type="button" className={`usage-tab section-tab ${mainTab === 'preview' ? 'active' : ''}`} onClick={() => setMainTab('preview')}>Preview</button>
             <button type="button" className={`usage-tab section-tab ${mainTab === 'code' ? 'active' : ''}`} onClick={() => setMainTab('code')}>Código</button>
             <button type="button" className={`usage-tab section-tab ${mainTab === 'comments' ? 'active' : ''}`} onClick={() => setMainTab('comments')}>Comentários ({totalComments})</button>
+            <button
+              type="button"
+              className={`usage-tab section-tab ${mainTab === 'changelog' ? 'active' : ''}`}
+              onClick={() => {
+                setMainTab('changelog');
+                const next = new URLSearchParams(searchParams);
+                next.set('tab', 'changelog');
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              ChangeLog
+            </button>
           </div>
           {mainTab === 'code' && (
             <div className="code-block-wrap">
@@ -540,14 +629,31 @@ export default function ComponentDetail() {
               )}
             </div>
           )}
+          {mainTab === 'changelog' && (
+            <div className="detail-changelog-tab">
+              <h3 className="detail-changelog-title">ChangeLog</h3>
+              <p className="detail-changelog-subtext">Histórico de mudanças desta variação.</p>
+              {changelogLoading ? (
+                <p className="detail-empty">Carregando...</p>
+              ) : changelogEntries.length === 0 ? (
+                <p className="detail-empty">Sem mudanças registradas para esta variação.</p>
+              ) : (
+                <ul className="detail-changelog-list">
+                  {changelogEntries.map((entry) => (
+                    <ChangelogEntryItem key={entry.id} entry={entry} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           {mainTab === 'comments' && (
-            <div className="detail-comments-tab">
+            <div className="detail-comments-tab" ref={commentsTabRef}>
               {comments.length === 0 ? (
                 <p className="detail-empty">Sem comentários para esta variação nesta versão.</p>
               ) : (
                 <ul className="comment-list">
                   {comments.map((c) => (
-                    <li key={c.id} className="comment-item">
+                    <li key={c.id} className="comment-item" data-comment-id={c.id}>
                       <span className="comment-author">{c.User?.name || 'Usuário'}</span>
                       <span className="comment-date">{new Date(c.createdAt).toLocaleString('pt-BR')}</span>
                       {editingId === c.id ? (
@@ -581,7 +687,7 @@ export default function ComponentDetail() {
                       {c.replies && c.replies.length > 0 && (
                         <ul className="comment-replies">
                           {[...c.replies].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map((r) => (
-                            <li key={r.id} className="comment-item comment-reply">
+                            <li key={r.id} className="comment-item comment-reply" data-comment-id={r.id}>
                               <span className="comment-author">{r.User?.name || 'Usuário'}</span>
                               <span className="comment-date">{new Date(r.createdAt).toLocaleString('pt-BR')}</span>
                               {editingId === r.id ? (
@@ -644,30 +750,6 @@ export default function ComponentDetail() {
             <p className="detail-empty">Nenhuma documentação adicional.</p>
           )}
         </section>
-
-        <section className="detail-section" id="versions">
-          <h2>Histórico de versões</h2>
-          {canEdit && (
-            <button type="button" className="btn btn-ghost" onClick={handleSaveVersion} disabled={savingVersion} style={{ marginBottom: 'var(--spacing-md)' }}>
-              {savingVersion ? 'Salvando...' : 'Criar nova versão (rascunho)'}
-            </button>
-          )}
-          {versionsList.length === 0 ? (
-            <p className="detail-empty">Nenhuma versão registrada.</p>
-          ) : (
-            <ul className="version-list">
-              {versionsList.map((v) => (
-                <li key={v.id}>
-                  <strong>v{v.number}</strong>
-                  {v.isPublished && <span className="detail-badge detail-badge-published" style={{ marginLeft: '0.5rem' }}>Publicada</span>}
-                  {' — '}{new Date(v.createdAt).toLocaleDateString('pt-BR')}
-                  {v.createdBy?.name && ` — ${v.createdBy.name}`}
-                  {v.changelog && <div className="version-changelog">{String(v.changelog).slice(0, 120)}{String(v.changelog).length > 120 ? '…' : ''}</div>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
       <aside className="detail-toc" aria-label="Conteúdo">
         <div className="detail-toc-inner">
@@ -676,7 +758,6 @@ export default function ComponentDetail() {
             <li><a href="#title" className={`detail-toc-link ${activeIndexId === 'title' ? 'active' : ''}`}>{component.title || component.name}</a></li>
             <li><a href="#preview-code-comments" className={`detail-toc-link ${activeIndexId === 'preview-code-comments' ? 'active' : ''}`}>Preview / Código / Comentários</a></li>
             <li><a href="#documentation" className={`detail-toc-link ${activeIndexId === 'documentation' ? 'active' : ''}`}>Documentação</a></li>
-            <li><a href="#versions" className={`detail-toc-link ${activeIndexId === 'versions' ? 'active' : ''}`}>Histórico de versões</a></li>
           </ul>
         </div>
       </aside>

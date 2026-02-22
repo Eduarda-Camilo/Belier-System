@@ -56,19 +56,31 @@ async function create(req, res, next) {
       exampleId: exampleId != null && exampleId !== '' ? Number(exampleId) : null,
       text: text.trim(),
     });
+    const actorName = req.user && req.user.name ? String(req.user.name).trim() : null;
+    const previewText = comment.text ? comment.text.slice(0, 300) : null;
     if (isReply && parentComment && parentComment.userId !== req.user.id) {
       await Notification.create({
         userId: parentComment.userId,
-        commentId: comment.id,
+        type: 'COMMENT_CREATED',
         componentId: component.id,
-        read: false,
+        commentId: comment.id,
+        versionId: comment.versionId || null,
+        exampleId: comment.exampleId || null,
+        previewText,
+        actorUserId: req.user.id,
+        actorName,
       });
-    } else if (!isReply && component.responsibleId !== req.user.id) {
+    } else if (!isReply && component.responsibleId && component.responsibleId !== req.user.id) {
       await Notification.create({
         userId: component.responsibleId,
-        commentId: comment.id,
+        type: 'COMMENT_CREATED',
         componentId: component.id,
-        read: false,
+        commentId: comment.id,
+        versionId: comment.versionId || null,
+        exampleId: comment.exampleId || null,
+        previewText,
+        actorUserId: req.user.id,
+        actorName,
       });
     }
     const withUser = await Comment.findByPk(comment.id, {

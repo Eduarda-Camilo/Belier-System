@@ -3,7 +3,8 @@
  * Changelog: lista global de todas as atualizações para a tela ChangeLog.
  */
 
-const { Version, Component, Example, User } = require('../models');
+const { Op } = require('sequelize');
+const { Version, Component, Example, User, ChangelogEntry } = require('../models');
 
 async function listByComponent(req, res, next) {
   try {
@@ -68,19 +69,115 @@ async function create(req, res, next) {
   }
 }
 
+function parseRange(range) {
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+  switch (range) {
+    case 'today':
+      return { start: new Date(start), end: new Date(now) };
+    case 'yesterday':
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    case '7d':
+      start.setDate(start.getDate() - 7);
+      return { start, end: new Date(now) };
+    case '15d':
+      start.setDate(start.getDate() - 15);
+      return { start, end: new Date(now) };
+    default:
+      return null;
+  }
+}
+
 async function listChangelog(req, res, next) {
   try {
-    const versions = await Version.findAll({
+    const { range, type, author, page = '1', limit = '50' } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+    const offset = (pageNum - 1) * limitNum;
+
+    const where = {};
+    const rangeFilter = parseRange(range);
+    if (rangeFilter) {
+      where.createdAt = {
+        [Op.between]: [rangeFilter.start, rangeFilter.end],
+      };
+    }
+    if (type === 'variant') {
+      where.exampleId = { [Op.ne]: null };
+    } else if (type === 'component') {
+      where.exampleId = null;
+      where.changeType = 'EDIT';
+    } else if (type === 'publish') {
+      where.changeType = 'PUBLISH';
+    }
+    if (author && author.trim()) {
+      const authorId = parseInt(author, 10);
+      if (!Number.isNaN(authorId)) where.authorUserId = authorId;
+    }
+
+    const { count, rows } = await ChangelogEntry.findAndCountAll({
+      where,
       order: [['createdAt', 'DESC']],
+      limit: limitNum,
+      offset,
       include: [
         { model: Component, as: 'Component', attributes: ['id', 'name', 'title', 'slug'] },
-        { model: User, as: 'createdBy', attributes: ['id', 'name'] },
+        { model: Version, as: 'Version', attributes: ['id', 'number', 'isPublished', 'content'] },
+        { model: Example, as: 'Example', attributes: ['id', 'title', 'slug', 'codeSnippet'], required: false },
       ],
     });
-    res.json(versions);
+
+    const items = rows.map((entry) => {
+      const plain = entry.get ? entry.get({ plain: true }) : entry;
+      return {
+        id: plain.componentVersionId,
+        componentId: plain.componentId,
+        Component: plain.Component,
+        createdAt: plain.createdAt,
+        variationTitle: plain.Example?.title ?? null,
+        createdBy: { name: plain.authorName || 'Desconhecido' },
+        isPublished: plain.Version?.isPublished ?? false,
+        content: plain.Version?.content ?? null,
+        Example: plain.Example,
+      };
+    });
+
+    const pageCount = Math.ceil(count / limitNum) || 1;
+    res.json({
+      items,
+      total_count: count,
+      page: pageNum,
+      page_count: pageCount,
+    });
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { listByComponent, create, listChangelog };
+async function listChangelogAuthors(req, res, next) {
+  try {
+    const entries = await ChangelogEntry.findAll({
+      attributes: ['authorUserId'],
+      where: { authorUserId: { [Op.ne]: null } },
+      raw: true,
+    });
+    const userIds = [...new Set(entries.map((e) => e.authorUserId).filter(Boolean))];
+    if (userIds.length === 0) return res.json([]);
+    const users = await User.findAll({
+      where: { id: userIds },
+      attributes: ['id', 'name'],
+      order: [['name', 'ASC']],
+    });
+    res.json(users);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listByComponent, create, listChangelog, listChangelogAuthors };

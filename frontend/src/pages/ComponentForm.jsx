@@ -69,6 +69,7 @@ export default function ComponentForm() {
   const [variations, setVariations] = useState([]);
   const [variationCollapsed, setVariationCollapsed] = useState({});
   const [toast, setToast] = useState('');
+  const [editChangelogMessage, setEditChangelogMessage] = useState('');
   const [defaultEditorExpanded, setDefaultEditorExpanded] = useState(false);
   const [variationEditorExpanded, setVariationEditorExpanded] = useState({});
 
@@ -165,6 +166,7 @@ export default function ComponentForm() {
     setError('');
     setSaving(true);
     try {
+      // Payload sem category/categoryId (campo Categoria removido do formulário)
       const payload = {
         title: form.title.trim(),
         shortDescription: form.shortDescription.trim(),
@@ -207,24 +209,47 @@ export default function ComponentForm() {
         setSaving(false);
         return;
       }
+      if (isEdit && (!editChangelogMessage || !editChangelogMessage.trim())) {
+        setError('Informe o changelog desta alteração (obrigatório ao salvar edição).');
+        setSaving(false);
+        return;
+      }
       let componentId;
       if (isEdit) {
         await api.put(`/components/${id}`, payload);
         componentId = id;
+        if (!componentId) {
+          setError('Resposta inválida ao atualizar.');
+          return;
+        }
       } else {
         const { data } = await api.post('/components', payload);
-        componentId = data.id;
+        componentId = data?.id;
+        if (componentId == null) {
+          setError(data?.error || 'Servidor não retornou o ID do componente. Tente novamente.');
+          return;
+        }
       }
       await saveDefaultExample(componentId);
       await saveVariations(componentId);
-      if (!isEdit) {
+      if (isEdit) {
+        try {
+          await api.post(`/components/${componentId}/record-changelog`, { message: editChangelogMessage.trim() });
+        } catch (err) {
+          setError(err.response?.data?.error || 'Erro ao registrar changelog.');
+          setSaving(false);
+          return;
+        }
+      } else {
         try {
           await api.post(`/versions/component/${componentId}`, { description: 'Versão 1' });
         } catch (_) {}
       }
+      window.dispatchEvent(new CustomEvent('components-updated'));
       navigate(`/components/${componentId}`, { replace: true });
     } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao salvar');
+      const msg = err.response?.data?.error || (err.response?.status === 401 ? 'Faça login para continuar.' : err.response?.status === 403 ? 'Sem permissão para esta ação.' : err.message || 'Erro ao salvar.');
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -476,6 +501,28 @@ export default function ComponentForm() {
             </div>
           </section>
 
+          {isEdit && (
+            <section className="form-section">
+              <h2 className="form-section-title">Changelog desta alteração</h2>
+              <p className="form-section-desc">Obrigatório ao salvar edição. Descreva brevemente o que foi alterado (ex.: ajuste de padding, atualização de docs).</p>
+              <div className="form-row">
+                <div className="form-field-label">
+                  <span className="form-field-name">Mensagem de changelog *</span>
+                </div>
+                <div className="form-field-input">
+                  <textarea
+                    value={editChangelogMessage}
+                    onChange={(e) => setEditChangelogMessage(e.target.value)}
+                    rows={3}
+                    placeholder="Ex.: Ajustado padding e hover na variação Small"
+                    className="code-snippet-textarea"
+                    required
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* Bloco 3: Variações (Default + outras) */}
           <section className="form-section form-section-variations">
             <div className="variations-section-header">
@@ -611,6 +658,35 @@ export default function ComponentForm() {
               <button type="button" className="btn btn-ghost" onClick={() => { setPublishModalOpen(false); setPublishChangelog(''); }}>Cancelar</button>
               <button type="button" className="btn btn-primary" disabled={saving || !publishChangelog.trim()} onClick={handlePublish}>
                 {saving ? 'Publicando...' : 'Publicar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteModalOpen && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+          <div className="modal-content modal-content-destructive">
+            <h2 id="delete-modal-title">Excluir componente</h2>
+            <p className="form-field-desc">Esta ação é irreversível. Para confirmar, digite o slug do componente: <strong>{form.slug}</strong></p>
+            <input
+              type="text"
+              className="form-field-input form-delete-slug-input"
+              value={deleteSlugConfirm}
+              onChange={(e) => setDeleteSlugConfirm(e.target.value)}
+              placeholder="Digite o slug"
+              autoComplete="off"
+              style={{ marginTop: 8, marginBottom: 16 }}
+            />
+            <div className="modal-actions">
+              <button type="button" className="btn btn-ghost" onClick={() => { setDeleteModalOpen(false); setDeleteSlugConfirm(''); }}>Cancelar</button>
+              <button
+                type="button"
+                className="btn btn-danger-solid"
+                disabled={deleting || deleteSlugConfirm.trim().toLowerCase() !== form.slug.trim().toLowerCase()}
+                onClick={handleDeleteComponent}
+              >
+                {deleting ? 'Excluindo...' : 'Excluir componente'}
               </button>
             </div>
           </div>

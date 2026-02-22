@@ -24,6 +24,7 @@ export default function Layout() {
   const [componentsOpen, setComponentsOpen] = useState(true);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
   const modalInputRef = useRef(null);
   const avatarMenuRef = useRef(null);
 
@@ -42,10 +43,36 @@ export default function Layout() {
     navigate('/login');
   };
 
-  useEffect(() => {
+  const refetchComponents = () => {
     api.get('/components')
       .then((res) => setComponents(res.data || []))
       .catch(() => setComponents([]));
+  };
+
+  useEffect(() => {
+    refetchComponents();
+  }, []);
+
+  useEffect(() => {
+    const onComponentsUpdated = () => refetchComponents();
+    window.addEventListener('components-updated', onComponentsUpdated);
+    return () => window.removeEventListener('components-updated', onComponentsUpdated);
+  }, []);
+
+  const fetchInboxUnread = () => {
+    api.get('/notifications/unread-count')
+      .then((res) => setInboxUnreadCount(res.data?.unread_count ?? 0))
+      .catch(() => setInboxUnreadCount(0));
+  };
+
+  useEffect(() => {
+    if (user) fetchInboxUnread();
+  }, [user]);
+
+  useEffect(() => {
+    const onInboxUpdated = () => fetchInboxUnread();
+    window.addEventListener('inbox-updated', onInboxUpdated);
+    return () => window.removeEventListener('inbox-updated', onInboxUpdated);
   }, []);
 
   useEffect(() => {
@@ -96,6 +123,11 @@ export default function Layout() {
             </NavLink>
             <NavLink to="/notifications" className={navLinkClass} end>
               <IconInbox /> Inbox
+              {inboxUnreadCount > 0 && (
+                <span className="layout-inbox-badge" aria-label={`${inboxUnreadCount} não lidas`}>
+                  {inboxUnreadCount}
+                </span>
+              )}
             </NavLink>
             <a href={FIGMA_URL} target="_blank" rel="noopener noreferrer" className="layout-nav-link">
               <img src="/figma.svg" alt="" className="layout-nav-figma-icon" aria-hidden /> Figma
@@ -194,7 +226,16 @@ export default function Layout() {
           <nav>
             <ul className="layout-side-list">
               <li><NavLink to="/docs" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
-              <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
+              <li>
+                <NavLink to="/notifications" className={sideLinkClass} end>
+                  <IconInbox /> Inbox
+                  {inboxUnreadCount > 0 && (
+                    <span className="layout-inbox-badge" aria-label={`${inboxUnreadCount} não lidas`}>
+                      {inboxUnreadCount}
+                    </span>
+                  )}
+                </NavLink>
+              </li>
               <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><img src="/figma.svg" alt="" className="layout-side-figma-icon" aria-hidden /> Figma</a></li>
               <li><NavLink to="/changelog" className={sideLinkClass}><IconChangelog /> ChangeLog</NavLink></li>
               <li>
