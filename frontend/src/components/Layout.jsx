@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { IconInbox, IconDocs, IconComponentes, IconSearch } from './Icons';
@@ -21,6 +21,8 @@ export default function Layout() {
   const [components, setComponents] = useState([]);
   const [q, setQ] = useState('');
   const [componentsOpen, setComponentsOpen] = useState(true);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const modalInputRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -31,6 +33,24 @@ export default function Layout() {
     api.get('/components')
       .then((res) => setComponents(res.data || []))
       .catch(() => setComponents([]));
+  }, []);
+
+  useEffect(() => {
+    if (searchModalOpen) {
+      modalInputRef.current?.focus();
+    }
+  }, [searchModalOpen]);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(true);
+      }
+      if (e.key === 'Escape') setSearchModalOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
   const filtered = (components || []).filter((c) => {
@@ -74,16 +94,16 @@ export default function Layout() {
             )}
           </nav>
           <div className="layout-header-right">
-            <div className="layout-search-wrap">
+            <button
+              type="button"
+              className="layout-search-trigger"
+              onClick={() => setSearchModalOpen(true)}
+              aria-label="Buscar (Ctrl+K)"
+            >
               <span className="layout-search-icon" aria-hidden><IconSearch /></span>
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="layout-search-input"
-                placeholder="Buscar..."
-                aria-label="Buscar"
-              />
-            </div>
+              <span className="layout-search-trigger-text">Buscar</span>
+              <kbd className="layout-search-kbd">Ctrl+K</kbd>
+            </button>
             <Link to="/components/new" className="btn btn-primary layout-new-btn">Novo componente</Link>
             <div className="layout-user">
               {user ? (
@@ -138,6 +158,78 @@ export default function Layout() {
           <Outlet />
         </section>
       </main>
+
+      {searchModalOpen && (
+        <div
+          className="search-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Buscar"
+          onClick={() => setSearchModalOpen(false)}
+        >
+          <div className="search-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="search-modal-input-wrap">
+              <span className="search-modal-icon" aria-hidden><IconSearch /></span>
+              <input
+                ref={modalInputRef}
+                type="search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="search-modal-input"
+                placeholder="Buscar documentação..."
+                aria-label="Buscar"
+                autoComplete="off"
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setSearchModalOpen(false);
+                  if (e.key === 'Enter' && filtered.length > 0) {
+                    navigate(`/components/${filtered[0].id}`);
+                    setSearchModalOpen(false);
+                  }
+                }}
+              />
+              {q.length > 0 && (
+                <button
+                  type="button"
+                  className="search-modal-clear"
+                  onClick={() => setQ('')}
+                  aria-label="Limpar"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
+              )}
+              <span className="search-modal-esc">ESC</span>
+            </div>
+            <div className="search-modal-results">
+              {!q.trim() ? (
+                <p className="search-modal-empty">Nenhuma busca recente</p>
+              ) : filtered.length === 0 ? (
+                <p className="search-modal-empty">Nenhum resultado para &quot;{q}&quot;</p>
+              ) : (
+                <ul className="search-modal-list" role="listbox">
+                  {filtered.map((c, i) => (
+                    <li key={c.id} role="option" aria-selected={i === 0}>
+                      <button
+                        type="button"
+                        className={`search-modal-item ${i === 0 ? 'active' : ''}`}
+                        onClick={() => {
+                          navigate(`/components/${c.id}`);
+                          setSearchModalOpen(false);
+                        }}
+                      >
+                        <span className="search-modal-item-icon"><IconComponentes /></span>
+                        <span className="search-modal-item-text">{c.title || c.name}</span>
+                        <span className="search-modal-item-arrow" aria-hidden>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
