@@ -113,7 +113,6 @@ export default function ComponentForm() {
           slug: v.slug || slugify(v.title || `var-${i + 1}`),
           description: v.description || '',
           order: i,
-          props: Array.isArray(v.props) ? v.props : [],
           codeSnippet: v.codeSnippet || '',
           codeCss: v.codeCss || '',
           codeJs: v.codeJs || '',
@@ -175,9 +174,7 @@ export default function ComponentForm() {
       const titleVal = form.title.trim();
       const payload = {
         title: titleVal,
-        name: titleVal,
         shortDescription: form.shortDescription.trim(),
-        description: form.shortDescription.trim(),
         slug: form.slug.trim().toLowerCase(),
         tags: form.tags,
         referenceUrl: form.referenceUrl.trim() || null,
@@ -250,10 +247,6 @@ export default function ComponentForm() {
           setSaving(false);
           return;
         }
-      } else {
-        try {
-          await api.post(`/versions/component/${componentId}`, { description: 'Versão 1' });
-        } catch (_) {}
       }
       window.dispatchEvent(new CustomEvent('components-updated'));
       if (!isEdit) setToast('Componente criado');

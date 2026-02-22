@@ -496,9 +496,6 @@ export default function ComponentDetail() {
               <button type="button" className="btn-edit-header" onClick={handleCopyCode}>
                 {copyFeedback ? 'Copiado!' : 'Copiar código'}
               </button>
-              <a href={`/api/components/${id}/zip`} className="btn-edit-header" download target="_blank" rel="noopener noreferrer">
-                Baixar ZIP
-              </a>
               <div className="detail-more-actions-wrap" ref={moreActionsRef}>
                 <button
                   type="button"

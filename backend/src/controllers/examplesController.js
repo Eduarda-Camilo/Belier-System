@@ -136,7 +136,6 @@ async function reorder(req, res, next) {
     const examples = await Example.findAll({
       where: { componentId, type: 'variation' },
     });
-    const idSet = new Set(variationIds.map(Number));
     for (let i = 0; i < variationIds.length; i++) {
       const ex = examples.find((e) => e.id === Number(variationIds[i]));
       if (ex) {

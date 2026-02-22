@@ -65,16 +65,6 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: 'Link Figma / doc / repo',
     },
-    name: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-      comment: 'Compatibilidade: igual a title',
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      comment: 'Compatibilidade: igual a shortDescription',
-    },
     responsibleId: {
       type: DataTypes.INTEGER,
       allowNull: false,

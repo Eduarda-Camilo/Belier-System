@@ -112,7 +112,7 @@ function groupByDate(items) {
 export default function Notifications() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const tab = searchParams.get('tab') || 'all';
+  const tab = searchParams.get('tab') || 'todas';
   const range = searchParams.get('range') || '';
   const type = searchParams.get('type') || 'all';
   const author = searchParams.get('author') || '';

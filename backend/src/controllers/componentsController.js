@@ -24,8 +24,6 @@ async function list(req, res, next) {
     if (q && q.trim()) {
       const term = `%${q.trim()}%`;
       where[Op.or] = [
-        { name: { [Op.like]: term } },
-        { description: { [Op.like]: term } },
         { title: { [Op.like]: term } },
         { shortDescription: { [Op.like]: term } },
         { slug: { [Op.like]: term } },
@@ -35,7 +33,7 @@ async function list(req, res, next) {
     const components = await Component.findAll({
       where,
       include: [{ model: User, as: 'responsible', attributes: ['id', 'name', 'email'] }],
-      order: [['name', 'ASC']],
+      order: [['title', 'ASC']],
     });
     res.json(components);
   } catch (err) {
@@ -130,8 +128,6 @@ async function create(req, res, next) {
       accessibilityMd,
       importPackage,
       importName,
-      name: title,
-      description: shortDescription,
       responsibleId: req.user.id,
       status: 'draft',
     });
@@ -164,13 +160,11 @@ async function update(req, res, next) {
       const t = String(body.title).trim();
       if (t.length < 2) return res.status(400).json({ error: 'Título deve ter no mínimo 2 caracteres' });
       component.title = t;
-      component.name = t;
     }
     if (body.shortDescription !== undefined) {
       const d = body.shortDescription ? String(body.shortDescription).trim() : null;
       if (d !== null && d.length < 10) return res.status(400).json({ error: 'Descrição curta deve ter no mínimo 10 caracteres' });
       component.shortDescription = d;
-      component.description = d;
     }
     if (body.slug !== undefined) {
       const slugCheck = validateSlug(body.slug);

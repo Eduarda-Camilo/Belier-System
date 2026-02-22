@@ -39,11 +39,8 @@ async function create(req, res, next) {
     const defaultEx = examples.find((e) => e.type === 'default');
     const variationExs = examples.filter((e) => e.type === 'variation');
     const content = {
-      name: component.name,
       title: component.title,
-      description: component.description,
-      documentation: component.documentation,
-      variations: component.variations,
+      shortDescription: component.shortDescription,
       status: component.status,
       defaultCode: defaultEx ? defaultEx.codeSnippet : null,
       variationsSnapshot: variationExs.map((e) => ({

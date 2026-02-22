@@ -50,13 +50,8 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const refreshUser = () => {
-    const saved = localStorage.getItem('user');
-    if (saved) setUser(JSON.parse(saved));
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
