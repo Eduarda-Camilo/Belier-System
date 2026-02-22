@@ -279,7 +279,7 @@ export default function Docs() {
         <footer className="docs-footer">
           <p>Belier — portal de documentação de componentes</p>
           <p>
-            <a href="https://www.figma.com" target="_blank" rel="noopener noreferrer">Figma</a>
+            <a href="https://www.figma.com/design/GMc5W9MzhauUNkxVmB8BRs/Belier-Design-System?node-id=6777-13085&t=gVghlPnWsIbJyCMZ-1" target="_blank" rel="noopener noreferrer">Figma</a>
             {' · '}
             <Link to="/changelog">ChangeLog</Link>
           </p>

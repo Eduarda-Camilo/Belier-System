@@ -268,17 +268,124 @@
 .variation-card-default {
   border-color: var(--color-primary);
 }
-.form-add-variation {
-  margin-top: var(--spacing-md);
+/* Seção Variações: header + 24px até lista */
+.form-section-variations .variations-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
 }
+
+.form-section-variations .form-section-desc {
+  margin: 0 0 24px;
+}
+
+.variations-content {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.variation-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.variation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.variation-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.variation-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.variation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variation-field-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.variation-field-secondary .variation-field-label,
+.variation-field-label-secondary {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.variation-field input,
+.variation-field textarea {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+  font-size: 1rem;
+}
+
+.variation-field textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  z-index: 1001;
+  animation: form-toast-in 0.2s ease;
+}
+
+@keyframes form-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .variation-card-toggle {
+  align-self: flex-start;
   background: none;
   border: none;
-  color: var(--color-text);
-  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
   cursor: pointer;
-  padding: 0;
-  text-align: left;
+  padding: 4px 0;
+}
+
+.variation-card-toggle:hover {
+  color: var(--color-primary);
 }
 .form-advanced-details {
   margin-top: var(--spacing-md);

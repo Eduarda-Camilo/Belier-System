@@ -1,0 +1,90 @@
+.code-editor-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-surface-elevated);
+}
+
+.code-editor-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+}
+
+.code-editor-lang {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.code-editor-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.code-editor-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}
+
+.code-editor-btn:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.code-editor-container {
+  min-height: 220px;
+}
+
+.code-editor-wrap--expanded .code-editor-container {
+  min-height: 400px;
+}
+
+/* CodeMirror theme override: dark, monospace, line-height */
+.code-editor-wrap .cm-editor {
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.code-editor-wrap .cm-scroller {
+  min-height: 220px;
+  padding: 12px 0;
+}
+
+.code-editor-wrap .cm-content {
+  padding-left: 8px;
+}
+
+.code-editor-wrap .cm-gutters {
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.code-editor-wrap .cm-activeLineGutter {
+  background: var(--color-surface-elevated);
+}
+
+/* Tema escuro do sistema */
+.code-editor-wrap .cm-editor {
+  background: var(--color-surface-elevated) !important;
+}
+
+.code-editor-wrap .cm-content {
+  color: var(--color-text) !important;
+}
+
+.code-editor-wrap .cm-gutters {
+  background: var(--color-surface) !important;
+  color: var(--color-text-muted);
+}

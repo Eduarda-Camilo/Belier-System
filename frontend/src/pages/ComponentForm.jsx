@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import CodeEditor from '../components/CodeEditor';
+import { IconTrash } from '../components/Icons';
 import './ComponentForm.css';
 
 const slugify = (s) => (s || '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -45,6 +47,9 @@ export default function ComponentForm() {
   const [slugCheck, setSlugCheck] = useState(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [publishChangelog, setPublishChangelog] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteSlugConfirm, setDeleteSlugConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState({
     title: '',
     shortDescription: '',
@@ -63,6 +68,9 @@ export default function ComponentForm() {
   });
   const [variations, setVariations] = useState([]);
   const [variationCollapsed, setVariationCollapsed] = useState({});
+  const [toast, setToast] = useState('');
+  const [defaultEditorExpanded, setDefaultEditorExpanded] = useState(false);
+  const [variationEditorExpanded, setVariationEditorExpanded] = useState({});
 
   const loadComponent = useCallback(() => {
     if (!id) return;
@@ -98,6 +106,7 @@ export default function ComponentForm() {
           slug: v.slug || slugify(v.title || `var-${i + 1}`),
           description: v.description || '',
           order: i,
+          props: Array.isArray(v.props) ? v.props : [],
           codeSnippet: v.codeSnippet || '',
           codeCss: v.codeCss || '',
           codeJs: v.codeJs || '',
@@ -111,6 +120,12 @@ export default function ComponentForm() {
     if (id) loadComponent();
     else setLoading(false);
   }, [id, loadComponent]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 2000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     if (!form.slug || form.slug.length < 2) {
@@ -206,10 +221,8 @@ export default function ComponentForm() {
         try {
           await api.post(`/versions/component/${componentId}`, { description: 'Versão 1' });
         } catch (_) {}
-        navigate(`/components/${componentId}/edit`, { replace: true });
-      } else {
-        loadComponent();
       }
+      navigate(`/components/${componentId}`, { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || 'Erro ao salvar');
     } finally {
@@ -256,6 +269,27 @@ export default function ComponentForm() {
     }
   };
 
+  const openDeleteModal = () => {
+    setDeleteSlugConfirm('');
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteComponent = async () => {
+    if (deleteSlugConfirm.trim().toLowerCase() !== form.slug.trim().toLowerCase()) return;
+    setError('');
+    setDeleting(true);
+    try {
+      await api.delete(`/components/${id}`);
+      setDeleteModalOpen(false);
+      setDeleteSlugConfirm('');
+      navigate('/', { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erro ao excluir');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handlePublish = async () => {
     if (!publishChangelog.trim()) return;
     setError('');
@@ -278,6 +312,7 @@ export default function ComponentForm() {
       slug: '',
       description: '',
       order: v.length,
+      props: [],
       codeSnippet: '',
       codeCss: '',
       codeJs: '',
@@ -296,13 +331,33 @@ export default function ComponentForm() {
     const src = variations[index];
     setVariations((v) => [
       ...v.slice(0, index + 1),
-      { ...src, id: undefined, title: (src.title || '') + ' (cópia)', slug: ((src.slug || '').replace(/-copia\d*$/, '') || 'var') + '-copia', order: index + 1 },
+      { ...src, id: undefined, title: (src.title || '') + ' (cópia)', slug: ((src.slug || '').replace(/-copia\d*$/, '') || 'var') + '-copia', order: index + 1, props: Array.isArray(src.props) ? [...src.props] : [] },
       ...v.slice(index + 1).map((x, i) => ({ ...x, order: index + 2 + i })),
     ]);
   };
 
   const removeVariation = (index) => {
-    setVariations((v) => v.filter((_, i) => i !== index).map((x, i) => ({ ...x, order: i })));
+    const v = variations[index];
+    if (!window.confirm(`Excluir a variação "${v?.title || 'Variação ' + (index + 1)}"?`)) return;
+    setVariations((prev) => prev.filter((_, i) => i !== index).map((x, i) => ({ ...x, order: i })));
+  };
+
+  const moveVariationUp = (index) => {
+    if (index <= 0) return;
+    setVariations((prev) => {
+      const next = [...prev];
+      [next[index - 1], next[index]] = [next[index], next[index - 1]];
+      return next.map((x, i) => ({ ...x, order: i }));
+    });
+  };
+
+  const moveVariationDown = (index) => {
+    if (index >= variations.length - 1) return;
+    setVariations((prev) => {
+      const next = [...prev];
+      [next[index], next[index + 1]] = [next[index + 1], next[index]];
+      return next.map((x, i) => ({ ...x, order: i }));
+    });
   };
 
   const toggleVariationCollapsed = (key) => {
@@ -318,20 +373,18 @@ export default function ComponentForm() {
       <div className="component-form">
         <div className="component-form-header">
           <h1 className="page-title">{isEdit ? 'Editar componente' : 'Novo componente'}</h1>
-          <div className="component-form-actions">
-            <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar</button>
-            <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar rascunho'}
-            </button>
-            {isEdit && (
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={saving || !canPublish()}
-                onClick={() => setPublishModalOpen(true)}
-              >
-                Publicar
-              </button>
+          <div className="component-form-actions component-form-actions-text">
+            {isEdit ? (
+              <>
+                <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar edição</button>
+                <button type="button" className="btn btn-ghost btn-ghost-danger" onClick={openDeleteModal}><IconTrash /> Excluir componente</button>
+                <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving}>{saving ? 'Salvando...' : 'Salvar edição'}</button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => navigate(cancelUrl)} className="btn btn-ghost">Cancelar</button>
+                <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</button>
+              </>
             )}
           </div>
         </div>
@@ -424,115 +477,120 @@ export default function ComponentForm() {
           </section>
 
           {/* Bloco 3: Variações (Default + outras) */}
-          <section className="form-section">
-            <h2 className="form-section-title">Variações</h2>
-            <p className="form-section-desc">A variação Default é obrigatória e não pode ser removida. Default é obrigatório para publicar.</p>
+          <section className="form-section form-section-variations">
+            <div className="variations-section-header">
+              <h2 className="form-section-title">Variações</h2>
+              <button type="button" className="btn btn-primary btn-sm" onClick={addVariation}>Adicionar variação</button>
+            </div>
+            <p className="form-section-desc">A variação Default é obrigatória e não pode ser removida. Código da Default é obrigatório para publicar.</p>
 
-            {/* Card Default (fixo) */}
-            <div className="variation-card variation-card-default">
-              <div className="variation-card-header">
-                <span className="variation-card-title">Default</span>
-                <span className="variation-badge">Default</span>
-              </div>
-              <div className="form-row">
-                <div className="form-field-label">
-                  <span className="form-field-name">Código da variação *</span>
+            <div className="variations-content">
+              {/* Card Default (fixo) */}
+              <div className="variation-card variation-card-default">
+                <div className="variation-card-header">
+                  <span className="variation-card-title">Default</span>
+                  <span className="variation-badge">Default</span>
                 </div>
-                <div className="form-field-input">
-                  <textarea
-                    value={defaultExample.codeSnippet}
-                    onChange={(e) => setDefaultExample((d) => ({ ...d, codeSnippet: e.target.value }))}
-                    placeholder="HTML/JSX do exemplo"
-                    rows={6}
-                    className="code-snippet-textarea"
-                  />
-                  {!defaultExample.codeSnippet?.trim() && <p className="form-helper form-helper-error">Default é obrigatório para publicar.</p>}
+                <div className="variation-card-fields">
+                  <div className="variation-field">
+                    <label className="variation-field-label">Código *</label>
+                    <CodeEditor
+                      value={defaultExample.codeSnippet}
+                      onChange={(val) => setDefaultExample((d) => ({ ...d, codeSnippet: val }))}
+                      onCopy={() => setToast('Copiado')}
+                      expanded={defaultEditorExpanded}
+                      onToggleExpand={() => setDefaultEditorExpanded((e) => !e)}
+                      placeholder="HTML/JSX do exemplo"
+                    />
+                    {!defaultExample.codeSnippet?.trim() && <p className="form-helper form-helper-error">Código obrigatório para publicar.</p>}
+                  </div>
                 </div>
-              </div>
-              <details className="form-advanced-details">
-                <summary>Avançado (CSS / JS)</summary>
-                <div className="form-row">
-                  <div className="form-field-label"><span className="form-field-name">CSS</span></div>
-                  <div className="form-field-input">
+                <details className="form-advanced-details">
+                  <summary>Avançado (CSS / JS)</summary>
+                  <div className="variation-field">
+                    <label className="variation-field-label">CSS</label>
                     <textarea value={defaultExample.codeCss} onChange={(e) => setDefaultExample((d) => ({ ...d, codeCss: e.target.value }))} rows={3} className="code-snippet-textarea" placeholder="Opcional" />
                   </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-field-label"><span className="form-field-name">JS</span></div>
-                  <div className="form-field-input">
-                    <textarea value={defaultExample.codeJs} onChange={(e) => setDefaultExample((d) => ({ ...d, codeJs: e.target.value }))} rows={3} className="code-snippet-textarea" placeholder="Opcional (não executado no preview no MVP)" />
+                  <div className="variation-field">
+                    <label className="variation-field-label">JS</label>
+                    <textarea value={defaultExample.codeJs} onChange={(e) => setDefaultExample((d) => ({ ...d, codeJs: e.target.value }))} rows={3} className="code-snippet-textarea" placeholder="Opcional" />
                   </div>
-                </div>
-              </details>
-            </div>
+                </details>
+              </div>
 
-            <button type="button" className="btn btn-primary btn-sm form-add-variation" onClick={addVariation}>Adicionar variação</button>
-
-            {variations.length > 0 && (
-              <ul className="variations-list">
-                {variations.map((v, i) => {
-                  const key = v.id || `var-${i}`;
-                  const collapsed = variationCollapsed[key];
-                  return (
-                    <li key={key} className="variation-card">
-                      <div className="variation-card-header">
-                        <button type="button" className="variation-card-toggle" onClick={() => toggleVariationCollapsed(key)} aria-expanded={!collapsed}>
-                          {collapsed ? '▶' : '▼'} {v.title || `Variação ${i + 1}`}
-                        </button>
-                        <div className="variation-card-actions">
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => duplicateVariation(i)}>Duplicar</button>
-                          <button type="button" className="btn btn-ghost btn-sm btn-danger-sm" onClick={() => removeVariation(i)}>Remover</button>
+              {variations.length > 0 && (
+                <ul className="variations-list">
+                  {variations.map((v, i) => {
+                    const key = v.id || `var-${i}`;
+                    const collapsed = variationCollapsed[key];
+                    const expanded = variationEditorExpanded[key];
+                    return (
+                      <li key={key} className="variation-card">
+                        <div className="variation-card-header">
+                          <span className="variation-card-title">{v.title?.trim() ? v.title : `Variação ${i + 1}`}</span>
+                          <div className="variation-card-actions">
+                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => moveVariationUp(i)} disabled={i === 0} title="Mover para cima">↑</button>
+                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => moveVariationDown(i)} disabled={i === variations.length - 1} title="Mover para baixo">↓</button>
+                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => duplicateVariation(i)}>Duplicar</button>
+                            <button type="button" className="btn btn-ghost btn-sm btn-danger-sm" onClick={() => removeVariation(i)}>Excluir</button>
+                          </div>
                         </div>
-                      </div>
-                      {!collapsed && (
-                        <>
-                          <div className="form-row">
-                            <div className="form-field-label"><span className="form-field-name">Nome da variação *</span></div>
-                            <div className="form-field-input">
-                              <input value={v.title} onChange={(e) => updateVariation(i, 'title', e.target.value)} placeholder="Ex.: Small, Icon" />
+                        {!collapsed && (
+                          <>
+                            <div className="variation-card-fields">
+                              <div className="variation-field">
+                                <label className="variation-field-label">Título *</label>
+                                <input value={v.title} onChange={(e) => updateVariation(i, 'title', e.target.value)} placeholder="Ex.: Small, Icon" />
+                              </div>
+                              <div className="variation-field variation-field-secondary">
+                                <label className="variation-field-label variation-field-label-secondary">Slug</label>
+                                <input value={v.slug} onChange={(e) => updateVariation(i, 'slug', e.target.value)} placeholder="ex.: small, icon (kebab-case)" />
+                              </div>
+                              <div className="variation-field">
+                                <label className="variation-field-label">Descrição</label>
+                                <textarea value={v.description} onChange={(e) => updateVariation(i, 'description', e.target.value)} rows={2} placeholder="Opcional" />
+                              </div>
+                              <div className="variation-field variation-field-secondary">
+                                <label className="variation-field-label variation-field-label-secondary">Props (chips)</label>
+                                <ChipsInput values={v.props || []} onChange={(props) => updateVariation(i, 'props', props)} placeholder="chave:valor" parseToken={(raw) => raw.trim()} />
+                              </div>
+                              <div className="variation-field">
+                                <label className="variation-field-label">Código *</label>
+                                <CodeEditor
+                                  value={v.codeSnippet}
+                                  onChange={(val) => updateVariation(i, 'codeSnippet', val)}
+                                  onCopy={() => setToast('Copiado')}
+                                  expanded={expanded}
+                                  onToggleExpand={() => setVariationEditorExpanded((prev) => ({ ...prev, [key]: !prev[key] }))}
+                                  placeholder="HTML/JSX"
+                                />
+                              </div>
                             </div>
-                          </div>
-                          <div className="form-row">
-                            <div className="form-field-label"><span className="form-field-name">Slug da variação *</span></div>
-                            <div className="form-field-input">
-                              <input value={v.slug} onChange={(e) => updateVariation(i, 'slug', e.target.value)} placeholder="ex.: small, icon (kebab-case)" />
-                            </div>
-                          </div>
-                          <div className="form-row">
-                            <div className="form-field-label"><span className="form-field-name">Descrição da variação</span></div>
-                            <div className="form-field-input">
-                              <textarea value={v.description} onChange={(e) => updateVariation(i, 'description', e.target.value)} rows={2} />
-                            </div>
-                          </div>
-                          <div className="form-row">
-                            <div className="form-field-label"><span className="form-field-name">Código da variação *</span></div>
-                            <div className="form-field-input">
-                              <textarea value={v.codeSnippet} onChange={(e) => updateVariation(i, 'codeSnippet', e.target.value)} rows={4} className="code-snippet-textarea" />
-                            </div>
-                          </div>
-                          <details className="form-advanced-details">
-                            <summary>Avançado (CSS / JS)</summary>
-                            <div className="form-row">
-                              <div className="form-field-label"><span className="form-field-name">CSS</span></div>
-                              <div className="form-field-input">
+                            <details className="form-advanced-details">
+                              <summary>Avançado (CSS / JS)</summary>
+                              <div className="variation-field">
+                                <label className="variation-field-label">CSS</label>
                                 <textarea value={v.codeCss} onChange={(e) => updateVariation(i, 'codeCss', e.target.value)} rows={2} className="code-snippet-textarea" />
                               </div>
-                            </div>
-                            <div className="form-row">
-                              <div className="form-field-label"><span className="form-field-name">JS</span></div>
-                              <div className="form-field-input">
+                              <div className="variation-field">
+                                <label className="variation-field-label">JS</label>
                                 <textarea value={v.codeJs} onChange={(e) => updateVariation(i, 'codeJs', e.target.value)} rows={2} className="code-snippet-textarea" />
                               </div>
-                            </div>
-                          </details>
-                        </>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+                            </details>
+                          </>
+                        )}
+                        <button type="button" className="variation-card-toggle" onClick={() => toggleVariationCollapsed(key)} aria-expanded={!collapsed}>
+                          {collapsed ? '▶ Expandir' : '▼ Recolher'}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </section>
+
+          {toast && <div className="form-toast" role="status">{toast}</div>}
         </div>
       </div>
 

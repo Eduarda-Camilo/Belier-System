@@ -6,7 +6,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { IconInbox, IconDocs, IconComponentes, IconSearch, IconUser, IconKey, IconLogout, IconUsers, IconChangelog } from './Icons';
 import './Layout.css';
 
-const FIGMA_URL = 'https://www.figma.com';
+const FIGMA_URL = 'https://www.figma.com/design/GMc5W9MzhauUNkxVmB8BRs/Belier-Design-System?node-id=6777-13085&t=gVghlPnWsIbJyCMZ-1';
 
 function getInitials(user) {
   if (!user?.name) return 'U';
