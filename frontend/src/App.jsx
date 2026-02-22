@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import ComponentDetail from './pages/ComponentDetail';
 import ComponentForm from './pages/ComponentForm';
 import CategoryList from './pages/CategoryList';
+import Docs from './pages/Docs';
 import Notifications from './pages/Notifications';
 import UserList from './pages/UserList';
 import ChangeLog from './pages/ChangeLog';
@@ -31,6 +32,7 @@ export default function App() {
           <Route path=":id" element={<ComponentDetail />} />
           <Route path=":id/edit" element={<ProtectedRoute allowedProfiles={['admin', 'designer']}><ComponentForm /></ProtectedRoute>} />
         </Route>
+        <Route path="docs" element={<Docs />} />
         <Route path="categories" element={<CategoryList />} />
         <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="changelog" element={<ProtectedRoute><ChangeLog /></ProtectedRoute>} />

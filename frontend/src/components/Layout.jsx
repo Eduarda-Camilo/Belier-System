@@ -93,7 +93,7 @@ export default function Layout() {
             <NavLink to="/notifications" className={navLinkClass} end>
               <IconInbox /> Inbox
             </NavLink>
-            <NavLink to="/categories" className={navLinkClass}>
+            <NavLink to="/docs" className={navLinkClass}>
               <IconDocs /> Docs
             </NavLink>
             <a href={FIGMA_URL} target="_blank" rel="noopener noreferrer" className="layout-nav-link">
@@ -193,7 +193,7 @@ export default function Layout() {
           <nav>
             <ul className="layout-side-list">
               <li><NavLink to="/notifications" className={sideLinkClass} end><IconInbox /> Inbox</NavLink></li>
-              <li><NavLink to="/categories" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
+              <li><NavLink to="/docs" className={sideLinkClass}><IconDocs /> Docs</NavLink></li>
               <li><a href={FIGMA_URL} target="_blank" rel="noopener noreferrer"><img src="/figma.svg" alt="" className="layout-side-figma-icon" aria-hidden /> Figma</a></li>
               <li><NavLink to="/changelog" className={sideLinkClass}><IconChangelog /> ChangeLog</NavLink></li>
               <li>
