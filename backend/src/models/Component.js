@@ -65,6 +65,14 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: 'Link Figma / doc / repo',
     },
+    name: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     responsibleId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -119,6 +127,16 @@ module.exports = (sequelize) => {
     tableName: 'components',
     timestamps: true,
     underscored: true,
+    hooks: {
+      beforeCreate(instance) {
+        if (!instance.name) instance.name = instance.title;
+        if (!instance.description) instance.description = instance.shortDescription;
+      },
+      beforeUpdate(instance) {
+        if (instance.changed('title')) instance.name = instance.title;
+        if (instance.changed('shortDescription')) instance.description = instance.shortDescription;
+      },
+    },
   });
 
   return Component;
