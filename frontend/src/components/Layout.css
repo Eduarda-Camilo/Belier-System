@@ -310,7 +310,7 @@
 
 .layout-content {
   min-height: 0;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg) 64px;
   background: transparent;
   overflow-y: auto;
 }
