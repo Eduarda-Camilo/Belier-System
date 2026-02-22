@@ -207,12 +207,14 @@ export default function ComponentDetail() {
 
   useEffect(() => {
     if (!id) return;
-    api.get(`/versions/component/${id}`).then((res) => {
-      const list = res.data || [];
-      setVersions(list);
-      if (list.length > 0) setSelectedVersionId(list[0].id);
-      else setSelectedVersionId(null);
-    }).catch(() => setVersions([]));
+    api.get(`/versions/component/${id}`)
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : [];
+        setVersions(list);
+        if (list.length > 0) setSelectedVersionId(list[0].id);
+        else setSelectedVersionId(null);
+      })
+      .catch(() => setVersions([]));
   }, [id]);
 
   useEffect(() => {
@@ -226,7 +228,8 @@ export default function ComponentDetail() {
   }, [id, selectedVersionId, selectedExampleId, effectiveExampleIdForApi]);
 
 
-  const selectedVersion = selectedVersionId != null ? versions.find((v) => v.id === selectedVersionId) : null;
+  const versionsList = Array.isArray(versions) ? versions : [];
+  const selectedVersion = selectedVersionId != null ? versionsList.find((v) => v.id === selectedVersionId) : null;
   const fromSnapshot = selectedVersion?.content?.variationsSnapshot;
   const compDefault = component?.defaultExample;
   const compVars = normalizeVariations(component?.variations) || [];
@@ -287,7 +290,7 @@ export default function ComponentDetail() {
   const handleSaveVersion = async () => {
     setSavingVersion(true);
     try {
-      const { data } = await api.post(`/versions/component/${id}`, { description: `Versão ${(versions.length || 0) + 1}` });
+      const { data } = await api.post(`/versions/component/${id}`, { description: `Versão ${versionsList.length + 1}` });
       setVersions((prev) => [data, ...prev]);
     } catch (err) {
       setError(err.response?.data?.error || 'Erro ao registrar versão');
@@ -375,8 +378,8 @@ export default function ComponentDetail() {
           <div className="page-header-row">
             <div className="page-header-left">
               <h1>{component.title || component.name}</h1>
-              <span className={`detail-badge detail-badge-${component.status}`}>
-                {statusLabel[component.status]}
+              <span className={`detail-badge detail-badge-${component.status || 'draft'}`}>
+                {statusLabel[component.status] || component.status || 'Rascunho'}
               </span>
             </div>
             <div className="page-header-actions">
@@ -450,8 +453,8 @@ export default function ComponentDetail() {
                 value={selectedVersionId ?? ''}
                 onChange={(e) => setSelectedVersionId(e.target.value ? Number(e.target.value) : null)}
               >
-                {versions.length === 0 && <option value="">—</option>}
-                {versions.map((v) => (
+                {(versionsList.length === 0) && <option value="">—</option>}
+                {versionsList.map((v) => (
                   <option key={v.id} value={v.id}>v{v.number}{v.isPublished ? ' (publicada)' : ''}</option>
                 ))}
               </select>
@@ -463,6 +466,7 @@ export default function ComponentDetail() {
                 value={currentExample ? (selectedExampleId ?? currentExample.id) : ''}
                 onChange={(e) => setSelectedExampleId(e.target.value ? (allExamples.find((ex) => String(ex.id) === e.target.value)?.id ?? e.target.value) : null)}
               >
+                {allExamples.length === 0 && <option value="">—</option>}
                 {allExamples.map((ex) => (
                   <option key={ex.id} value={ex.id}>{ex.title === 'Default' ? 'Default' : (ex.title || ex.slug || ex.id)}</option>
                 ))}
@@ -612,11 +616,11 @@ export default function ComponentDetail() {
               {savingVersion ? 'Salvando...' : 'Criar nova versão (rascunho)'}
             </button>
           )}
-          {versions.length === 0 ? (
+          {versionsList.length === 0 ? (
             <p className="detail-empty">Nenhuma versão registrada.</p>
           ) : (
             <ul className="version-list">
-              {versions.map((v) => (
+              {versionsList.map((v) => (
                 <li key={v.id}>
                   <strong>v{v.number}</strong>
                   {v.isPublished && <span className="detail-badge detail-badge-published" style={{ marginLeft: '0.5rem' }}>Publicada</span>}
