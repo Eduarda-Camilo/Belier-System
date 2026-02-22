@@ -137,6 +137,7 @@
 }
 
 .layout-user {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -154,6 +155,114 @@
   font-size: 0.85rem;
   font-weight: 600;
   flex-shrink: 0;
+}
+
+.layout-avatar-btn {
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s;
+}
+
+.layout-avatar-btn:hover {
+  opacity: 0.9;
+}
+
+/* Modal do avatar — Figma: fundo azul escuro, avatar azul vivo, itens 16px 4px, 4px entre itens */
+.avatar-modal {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 240px;
+  background: #1C3D5A;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  z-index: 200;
+}
+
+.avatar-modal-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.avatar-modal-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #2B8BE0;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.avatar-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.avatar-modal-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.avatar-modal-role {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.avatar-modal-sep {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 16px;
+}
+
+.avatar-modal-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.avatar-modal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.avatar-modal-item:hover,
+.avatar-modal-item.selected {
+  background: #2B8BE0;
+}
+
+.avatar-modal-item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.avatar-modal-sair {
+  margin: 4px 0 8px 0;
 }
 
 .layout-logout {

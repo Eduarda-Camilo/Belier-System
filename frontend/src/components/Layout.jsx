@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-do
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { IconInbox, IconDocs, IconComponentes, IconSearch } from './Icons';
+import { IconInbox, IconDocs, IconComponentes, IconSearch, IconUser, IconKey, IconLogout } from './Icons';
 import './Layout.css';
 
 const FIGMA_URL = 'https://www.figma.com';
@@ -22,7 +22,19 @@ export default function Layout() {
   const [q, setQ] = useState('');
   const [componentsOpen, setComponentsOpen] = useState(true);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const modalInputRef = useRef(null);
+  const avatarMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target)) setAvatarMenuOpen(false);
+    };
+    if (avatarMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [avatarMenuOpen]);
 
   const handleLogout = () => {
     logout();
@@ -47,7 +59,10 @@ export default function Layout() {
         e.preventDefault();
         setSearchModalOpen(true);
       }
-      if (e.key === 'Escape') setSearchModalOpen(false);
+      if (e.key === 'Escape') {
+        setSearchModalOpen(false);
+        setAvatarMenuOpen(false);
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -65,6 +80,7 @@ export default function Layout() {
     return `layout-nav-link ${isActive || onComponentPage ? 'active' : ''}`;
   };
   const sideLinkClass = ({ isActive }) => (isActive ? 'active' : '');
+  const profileLabel = { admin: 'Administrador', designer: 'Designer', developer: 'Desenvolvedor' };
 
   return (
     <div className="layout">
@@ -105,11 +121,54 @@ export default function Layout() {
               <kbd className="layout-search-kbd">Ctrl+K</kbd>
             </button>
             <Link to="/components/new" className="btn btn-primary layout-new-btn">Novo componente</Link>
-            <div className="layout-user">
+            <div className="layout-user" ref={avatarMenuRef}>
               {user ? (
                 <>
-                  <div className="layout-avatar" title={user.name}>{getInitials(user)}</div>
-                  <button type="button" onClick={handleLogout} className="btn btn-ghost layout-logout">Sair</button>
+                  <button
+                    type="button"
+                    className="layout-avatar layout-avatar-btn"
+                    onClick={(e) => { e.stopPropagation(); setAvatarMenuOpen((o) => !o); }}
+                    aria-expanded={avatarMenuOpen}
+                    aria-haspopup="true"
+                    aria-label="Menu do usuário"
+                    title={user.name}
+                  >
+                    {getInitials(user)}
+                  </button>
+                  {avatarMenuOpen && (
+                    <div className="avatar-modal" role="menu">
+                      <div className="avatar-modal-user">
+                        <div className="avatar-modal-avatar">{getInitials(user)}</div>
+                        <div className="avatar-modal-info">
+                          <span className="avatar-modal-name">{user.name}</span>
+                          <span className="avatar-modal-role">{profileLabel[user.profile] || user.profile}</span>
+                        </div>
+                      </div>
+                      <div className="avatar-modal-sep" />
+                      <div className="avatar-modal-menu">
+                        <Link
+                          to="/profile"
+                          className={`avatar-modal-item ${location.pathname === '/profile' ? 'selected' : ''}`}
+                          onClick={() => setAvatarMenuOpen(false)}
+                          role="menuitem"
+                        >
+                          <IconUser /> Perfil
+                        </Link>
+                        <Link
+                          to="/profile/trocar-senha"
+                          className={`avatar-modal-item ${location.pathname === '/profile/trocar-senha' ? 'selected' : ''}`}
+                          onClick={() => setAvatarMenuOpen(false)}
+                          role="menuitem"
+                        >
+                          <IconKey /> Trocar senha
+                        </Link>
+                      </div>
+                      <div className="avatar-modal-sep" />
+                      <button type="button" className="avatar-modal-item avatar-modal-sair" onClick={() => { handleLogout(); setAvatarMenuOpen(false); }} role="menuitem">
+                        <IconLogout /> Sair
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <NavLink to="/login" className="btn btn-primary">Entrar</NavLink>
