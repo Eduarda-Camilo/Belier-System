@@ -449,7 +449,8 @@ async function checkSlug(req, res, next) {
     const existing = await Component.findOne({ where });
     res.json({ available: !existing });
   } catch (err) {
-    next(err);
+    // Evita 500: em caso de falha (ex.: banco indisponível), retorna disponível false
+    return res.status(200).json({ available: false, error: 'Não foi possível verificar o slug. Tente novamente.' });
   }
 }
 

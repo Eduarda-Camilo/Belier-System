@@ -252,7 +252,9 @@ export default function ComponentForm() {
       if (!isEdit) setToast('Componente criado');
       navigate(`/components/${componentId}`, { replace: true });
     } catch (err) {
-      const msg = err.response?.data?.error || (err.response?.status === 401 ? 'Faça login para continuar.' : err.response?.status === 403 ? 'Sem permissão para esta ação.' : err.message || 'Erro ao salvar.');
+      let msg = err.response?.data?.error || (err.response?.status === 401 ? 'Faça login para continuar.' : err.response?.status === 403 ? 'Sem permissão para esta ação.' : err.message || 'Erro ao salvar.');
+      // No formulário de componente não existe campo "Nome"; o correto é "Título"
+      if (msg === 'Nome é obrigatório') msg = 'Título é obrigatório (preencha o campo "Título" nas informações básicas).';
       setError(msg);
     } finally {
       setSaving(false);
@@ -428,7 +430,7 @@ export default function ComponentForm() {
             <button type="button" className="btn btn-ghost" onClick={saveDraft} disabled={saving || loading}>{saving ? 'Salvando...' : 'Salvar'}</button>
           </div>
         </header>
-        {error && <div className="page-error" role="alert">{error}</div>}
+        {error && <div className="page-error" role="alert">{error === 'Nome é obrigatório' ? 'Título é obrigatório (preencha o campo "Título" nas informações básicas).' : error}</div>}
         {loading ? (
           <div className="component-form-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
             <p className="page-loading" style={{ margin: 0 }}>Carregando componente...</p>
