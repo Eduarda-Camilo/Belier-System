@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { withProfileDropdown } from "../components/withProfileDropdown";
 import Usuarios from "../../imports/Usuarios";
 import { NewUserModal } from "../components/NewUserModal";
@@ -6,6 +6,7 @@ import { DeleteUserModalNew } from "../components/DeleteUserModalNew";
 import { EditUserModal } from "../components/EditUserModal";
 import { ViewUserModal } from "../components/ViewUserModal";
 import { UsuariosPageWrapper } from "../components/UsuariosPageWrapper";
+import { api, type UserSummary } from "../api/client";
 
 interface User {
   id: string;
@@ -16,60 +17,93 @@ interface User {
 }
 
 function UsuariosPageContent() {
-  const [users, setUsers] = useState<User[]>([
-    { id: "1", name: "Eduardo Gomes", email: "eduardo@gmail.com", initials: "EG", color: "#2d90ff" },
-    { id: "2", name: "Ian", email: "ian@gmail.com", initials: "I", color: "#2d90ff" },
-    { id: "3", name: "Admin", email: "admin@gmail.com", initials: "A", color: "#2d90ff" },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const handleAddUser = (userData: { name: string; email: string; password: string }) => {
-    const initials = userData.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: userData.name,
-      email: userData.email,
+  const mapApiUser = (u: UserSummary): User => {
+    const initials =
+      u.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2) || u.name[0]?.toUpperCase() || "?";
+    return {
+      id: u.id,
+      name: u.name,
+      email: u.email,
       initials,
       color: "#2d90ff",
     };
+  };
 
-    setUsers([...users, newUser]);
+  useEffect(() => {
+    setLoading(true);
+    api
+      .getUsers()
+      .then((data) => {
+        setUsers(data.map(mapApiUser));
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar usuários:", error);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleAddUser = (userData: { name: string; email: string; password: string }) => {
+    api
+      .createUser({
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+        role: "designer",
+      })
+      .then((created) => {
+        setUsers((prev) => [...prev, mapApiUser(created)]);
+      })
+      .catch((error) => {
+        console.error("Erro ao criar usuário:", error);
+      });
   };
 
   const handleDeleteUser = () => {
     if (selectedUser) {
-      setUsers(users.filter((u) => u.id !== selectedUser.id));
-      setSelectedUser(null);
+      api
+        .deleteUser(selectedUser.id)
+        .then(() => {
+          setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
+          setSelectedUser(null);
+        })
+        .catch((error) => {
+          console.error("Erro ao excluir usuário:", error);
+        });
     }
   };
 
   const handleEditUser = (userData: { name: string; email: string; password: string }) => {
     if (selectedUser) {
-      const initials = userData.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-
-      setUsers(
-        users.map((u) =>
-          u.id === selectedUser.id
-            ? { ...u, name: userData.name, email: userData.email, initials }
-            : u
-        )
-      );
-      setSelectedUser(null);
+      api
+        .updateUser(selectedUser.id, {
+          name: userData.name,
+          email: userData.email,
+          password: userData.password || undefined,
+        })
+        .then((updated) => {
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.id === updated.id ? mapApiUser(updated) : u
+            )
+          );
+          setSelectedUser(null);
+        })
+        .catch((error) => {
+          console.error("Erro ao atualizar usuário:", error);
+        });
     }
   };
 

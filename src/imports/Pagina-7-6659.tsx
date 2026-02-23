@@ -413,12 +413,12 @@ function Frame22() {
       <p className="flex-[1_0_0] font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[40px] min-h-px min-w-px not-italic relative text-[36px] text-white whitespace-pre-wrap" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
         Novo Componente
       </p>
-      <div className="content-stretch flex h-[40px] items-center justify-center px-[16px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button">
+      <div className="content-stretch flex h-[40px] items-center justify-center px-[16px] py-[8px] relative rounded-[8px] shrink-0 cursor-pointer" data-name="Button" data-inject="novo-cancelar">
         <p className="font-['Open_Sans:SemiBold',sans-serif] font-semibold leading-[20px] relative shrink-0 text-[14px] text-white" style={{ fontVariationSettings: "\'wdth\' 100" }}>
           Cancelar
         </p>
       </div>
-      <div className="bg-[#16a6df] content-stretch flex h-[40px] items-center justify-center px-[16px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button">
+      <div className="bg-[#16a6df] content-stretch flex h-[40px] items-center justify-center px-[16px] py-[8px] relative rounded-[8px] shrink-0 cursor-pointer" data-name="Button" data-inject="novo-salvar">
         <p className="font-['Open_Sans:SemiBold',sans-serif] font-semibold leading-[20px] relative shrink-0 text-[14px] text-white" style={{ fontVariationSettings: "\'wdth\' 100" }}>
           Salvar Componente
         </p>
@@ -510,11 +510,15 @@ function Frame26() {
     <div className="content-stretch cursor-pointer flex flex-col gap-[16px] items-start relative shrink-0 w-full">
       <button className="content-stretch flex flex-col gap-[4px] items-start justify-center relative shrink-0 w-full" data-name="Text Input">
         <Label />
-        <Placeholder />
+        <div className="w-full" data-inject="novo-name">
+          <Placeholder />
+        </div>
       </button>
       <button className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0 w-full" data-name="Text Area">
         <Label1 />
-        <Placeholder1 />
+        <div className="w-full" data-inject="novo-description">
+          <Placeholder1 />
+        </div>
         <div className="content-stretch flex items-center justify-center relative shrink-0" data-name="Limitador de caracteres">
           <p className="font-['Open_Sans:Regular',sans-serif] font-normal leading-[18px] relative shrink-0 text-[#cbd4d6] text-[12px] text-left" style={{ fontVariationSettings: "\'wdth\' 100" }}>
             Você pode usar até 000 caracteres.
