@@ -418,7 +418,7 @@ function Frame22() {
           Cancelar
         </p>
       </div>
-      <div className="content-stretch flex gap-[8px] h-[40px] items-center justify-center px-[16px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button">
+      <div className="content-stretch flex gap-[8px] h-[40px] items-center justify-center px-[16px] py-[8px] relative rounded-[8px] shrink-0 cursor-pointer" data-name="Button" data-inject="editar-excluir">
         <div className="relative shrink-0 size-[18px]" data-name="delete">
           <div className="absolute inset-[15.06%_18.75%_14.58%_18.75%] mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[-4.5px_-3.615px] mask-size-[24px_24px]" data-name="Vector" style={{ maskImage: `url('${imgVector2}')` }}>
             <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 11.25 12.6634">

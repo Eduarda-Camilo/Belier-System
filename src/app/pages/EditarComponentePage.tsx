@@ -49,6 +49,7 @@ function EditarComponentePageContent() {
     const descWrap = root.querySelector('[data-inject="editar-description"]');
     const btnCancel = root.querySelector('[data-inject="editar-cancelar"]');
     const btnSalvar = root.querySelector('[data-inject="editar-salvar"]');
+    const btnExcluir = root.querySelector('[data-inject="editar-excluir"]');
 
     if (nameWrap) {
       const p = nameWrap.querySelector("p");
@@ -105,12 +106,29 @@ function EditarComponentePageContent() {
         alert(e instanceof Error ? e.message : "Erro ao salvar componente.");
       }
     };
-
+    const onExcluir = async () => {
+      if (component.slug === "button") {
+        alert('O componente base "Button" não pode ser excluído.');
+        return;
+      }
+      const confirmed = window.confirm(
+        `Excluir o componente "${component.name}"? Essa ação não pode ser desfeita.`
+      );
+      if (!confirmed) return;
+      try {
+        await api.deleteComponent(component.id);
+        navigate("/components/button");
+      } catch (e) {
+        alert(e instanceof Error ? e.message : "Erro ao excluir componente.");
+      }
+    };
     btnCancel?.addEventListener("click", onCancel);
     btnSalvar?.addEventListener("click", onSalvar);
+    btnExcluir?.addEventListener("click", onExcluir);
     return () => {
       btnCancel?.removeEventListener("click", onCancel);
       btnSalvar?.removeEventListener("click", onSalvar);
+      btnExcluir?.removeEventListener("click", onExcluir);
     };
   }, [component, navigate]);
 

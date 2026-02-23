@@ -54,6 +54,9 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
 
   useEffect(() => {
     const setupLoggedNavigation = () => {
+      // Slug atual do componente (quando em /components/:slug ou /components/:slug/public)
+      const componentMatch = location.pathname.match(/^\/components\/([^/]+)/);
+      const currentSlug = componentMatch?.[1];
       // ====== LOGO ======
       const logoElements = Array.from(document.querySelectorAll('[data-name="logo"]'));
       logoElements.forEach((logo) => {
@@ -278,7 +281,12 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
           container.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            navigate('/editar-componente');
+            // Se estivermos em /components/:slug, leva para /editar-componente/:slug
+            if (currentSlug) {
+              navigate(`/editar-componente/${currentSlug}`);
+            } else {
+              navigate('/editar-componente');
+            }
           });
         }
       });
