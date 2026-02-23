@@ -17,14 +17,21 @@
      - Create a `.env.local` file in the project root with:
 
        ```bash
-       VITE_API_URL=https://belier-system.onrender.com/api
+       # Durante o desenvolvimento local, use o backend em Node dentro deste repo:
+       VITE_API_URL=http://localhost:3000/api
        ```
 
-     - On Vercel, set the same `VITE_API_URL` (`https://belier-system.onrender.com/api`) in the project environment variables.
+     - Em produção (Vercel), você pode apontar `VITE_API_URL` para a API hospedada (Render ou outro serviço).
 
   3. Start the development server:
 
      ```bash
+     # em um terminal, rodar o backend:
+     cd backend
+     npm install
+     npm run dev
+
+     # em outro terminal, rodar o frontend:
      npm run dev
      ```
 
