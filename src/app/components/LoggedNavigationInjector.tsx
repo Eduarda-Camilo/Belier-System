@@ -1,6 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router";
+import { createRoot } from "react-dom/client";
 import { useAuth } from "../auth/AuthContext";
+import { api, type ComponentSummary } from "../api/client";
+import { SidebarComponentList } from "./SidebarComponentList";
 
 /**
  * Injeta navegação em páginas logadas
@@ -16,6 +19,38 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const [components, setComponents] = useState<ComponentSummary[]>([]);
+  const sidebarRootRef = useRef<ReturnType<typeof createRoot> | null>(null);
+
+  // Fetch components for sidebar
+  useEffect(() => {
+    api.getComponents().then(setComponents).catch(() => setComponents([]));
+  }, []);
+
+  // Unmount sidebar root when injector unmounts
+  useEffect(() => {
+    return () => {
+      if (sidebarRootRef.current) {
+        sidebarRootRef.current.unmount();
+        sidebarRootRef.current = null;
+      }
+    };
+  }, []);
+
+  // Inject sidebar component list (logged)
+  useEffect(() => {
+    const container = document.querySelector('[data-inject="sidebar-component-list"]');
+    if (!container || !(container instanceof HTMLElement)) return;
+    if (!sidebarRootRef.current) sidebarRootRef.current = createRoot(container);
+    sidebarRootRef.current.render(
+      <SidebarComponentList
+        components={components}
+        isPublic={false}
+        currentPath={location.pathname}
+        onNavigate={(path) => navigate(path)}
+      />
+    );
+  }, [components, location.pathname, navigate]);
 
   useEffect(() => {
     const setupLoggedNavigation = () => {
@@ -57,7 +92,7 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
             isExternal = true;
             route = '#';
           } else if (text === 'Componentes' || text === 'Components') {
-            route = '/components/button';
+            route = components.length > 0 ? `/components/${components[0].slug}` : '/components/button';
           }
           
           if (route) {
@@ -147,13 +182,13 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
         } else if (text === 'Componentes') {
           isNonClickable = true;
         } else if (text === 'Button') {
-          // Check if it has deep indentation (pl-[56px]) which means it's a component in the list
           const parentDiv = p.parentElement;
           const hasDeepIndent = parentDiv?.className?.includes('pl-[56px]');
           if (hasDeepIndent) {
             route = '/components/button';
           }
         }
+        // Component list is now rendered dynamically via SidebarComponentList
 
         // Find the clickable container (the wrapper div with padding and gap)
         let container = p.parentElement?.parentElement?.parentElement;
@@ -161,7 +196,7 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
         // Handle "Componentes" - mark active but don't make clickable
         if (isNonClickable) {
           if (container) {
-            const isComponentPage = location.pathname === '/components/button' || 
+            const isComponentPage = location.pathname.startsWith('/components/') ||
                                    location.pathname === '/editar-componente' ||
                                    location.pathname === '/novo-componente';
             if (isComponentPage) {
@@ -179,7 +214,7 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
           
           // Highlight if current route
           const isActive = location.pathname === route ||
-                          (route === '/components/button' && (location.pathname === '/editar-componente' || location.pathname === '/novo-componente'));
+                          (route?.startsWith('/components/') && (location.pathname === '/editar-componente' || location.pathname === '/novo-componente'));
           if (isActive) {
             container.classList.add('bg-[rgba(255,255,255,0.1)]');
           } else {
@@ -226,42 +261,6 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
             e.preventDefault();
             e.stopPropagation();
             navigate('/changelog');
-          });
-        }
-      });
-
-      // ====== BUTTON COMPONENT IN SIDEBAR (direct approach) ======
-      const buttonComponentItems = Array.from(document.querySelectorAll('p')).filter((p) => {
-        const text = p.textContent?.trim();
-        if (text !== 'Button') return false;
-        
-        // Check if parent has deep indentation (pl-[56px])
-        const parent = p.parentElement;
-        return parent?.className?.includes('pl-[56px]');
-      });
-      
-      buttonComponentItems.forEach((p) => {
-        // Go up to the outer rounded container
-        const container = p.parentElement?.parentElement?.parentElement;
-        
-        if (container && !container.hasAttribute('data-button-component-setup')) {
-          container.setAttribute('data-button-component-setup', 'true');
-          (container as HTMLElement).style.cursor = 'pointer';
-          
-          // Highlight if active
-          const isActive = location.pathname === '/components/button' ||
-                          location.pathname === '/editar-componente' ||
-                          location.pathname === '/novo-componente';
-          if (isActive) {
-            container.classList.add('bg-[rgba(255,255,255,0.1)]');
-          } else {
-            container.classList.remove('bg-[rgba(255,255,255,0.1)]');
-          }
-          
-          container.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            navigate('/components/button');
           });
         }
       });
@@ -368,7 +367,7 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
       clearTimeout(timer3);
       clearTimeout(timer4);
     };
-  }, [navigate, location, onAvatarClick, onPerfilClick, onTrocarSenhaClick, user?.role]);
+  }, [navigate, location, onAvatarClick, onPerfilClick, onTrocarSenhaClick, user?.role, components]);
 
   return null;
 }

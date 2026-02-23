@@ -1,5 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router";
+import { createRoot } from "react-dom/client";
+import { api, type ComponentSummary } from "../api/client";
+import { SidebarComponentList } from "./SidebarComponentList";
 
 /**
  * Injeta navegação em páginas públicas (deslogadas)
@@ -8,6 +11,35 @@ import { useNavigate, useLocation } from "react-router";
 export function PublicNavigationInjector() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [components, setComponents] = useState<ComponentSummary[]>([]);
+  const sidebarRootRef = useRef<ReturnType<typeof createRoot> | null>(null);
+
+  useEffect(() => {
+    api.getComponents().then(setComponents).catch(() => setComponents([]));
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (sidebarRootRef.current) {
+        sidebarRootRef.current.unmount();
+        sidebarRootRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const container = document.querySelector('[data-inject="sidebar-component-list"]');
+    if (!container || !(container instanceof HTMLElement)) return;
+    if (!sidebarRootRef.current) sidebarRootRef.current = createRoot(container);
+    sidebarRootRef.current.render(
+      <SidebarComponentList
+        components={components}
+        isPublic={true}
+        currentPath={location.pathname}
+        onNavigate={(path) => navigate(path)}
+      />
+    );
+  }, [components, location.pathname, navigate]);
 
   useEffect(() => {
     const setupPublicNavigation = () => {
@@ -47,7 +79,7 @@ export function PublicNavigationInjector() {
             isExternal = true;
             route = '#';
           } else if (text === 'Componentes' || text === 'Components') {
-            route = '/components/button/public';
+            route = components.length > 0 ? `/components/${components[0].slug}/public` : '/components/button/public';
           }
           
           if (route) {
@@ -138,7 +170,7 @@ export function PublicNavigationInjector() {
         // Handle "Componentes" - mark active but don't make clickable
         if (isNonClickable) {
           if (container) {
-            const isComponentPage = location.pathname === '/components/button/public';
+            const isComponentPage = location.pathname.startsWith('/components/');
             if (isComponentPage) {
               container.classList.add('bg-[rgba(255,255,255,0.1)]');
             } else {
@@ -173,39 +205,6 @@ export function PublicNavigationInjector() {
         }
       });
 
-      // ====== BUTTON COMPONENT IN SIDEBAR (direct approach) ======
-      const buttonComponentItems = Array.from(document.querySelectorAll('p')).filter((p) => {
-        const text = p.textContent?.trim();
-        if (text !== 'Button') return false;
-        
-        // Check if parent has deep indentation (pl-[56px])
-        const parent = p.parentElement;
-        return parent?.className?.includes('pl-[56px]');
-      });
-      
-      buttonComponentItems.forEach((p) => {
-        // Go up to the outer rounded container
-        const container = p.parentElement?.parentElement?.parentElement;
-        
-        if (container && !container.hasAttribute('data-button-component-setup')) {
-          container.setAttribute('data-button-component-setup', 'true');
-          (container as HTMLElement).style.cursor = 'pointer';
-          
-          // Highlight if active
-          const isActive = location.pathname === '/components/button/public';
-          if (isActive) {
-            container.classList.add('bg-[rgba(255,255,255,0.1)]');
-          } else {
-            container.classList.remove('bg-[rgba(255,255,255,0.1)]');
-          }
-          
-          container.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            navigate('/components/button/public');
-          });
-        }
-      });
     };
 
     // Run setup multiple times to catch dynamic content
@@ -221,7 +220,7 @@ export function PublicNavigationInjector() {
       clearTimeout(timer3);
       clearTimeout(timer4);
     };
-  }, [navigate, location]);
+  }, [navigate, location, components]);
 
   return null;
 }

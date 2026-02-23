@@ -1705,7 +1705,7 @@ function Frame12() {
 function Frame47() {
   return (
     <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
-      <Frame7 />
+      <div data-inject="sidebar-component-list" className="content-stretch flex flex-col items-start relative shrink-0 w-full" />
       <Frame8 />
       <Frame9 />
       <Frame10 />
