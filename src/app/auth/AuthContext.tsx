@@ -63,6 +63,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(backendUser);
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(backendUser));
+    } catch (error) {
+      // Modo desenvolvimento: permitir login fake enquanto o backend/usuários não existem.
+      // Isso NÃO roda em produção (import.meta.env.DEV é false no Vercel).
+      if (
+        import.meta.env.DEV &&
+        payload.email === "admin@belier.com" &&
+        payload.password === "admin123"
+      ) {
+        const fakeUser: AuthUser = {
+          id: "dev-admin",
+          name: "Admin (dev)",
+          email: payload.email,
+          role: "admin",
+        };
+        setUser(fakeUser);
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fakeUser));
+        return;
+      }
+
+      // Se não for o caso de login fake, repassa o erro para o componente de Login mostrar.
+      throw error;
     } finally {
       setLoading(false);
     }
