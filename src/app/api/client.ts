@@ -139,9 +139,16 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   const data = isJson ? await response.json() : (null as unknown as T);
 
   if (!response.ok) {
-    const message =
-      (isJson && ((data as any)?.message || (data as any)?.error)) ||
-      `Erro na API (${response.status})`;
+    const serverMessage = isJson && ((data as any)?.message || (data as any)?.error);
+    const is404 = response.status === 404;
+    const is5xx = response.status >= 500;
+    let message = serverMessage || `Erro na API (${response.status})`;
+    if (is404 && !serverMessage) {
+      message =
+        "API não encontrada (404). Em produção (Vercel), defina a variável de ambiente VITE_API_URL com a URL do backend (ex: https://belier-system.onrender.com/api) e faça um novo deploy.";
+    } else if (is5xx && !serverMessage) {
+      message = `Erro no servidor (${response.status}). O backend pode estar iniciando (Render); tente novamente em alguns segundos.`;
+    }
     throw new Error(message);
   }
 
