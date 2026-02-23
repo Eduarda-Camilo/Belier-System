@@ -10,6 +10,8 @@ import ChangeLogEmptyPage from "./pages/ChangeLogEmptyPage";
 import InboxPage from "./pages/InboxPage";
 import UsuariosPage from "./pages/UsuariosPage";
 import LoginPage from "./pages/LoginPage";
+import RootRedirectPage from "./pages/RootRedirectPage";
+import LegacyButtonRedirectPage from "./pages/LegacyButtonRedirectPage";
 
 export const router = createBrowserRouter([
   {
@@ -18,7 +20,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/",
-    Component: DocsSemLoginPage,
+    Component: RootRedirectPage,
   },
   {
     path: "/docs",
@@ -67,7 +69,7 @@ export const router = createBrowserRouter([
   // Legacy routes (backwards compatibility)
   {
     path: "/button",
-    Component: ButtonPage,
+    Component: LegacyButtonRedirectPage,
   },
   {
     path: "/button-public",
