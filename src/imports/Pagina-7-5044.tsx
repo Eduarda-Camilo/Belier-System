@@ -422,7 +422,7 @@ function Pencil() {
 function Frame27() {
   return (
     <div className="content-stretch flex gap-[8px] items-start relative shrink-0 w-full">
-      <p className="flex-[1_0_0] font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[40px] min-h-px min-w-px not-italic relative text-[36px] text-white whitespace-pre-wrap" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
+      <p className="flex-[1_0_0] font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[40px] min-h-px min-w-px not-italic relative text-[36px] text-white whitespace-pre-wrap" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }} data-inject="component-title">
         Button
       </p>
       <div className="content-stretch flex gap-[8px] items-center justify-center px-[16px] py-[6px] relative rounded-[8px] shrink-0" data-name="Button">
@@ -441,7 +441,7 @@ function Frame21() {
   return (
     <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
       <Frame27 />
-      <p className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[24px] not-italic relative shrink-0 text-[16px] text-white w-full whitespace-pre-wrap" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
+      <p className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[24px] not-italic relative shrink-0 text-[16px] text-white w-full whitespace-pre-wrap" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }} data-inject="component-description">
         Descrição
       </p>
     </div>
@@ -454,7 +454,7 @@ function Frame23() {
       <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[32px] relative shrink-0 text-[24px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
         Import
       </p>
-      <div className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[0] relative shrink-0 text-[16px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
+      <div className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[0] relative shrink-0 text-[16px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }} data-inject="import-description">
         <p className="leading-[24px] mb-0">{`HeroUI exports 2 button-related components: `}</p>
         <p className="leading-[24px] mb-0">{` `}</p>
         <ul className="list-disc">
@@ -556,7 +556,7 @@ function Frame25() {
               <p className="relative shrink-0 text-[rgba(255,255,255,0.2)]" style={{ fontFeatureSettings: "\'ss01\', \'cv01\', \'cv11\'" }}>
                 1
               </p>
-              <p className="relative shrink-0 text-[rgba(255,255,255,0.4)]" style={{ fontFeatureSettings: "\'ss01\', \'cv01\', \'cv11\'" }}>{`import {Button, ButtonGroup} from "@belierui/button";`}</p>
+              <p className="relative shrink-0 text-[rgba(255,255,255,0.4)]" style={{ fontFeatureSettings: "\'ss01\', \'cv01\', \'cv11\'" }} data-inject="import-snippet-individual">{`import {Button, ButtonGroup} from "@belierui/button";`}</p>
             </div>
           </div>
           <div className="absolute content-center flex flex-wrap gap-[8px] items-center right-[16px] rounded-[8px] top-[16px]" data-name="Group">
@@ -598,7 +598,7 @@ function Frame25() {
               <p className="relative shrink-0 text-[rgba(255,255,255,0.2)]" style={{ fontFeatureSettings: "\'ss01\', \'cv01\', \'cv11\'" }}>
                 1
               </p>
-              <p className="relative shrink-0 text-[rgba(255,255,255,0.4)]" style={{ fontFeatureSettings: "\'ss01\', \'cv01\', \'cv11\'" }}>{`import {Button, ButtonGroup} from "@belierui/react";`}</p>
+              <p className="relative shrink-0 text-[rgba(255,255,255,0.4)]" style={{ fontFeatureSettings: "\'ss01\', \'cv01\', \'cv11\'" }} data-inject="import-snippet-global">{`import {Button, ButtonGroup} from "@belierui/react";`}</p>
             </div>
           </div>
           <div className="absolute content-center flex flex-wrap gap-[8px] items-center right-[16px] rounded-[8px] top-[16px]" data-name="Group">
@@ -639,10 +639,10 @@ function Frame25() {
 function Frame29() {
   return (
     <div className="content-stretch flex flex-col gap-[8px] items-start not-italic relative shrink-0 text-white w-full whitespace-pre-wrap">
-      <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[32px] relative shrink-0 text-[24px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
+      <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[32px] relative shrink-0 text-[24px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }} data-inject="variant-0-title">
         Default
       </p>
-      <p className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[24px] relative shrink-0 text-[16px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
+      <p className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[24px] relative shrink-0 text-[16px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }} data-inject="variant-0-description">
         Descrição
       </p>
     </div>
@@ -706,7 +706,7 @@ function Frame26() {
 
 function Frame31() {
   return (
-    <div className="bg-[rgba(255,255,255,0.05)] relative rounded-[12px] shrink-0 w-full">
+    <div className="bg-[rgba(255,255,255,0.05)] relative rounded-[12px] shrink-0 w-full" data-inject="variant-0-preview">
       <div className="flex flex-col items-center justify-center overflow-clip rounded-[inherit] size-full">
         <div className="content-stretch flex flex-col items-center justify-center p-[48px] relative w-full">
           <div className="bg-[#bf340f] content-stretch flex h-[56px] items-center justify-center px-[32px] py-[16px] relative rounded-[12px] shrink-0" data-name="Button">
@@ -733,10 +733,10 @@ function Frame53() {
 function Frame34() {
   return (
     <div className="content-stretch flex flex-col gap-[8px] items-start not-italic relative shrink-0 text-white w-full whitespace-pre-wrap">
-      <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[32px] relative shrink-0 text-[24px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
+      <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold leading-[32px] relative shrink-0 text-[24px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }} data-inject="variant-1-title">
         Disabled
       </p>
-      <p className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[24px] relative shrink-0 text-[16px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }}>
+      <p className="font-['Roboto_Flex:Regular',sans-serif] font-normal leading-[24px] relative shrink-0 text-[16px] w-full" style={{ fontVariationSettings: "\'GRAD\' 0, \'XOPQ\' 96, \'XTRA\' 468, \'YOPQ\' 79, \'YTAS\' 750, \'YTDE\' -203, \'YTFI\' 738, \'YTLC\' 514, \'YTUC\' 712, \'wdth\' 100" }} data-inject="variant-1-description">
         Descrição
       </p>
     </div>
@@ -802,7 +802,7 @@ function Frame32() {
   return (
     <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
       <Frame33 />
-      <div className="backdrop-blur-[20px] bg-[#1c1c1c] relative rounded-[16px] shrink-0 w-full" data-name="Code block">
+      <div className="backdrop-blur-[20px] bg-[#1c1c1c] relative rounded-[16px] shrink-0 w-full" data-name="Code block" data-inject="variant-1-code">
         <div className="content-stretch flex flex-col gap-[8px] items-start p-[24px] relative w-full">
           <div className="content-start flex flex-wrap gap-y-[8px] items-start relative rounded-[8px] shrink-0 w-full" data-name="Content">
             <div className="content-start flex flex-[1_0_0] flex-wrap font-normal gap-[4px_8px] items-start min-h-px min-w-px relative rounded-[8px] text-[14px] whitespace-nowrap" data-name="Text">

@@ -47,7 +47,7 @@ export function PublicNavigationInjector() {
             isExternal = true;
             route = '#';
           } else if (text === 'Componentes' || text === 'Components') {
-            route = '/components/button-public';
+            route = '/components/button/public';
           }
           
           if (route) {
@@ -128,7 +128,7 @@ export function PublicNavigationInjector() {
           // Check if it's in the component list (has category icon nearby)
           const hasCategory = p.parentElement?.querySelector('[data-name="Category"]');
           if (hasCategory) {
-            route = '/components/button-public';
+            route = '/components/button/public';
           }
         }
 
@@ -138,7 +138,7 @@ export function PublicNavigationInjector() {
         // Handle "Componentes" - mark active but don't make clickable
         if (isNonClickable) {
           if (container) {
-            const isComponentPage = location.pathname === '/components/button-public';
+            const isComponentPage = location.pathname === '/components/button/public';
             if (isComponentPage) {
               container.classList.add('bg-[rgba(255,255,255,0.1)]');
             } else {
@@ -192,7 +192,7 @@ export function PublicNavigationInjector() {
           (container as HTMLElement).style.cursor = 'pointer';
           
           // Highlight if active
-          const isActive = location.pathname === '/components/button-public';
+          const isActive = location.pathname === '/components/button/public';
           if (isActive) {
             container.classList.add('bg-[rgba(255,255,255,0.1)]');
           } else {
@@ -202,7 +202,7 @@ export function PublicNavigationInjector() {
           container.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            navigate('/components/button-public');
+            navigate('/components/button/public');
           });
         }
       });

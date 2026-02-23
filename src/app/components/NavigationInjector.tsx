@@ -17,7 +17,7 @@ export function NavigationInjector() {
             e.preventDefault();
             e.stopPropagation();
             // Check if we're on a public page
-            if (location.pathname === '/' || location.pathname === '/components/button-public' || location.pathname === '/docs-public') {
+            if (location.pathname === '/' || location.pathname === '/components/button/public' || location.pathname === '/docs-public') {
               navigate('/');
             } else if (location.pathname === '/login') {
               navigate('/');
@@ -32,7 +32,7 @@ export function NavigationInjector() {
       const entrarButtons = Array.from(document.querySelectorAll('p')).filter(
         (p) => p.textContent?.trim() === 'Entrar' &&
                p.closest('[data-name="Button"]') &&
-               (location.pathname === '/' || location.pathname === '/components/button-public' || location.pathname === '/docs-public')
+               (location.pathname === '/' || location.pathname === '/components/button/public' || location.pathname === '/docs-public')
       );
       entrarButtons.forEach((btn) => {
         const container = btn.closest('[data-name="Button"]');

@@ -15,7 +15,7 @@ export default function RootRedirectPage() {
     if (isAuthenticated) {
       navigate("/components/button", { replace: true });
     } else {
-      navigate("/components/button-public", { replace: true });
+      navigate("/components/button/public", { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 

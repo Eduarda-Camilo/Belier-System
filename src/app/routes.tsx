@@ -1,8 +1,8 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, useParams } from "react-router";
 import DocsPage from "./pages/DocsPage";
 import DocsSemLoginPage from "./pages/DocsSemLoginPage";
-import ButtonPage from "./pages/ButtonPage";
-import ButtonSemLoginPage from "./pages/ButtonSemLoginPage";
+import ComponentPage from "./pages/ComponentPage";
+import ComponentPagePublic from "./pages/ComponentPagePublic";
 import NovoComponentePage from "./pages/NovoComponentePage";
 import EditarComponentePage from "./pages/EditarComponentePage";
 import ChangeLogPage from "./pages/ChangeLogPage";
@@ -12,8 +12,18 @@ import UsuariosPage from "./pages/UsuariosPage";
 import LoginPage from "./pages/LoginPage";
 import RootRedirectPage from "./pages/RootRedirectPage";
 import LegacyButtonRedirectPage from "./pages/LegacyButtonRedirectPage";
+import LegacyButtonPublicRedirectPage from "./pages/LegacyButtonPublicRedirectPage";
 import { RequireAuth } from "./auth/RequireAuth";
 import { RequireRole } from "./auth/RequireRole";
+
+function ComponentPageWithAuth() {
+  const { slug } = useParams<{ slug: string }>();
+  return (
+    <RequireAuth redirectTo={slug ? `/components/${slug}/public` : "/login"}>
+      <ComponentPage />
+    </RequireAuth>
+  );
+}
 
 export const router = createBrowserRouter([
   {
@@ -36,17 +46,18 @@ export const router = createBrowserRouter([
     path: "/docs-public",
     Component: DocsSemLoginPage,
   },
-  {
-    path: "/components/button",
-    Component: () => (
-      <RequireAuth redirectTo="/components/button-public">
-        <ButtonPage />
-      </RequireAuth>
-    ),
-  },
+  // Compatibilidade: /components/button-public -> /components/button/public (deve vir antes de :slug)
   {
     path: "/components/button-public",
-    Component: ButtonSemLoginPage,
+    Component: LegacyButtonPublicRedirectPage,
+  },
+  {
+    path: "/components/:slug/public",
+    Component: ComponentPagePublic,
+  },
+  {
+    path: "/components/:slug",
+    Component: ComponentPageWithAuth,
   },
   {
     path: "/novo-componente",
@@ -111,6 +122,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "/button-public",
-    Component: ButtonSemLoginPage,
+    Component: LegacyButtonPublicRedirectPage,
   },
 ]);
