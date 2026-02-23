@@ -174,7 +174,7 @@ export function NovoComponenteWrapper() {
     }
 
     // If elements not ready, retry with exponential backoff
-    const timers: NodeJS.Timeout[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
     let attempts = 0;
     const maxAttempts = 10;
     
