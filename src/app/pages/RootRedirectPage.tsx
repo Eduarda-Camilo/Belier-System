@@ -19,6 +19,16 @@ export default function RootRedirectPage() {
     }
   }, [isAuthenticated, loading, navigate]);
 
-  return null;
+  // Enquanto decide o destino, mostra uma pequena tela de carregamento
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#22272a] text-white">
+      <div className="text-center">
+        <p className="text-lg">Carregando…</p>
+        <p className="mt-2 text-sm text-white/60">
+          Redirecionando para o componente Button.
+        </p>
+      </div>
+    </div>
+  );
 }
 
