@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, Navigate } from "react-router";
 import Pagina from "../../imports/Pagina-7-5044";
 import { withProfileDropdown } from "../components/withProfileDropdown";
-import { NovoComponenteWrapper } from "../components/NovoComponenteWrapper";
 import { ComponentDataInjector } from "../components/ComponentDataInjector";
 import { api, ComponentDetail } from "../api/client";
 
@@ -50,7 +49,6 @@ function ComponentPageContent() {
   return (
     <>
       <Pagina />
-      <NovoComponenteWrapper />
       <ComponentDataInjector componentData={componentData} slug={slug} />
     </>
   );
