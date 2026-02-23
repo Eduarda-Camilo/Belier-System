@@ -17,9 +17,11 @@
 ```bash
 npm i
 # garantir que .env.local existe na raiz com:
-# VITE_API_URL=https://belier-system.onrender.com/api
+# VITE_API_URL=http://localhost:3000/api
 npm run dev
 ```
 
-O frontend usa a variável `VITE_API_URL` para chamar o backend (Render).
+O frontend usa a variável `VITE_API_URL` para chamar o backend:
+- Em desenvolvimento: `http://localhost:3000/api`
+- Em produção (Vercel): `https://belier-system-1.onrender.com/api`
 
