@@ -23,6 +23,55 @@ const users = [
   },
 ];
 
+// Componentes em memória (apenas para desenvolvimento)
+const components = [
+  {
+    id: "1",
+    name: "Button",
+    slug: "button",
+    description: "Botão padrão do sistema Belier.",
+    importDescription:
+      "Use o componente Button para ações principais. Ele suporta variações como Default, Disabled, Sizes e Icon.",
+    importSnippetIndividual: `import { Button } from "@/components/ui/button";`,
+    importSnippetGlobal: `// registre o Button no seu design system global`,
+    createdAt: new Date().toISOString(),
+    createdBy: "1",
+    updatedAt: new Date().toISOString(),
+    updatedBy: "1",
+  },
+];
+
+const variants = [
+  {
+    id: "v1",
+    componentId: "1",
+    title: "Default",
+    description: "Estado padrão do botão.",
+    codeSnippet: `<Button>Salvar</Button>`,
+    previewProps: JSON.stringify({ variant: "default" }),
+    previewChildren: "Salvar",
+    orderIndex: 0,
+    createdAt: new Date().toISOString(),
+    createdBy: "1",
+    updatedAt: new Date().toISOString(),
+    updatedBy: "1",
+  },
+  {
+    id: "v2",
+    componentId: "1",
+    title: "Disabled",
+    description: "Botão desabilitado.",
+    codeSnippet: `<Button disabled>Salvar</Button>`,
+    previewProps: JSON.stringify({ disabled: true }),
+    previewChildren: "Salvar",
+    orderIndex: 1,
+    createdAt: new Date().toISOString(),
+    createdBy: "1",
+    updatedAt: new Date().toISOString(),
+    updatedBy: "1",
+  },
+];
+
 app.get("/api", (req, res) => {
   res.json({ message: "Belier local API — dev only" });
 });
@@ -49,6 +98,36 @@ app.post("/api/auth/login", (req, res) => {
       email: user.email,
       role: user.role,
     },
+  });
+});
+
+// Lista de componentes
+app.get("/api/components", (req, res) => {
+  const items = components.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    description: c.description,
+  }));
+  res.json(items);
+});
+
+// Detalhe de componente por slug (inclui variáveis)
+app.get("/api/components/:slug", (req, res) => {
+  const { slug } = req.params;
+  const component = components.find((c) => c.slug === slug);
+
+  if (!component) {
+    return res.status(404).json({ error: "Componente não encontrado" });
+  }
+
+  const componentVariants = variants
+    .filter((v) => v.componentId === component.id)
+    .sort((a, b) => a.orderIndex - b.orderIndex);
+
+  res.json({
+    ...component,
+    variants: componentVariants,
   });
 });
 

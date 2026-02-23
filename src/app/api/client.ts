@@ -25,6 +25,31 @@ export interface LoginResponse {
   [key: string]: unknown;
 }
 
+export interface ComponentSummary {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+}
+
+export interface ComponentVariant {
+  id: string;
+  componentId: string;
+  title: string;
+  description: string;
+  codeSnippet: string;
+  previewProps?: string;
+  previewChildren?: string;
+  orderIndex: number;
+}
+
+export interface ComponentDetail extends ComponentSummary {
+  importDescription?: string;
+  importSnippetIndividual?: string;
+  importSnippetGlobal?: string;
+  variants: ComponentVariant[];
+}
+
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!API_BASE_URL) {
     throw new Error("API base URL (VITE_API_URL) não configurada");
@@ -62,6 +87,12 @@ export const api = {
       body: JSON.stringify(payload),
     });
   },
-  // Endpoints adicionais (components, comments, changelog, etc.) serão adicionados nas próximas fases.
+  getComponents() {
+    return apiFetch<ComponentSummary[]>("/components");
+  },
+  getComponentBySlug(slug: string) {
+    return apiFetch<ComponentDetail>(`/components/${slug}`);
+  },
+  // Endpoints adicionais (comments, changelog, usuários, etc.) serão adicionados nas próximas fases.
 };
 
