@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 
 export function NovoComponenteWrapper() {
   const setupCompleteRef = useRef(false);
+  const observerRef = useRef<MutationObserver | null>(null);
+  const isApplyingRef = useRef(false);
 
   useEffect(() => {
     // Prevent duplicate setup
     if (setupCompleteRef.current) return;
 
-    const applyStyles = () => {
+    const applyStyles = (): boolean => {
       // Fix gradient to viewport
       const gradientContainer = document.querySelector('[data-name="Holographic Gradients"]');
       if (gradientContainer) {
@@ -68,9 +70,9 @@ export function NovoComponenteWrapper() {
         });
       }
 
-      // Find Frame12 (left sidebar)
+      // Find Frame12 (left sidebar) - support both "Category" and "category"
       const frame12Elements = Array.from(document.querySelectorAll('[data-name="breadcrumbs"] > div > div')).filter(
-        (el) => el.children.length > 0 && el.querySelector('[data-name="Category"]')
+        (el) => el.children.length > 0 && (el.querySelector('[data-name="Category"]') || el.querySelector('[data-name="category"]'))
       );
       
       if (frame12Elements.length > 0) {
@@ -126,51 +128,77 @@ export function NovoComponenteWrapper() {
       return !!(mainContainer && breadcrumbs && horizontalContainer && allFrames.length >= 2);
     };
 
-    // Try to apply styles immediately
-    const allPresent = applyStyles();
+    const mainContainer = document.querySelector('[data-name="Página"]');
     
-    if (allPresent) {
-      setupCompleteRef.current = true;
-      
-      // Use MutationObserver to reapply if something tries to change styles
-      const observer = new MutationObserver(() => {
-        applyStyles();
+    // Use MutationObserver only to reapply when something *else* changes styles (e.g. React re-render).
+    // Disconnect before we apply so we don't react to our own changes and create an infinite loop.
+    const observer = new MutationObserver(() => {
+      if (isApplyingRef.current) return;
+      isApplyingRef.current = true;
+      observerRef.current?.disconnect();
+      applyStyles();
+      requestAnimationFrame(() => {
+        isApplyingRef.current = false;
+        if (mainContainer && observerRef.current) {
+          observerRef.current.observe(mainContainer, {
+            attributes: true,
+            attributeFilter: ['style', 'class'],
+            subtree: true,
+          });
+        }
       });
-      
-      const mainContainer = document.querySelector('[data-name="Página"]');
-      if (mainContainer) {
+    });
+    observerRef.current = observer;
+
+    const runSetup = (): boolean => {
+      const allPresent = applyStyles();
+      if (allPresent && mainContainer) {
         observer.observe(mainContainer, {
           attributes: true,
           attributeFilter: ['style', 'class'],
           subtree: true,
         });
       }
+      return allPresent;
+    };
 
-      return () => observer.disconnect();
-    } else {
-      // If elements not ready, retry with exponential backoff
-      const timers: NodeJS.Timeout[] = [];
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      const retrySetup = () => {
-        if (attempts >= maxAttempts || setupCompleteRef.current) return;
-        
-        const success = applyStyles();
-        if (success) {
-          setupCompleteRef.current = true;
-          timers.forEach(t => clearTimeout(t));
-        } else {
-          attempts++;
-          const delay = Math.min(100 * Math.pow(1.5, attempts), 2000);
-          timers.push(setTimeout(retrySetup, delay));
-        }
+    // Try to apply styles immediately
+    const allPresent = runSetup();
+    
+    if (allPresent) {
+      setupCompleteRef.current = true;
+      return () => {
+        observerRef.current?.disconnect();
+        observerRef.current = null;
       };
-      
-      timers.push(setTimeout(retrySetup, 50));
-      
-      return () => timers.forEach(t => clearTimeout(t));
     }
+
+    // If elements not ready, retry with exponential backoff
+    const timers: NodeJS.Timeout[] = [];
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    const retrySetup = () => {
+      if (attempts >= maxAttempts || setupCompleteRef.current) return;
+      
+      const success = runSetup();
+      if (success) {
+        setupCompleteRef.current = true;
+        timers.forEach(t => clearTimeout(t));
+      } else {
+        attempts++;
+        const delay = Math.min(100 * Math.pow(1.5, attempts), 2000);
+        timers.push(setTimeout(retrySetup, delay));
+      }
+    };
+    
+    timers.push(setTimeout(retrySetup, 50));
+    
+    return () => {
+      timers.forEach(t => clearTimeout(t));
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    };
   }, []);
 
   return null;
