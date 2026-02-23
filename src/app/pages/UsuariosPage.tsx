@@ -65,9 +65,11 @@ function UsuariosPageContent() {
       })
       .then((created) => {
         setUsers((prev) => [...prev, mapApiUser(created)]);
+        setShowNewUserModal(false);
       })
       .catch((error) => {
         console.error("Erro ao criar usuário:", error);
+        alert(error instanceof Error ? error.message : "Erro ao criar usuário.");
       });
   };
 

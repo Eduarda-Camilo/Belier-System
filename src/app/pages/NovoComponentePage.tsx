@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import Pagina from "../../imports/Pagina-7-6659";
 import { withProfileDropdown } from "../components/withProfileDropdown";
-import { NovoComponenteWrapper } from "../components/NovoComponenteWrapper";
 import { api } from "../api/client";
 
 const inputClass =
@@ -83,12 +82,9 @@ function NovoComponentePageContent() {
   }, [navigate]);
 
   return (
-    <>
-      <div ref={containerRef}>
-        <Pagina />
-      </div>
-      <NovoComponenteWrapper />
-    </>
+    <div ref={containerRef}>
+      <Pagina />
+    </div>
   );
 }
 

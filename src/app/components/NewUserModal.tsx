@@ -46,7 +46,7 @@ export function NewUserModal({ isOpen, onClose, onSave }: NewUserModalProps) {
   const handleSave = () => {
     if (name && email && password) {
       onSave({ name, email, password });
-      onClose();
+      // Modal será fechado pelo pai após sucesso da API
     }
   };
 
