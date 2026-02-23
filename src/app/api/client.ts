@@ -47,7 +47,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
 
   if (!response.ok) {
     const message =
-      (isJson && (data as any)?.message) ||
+      (isJson && ((data as any)?.message || (data as any)?.error)) ||
       `Erro na API (${response.status})`;
     throw new Error(message);
   }
