@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import ModalPerfil from "../../imports/ModalPerfil";
+import { useAuth } from "../auth/AuthContext";
 
 interface AvatarModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface AvatarModalProps {
 export function AvatarModal({ isOpen, onClose, avatarPosition, onPerfilClick, onTrocarSenhaClick }: AvatarModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,6 +52,15 @@ export function AvatarModal({ isOpen, onClose, avatarPosition, onPerfilClick, on
       const usuariosItems = Array.from(modalElement.querySelectorAll('[data-name="supervisor_account"]'));
       usuariosItems.forEach((icon) => {
         const container = icon.closest('[data-name="Menuitem-Link"]');
+        // Só Admin pode ver/acessar Usuários
+        if (container && user?.role !== "admin") {
+          const el = container as HTMLElement;
+          el.style.opacity = "0";
+          el.style.pointerEvents = "none";
+          el.style.cursor = "default";
+          return;
+        }
+
         if (container && !container.hasAttribute('data-modal-nav-setup')) {
           container.setAttribute('data-modal-nav-setup', 'true');
           (container as HTMLElement).style.cursor = 'pointer';
@@ -114,6 +125,7 @@ export function AvatarModal({ isOpen, onClose, avatarPosition, onPerfilClick, on
             e.preventDefault();
             e.stopPropagation();
             onClose();
+            logout();
             navigate('/docs-public');
           });
         }
@@ -126,7 +138,7 @@ export function AvatarModal({ isOpen, onClose, avatarPosition, onPerfilClick, on
     return () => {
       clearTimeout(timer);
     };
-  }, [isOpen, navigate, onClose, onPerfilClick, onTrocarSenhaClick]);
+  }, [isOpen, logout, navigate, onClose, onPerfilClick, onTrocarSenhaClick, user?.role]);
 
   if (!isOpen) return null;
 

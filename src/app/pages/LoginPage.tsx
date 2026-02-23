@@ -1,13 +1,11 @@
-import TelaDeLogin from "../../imports/TelaDeLogin";
-import { LoginNavigationInjector } from "../components/LoginNavigationInjector";
-import { LoginPageWrapper } from "../components/LoginPageWrapper";
+// Página de login funcional usando o componente Login,
+// mantendo o visual consistente com o layout existente.
+import { Login } from "../components/Login";
 
 export default function LoginPage() {
   return (
     <>
-      <TelaDeLogin />
-      <LoginPageWrapper />
-      <LoginNavigationInjector />
+      <Login />
     </>
   );
 }

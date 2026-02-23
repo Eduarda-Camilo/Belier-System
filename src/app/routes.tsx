@@ -12,6 +12,8 @@ import UsuariosPage from "./pages/UsuariosPage";
 import LoginPage from "./pages/LoginPage";
 import RootRedirectPage from "./pages/RootRedirectPage";
 import LegacyButtonRedirectPage from "./pages/LegacyButtonRedirectPage";
+import { RequireAuth } from "./auth/RequireAuth";
+import { RequireRole } from "./auth/RequireRole";
 
 export const router = createBrowserRouter([
   {
@@ -24,7 +26,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/docs",
-    Component: DocsPage,
+    Component: () => (
+      <RequireAuth redirectTo="/login">
+        <DocsPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/docs-public",
@@ -32,7 +38,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/components/button",
-    Component: ButtonPage,
+    Component: () => (
+      <RequireAuth redirectTo="/components/button-public">
+        <ButtonPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/components/button-public",
@@ -40,31 +50,59 @@ export const router = createBrowserRouter([
   },
   {
     path: "/novo-componente",
-    Component: NovoComponentePage,
+    Component: () => (
+      <RequireRole allowed={["admin", "designer"]} redirectTo="/components/button">
+        <NovoComponentePage />
+      </RequireRole>
+    ),
   },
   {
     path: "/editar-componente",
-    Component: EditarComponentePage,
+    Component: () => (
+      <RequireAuth redirectTo="/login">
+        <EditarComponentePage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/editar-componente/:id",
-    Component: EditarComponentePage,
+    Component: () => (
+      <RequireAuth redirectTo="/login">
+        <EditarComponentePage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/changelog",
-    Component: ChangeLogPage,
+    Component: () => (
+      <RequireAuth redirectTo="/login">
+        <ChangeLogPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/changelog-empty",
-    Component: ChangeLogEmptyPage,
+    Component: () => (
+      <RequireAuth redirectTo="/login">
+        <ChangeLogEmptyPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/inbox",
-    Component: InboxPage,
+    Component: () => (
+      <RequireAuth redirectTo="/login">
+        <InboxPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/usuarios",
-    Component: UsuariosPage,
+    Component: () => (
+      <RequireRole allowed={["admin"]} redirectTo="/components/button">
+        <UsuariosPage />
+      </RequireRole>
+    ),
   },
   // Legacy routes (backwards compatibility)
   {

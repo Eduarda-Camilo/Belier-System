@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
+import { useAuth } from "../auth/AuthContext";
 
 /**
  * Injeta navegação em páginas logadas
@@ -14,6 +15,7 @@ interface LoggedNavigationInjectorProps {
 export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTrocarSenhaClick }: LoggedNavigationInjectorProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
     const setupLoggedNavigation = () => {
@@ -100,6 +102,14 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
       );
       novoComponenteButtons.forEach((btn) => {
         const container = btn.closest('[data-name="Button"]');
+        // Dev não pode criar componente: mantém o layout, mas remove ação/visibilidade.
+        if (container && user?.role === "dev") {
+          const el = container as HTMLElement;
+          el.style.opacity = "0";
+          el.style.pointerEvents = "none";
+          el.style.cursor = "default";
+          return;
+        }
         if (container && !container.hasAttribute('data-nav-setup')) {
           container.setAttribute('data-nav-setup', 'true');
           (container as HTMLElement).style.cursor = 'pointer';
@@ -358,7 +368,7 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
       clearTimeout(timer3);
       clearTimeout(timer4);
     };
-  }, [navigate, location, onAvatarClick, onPerfilClick, onTrocarSenhaClick]);
+  }, [navigate, location, onAvatarClick, onPerfilClick, onTrocarSenhaClick, user?.role]);
 
   return null;
 }

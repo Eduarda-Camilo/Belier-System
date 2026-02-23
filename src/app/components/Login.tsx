@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import svgPaths from "../../imports/svg-120v37383x";
+import { useAuth } from "../auth/AuthContext";
 
 function Gradients() {
   return (
@@ -80,15 +81,26 @@ function Ovelhinha() {
 
 export function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in production, validate credentials
-    if (email && password) {
-      navigate("/components/button");
+    setError(null);
+    setSubmitting(true);
+    try {
+      await login({ email, password });
+      navigate("/components/button", { replace: true });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao fazer login. Tente novamente.";
+      setError(message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -180,11 +192,18 @@ export function Login() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="bg-[#16a6df] hover:bg-[#1292c7] transition-colors rounded-[12px] px-6 py-4 font-['Open_Sans:SemiBold',sans-serif] font-semibold text-[16px] text-white"
+              disabled={submitting}
+              className="bg-[#16a6df] hover:bg-[#1292c7] disabled:opacity-60 disabled:cursor-not-allowed transition-colors rounded-[12px] px-6 py-4 font-['Open_Sans:SemiBold',sans-serif] font-semibold text-[16px] text-white"
               style={{ fontVariationSettings: "'wdth' 100" }}
             >
-              Entrar
+              {submitting ? "Entrando..." : "Entrar"}
             </button>
+
+            {error && (
+              <p className="mt-2 text-sm text-red-400 font-['Open_Sans:Regular',sans-serif]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                {error}
+              </p>
+            )}
           </form>
         </div>
       </div>
