@@ -28,6 +28,8 @@ O frontend usa a variável `VITE_API_URL` para chamar o backend:
 ### Deploy no Vercel (evitar erro 404 ao salvar componente/usuário)
 
 1. No projeto do Vercel, vá em **Settings → Environment Variables**.
-2. Crie a variável **`VITE_API_URL`** com o valor da URL do backend (ex.: `https://belier-system.onrender.com/api`).
-3. Faça um **novo deploy** (Redeploy) para que o build use a variável. Sem isso, as chamadas de API vão para o próprio Vercel e retornam 404.
+2. Crie (ou edite) a variável **`VITE_API_URL`** com a **base da API** (apenas até `/api`, **sem** endpoints como `/auth/login`):
+   - **Correto:** `https://belier-system-1.onrender.com/api`
+   - **Errado:** `https://belier-system-1.onrender.com/api/auth/login` (isso gera 404 em `/components`, `/users`, etc.)
+3. Faça um **novo deploy** (Redeploy) para que o build use a variável.
 

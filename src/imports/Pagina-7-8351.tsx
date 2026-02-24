@@ -1194,7 +1194,7 @@ function Frame12() {
 
 function Placeholder4() {
   return (
-    <div className="bg-[#22272a] flex-[1_0_0] h-full min-h-px min-w-px relative rounded-[12px]" data-name="Placeholder">
+    <div className="bg-[#22272a] flex-[1_0_0] h-full min-h-px min-w-px relative rounded-[12px]" data-name="Placeholder" data-inject="changelog-list">
       <div aria-hidden="true" className="absolute border border-[#3d4448] border-solid inset-0 pointer-events-none rounded-[12px]" />
       <div className="size-full" />
     </div>

@@ -52,7 +52,7 @@ export function EditUserModal({ isOpen, onClose, onSave, userName = "", userEmai
   const handleSave = () => {
     if (name && email) {
       onSave({ name, email, password });
-      onClose();
+      // Modal é fechado pelo pai após sucesso da API
     }
   };
 

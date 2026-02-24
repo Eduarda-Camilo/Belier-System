@@ -1368,18 +1368,22 @@ function CollapseMain1() {
         <Header1 />
         <button className="content-stretch cursor-pointer flex flex-col gap-[4px] items-start justify-center relative shrink-0 w-full" data-name="Text Input">
           <Label3 />
-          <Placeholder2 />
+          <div className="w-full" data-inject="novo-variant-0-title">
+            <Placeholder2 />
+          </div>
         </button>
         <button className="content-stretch cursor-pointer flex flex-col gap-[4px] items-start relative shrink-0 w-full" data-name="Text Area">
           <Label4 />
-          <Placeholder3 />
+          <div className="w-full" data-inject="novo-variant-0-description">
+            <Placeholder3 />
+          </div>
           <div className="content-stretch flex items-center justify-center relative shrink-0" data-name="Limitador de caracteres">
             <p className="font-['Open_Sans:Regular',sans-serif] font-normal leading-[18px] relative shrink-0 text-[#cbd4d6] text-[12px] text-left" style={{ fontVariationSettings: "\'wdth\' 100" }}>
               Você pode usar até 000 caracteres.
             </p>
           </div>
         </button>
-        <div className="backdrop-blur-[20px] bg-[#1c1c1c] relative rounded-[16px] shrink-0 w-full" data-name="Code block">
+        <div className="backdrop-blur-[20px] bg-[#1c1c1c] relative rounded-[16px] shrink-0 w-full" data-name="Code block" data-inject="novo-variant-0-code">
           <div className="content-stretch flex flex-col gap-[8px] items-start p-[24px] relative w-full">
             <div className="content-start flex flex-wrap gap-y-[8px] items-start relative rounded-[8px] shrink-0 w-full" data-name="Content">
               <div className="content-start flex flex-[1_0_0] flex-wrap font-normal gap-[4px_8px] items-start leading-[20px] min-h-px min-w-px relative rounded-[8px] text-[14px]" data-name="Text">
@@ -1433,7 +1437,7 @@ function Frame29() {
       <Frame20 />
       <CollapseMain />
       <CollapseMain1 />
-      <div className="bg-[#16a6df] h-[40px] relative rounded-[8px] shrink-0 w-full" data-name="Button">
+      <div className="bg-[#16a6df] h-[40px] relative rounded-[8px] shrink-0 w-full cursor-pointer" data-name="Button" data-inject="novo-add-variante">
         <div className="flex flex-row items-center justify-center size-full">
           <div className="content-stretch flex items-center justify-center px-[16px] py-[8px] relative size-full">
             <p className="font-['Open_Sans:SemiBold',sans-serif] font-semibold leading-[20px] relative shrink-0 text-[14px] text-white" style={{ fontVariationSettings: "\'wdth\' 100" }}>{`Adicionar variável `}</p>

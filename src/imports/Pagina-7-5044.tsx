@@ -681,16 +681,16 @@ function Button6() {
 
 function Frame30() {
   return (
-    <div className="content-stretch flex items-start relative shrink-0">
-      <button className="bg-[rgba(255,255,255,0.05)] content-stretch cursor-pointer flex flex-col h-[42px] items-start justify-between pl-[4px] pr-[2px] py-[4px] relative rounded-bl-[12px] rounded-tl-[12px] shrink-0" data-name="Segmented">
+    <div className="content-stretch flex items-start relative shrink-0" data-variant-tabs="0">
+      <button type="button" className="variant-tab bg-[#0090f9] content-stretch cursor-pointer flex flex-col h-[42px] items-start justify-between pl-[4px] pr-[2px] py-[4px] relative rounded-bl-[12px] rounded-tl-[12px] shrink-0 border-0 text-left" data-name="Segmented" data-variant-tab="0-preview">
         <Button4 />
       </button>
-      <div className="bg-[rgba(255,255,255,0.05)] content-stretch flex flex-col h-[42px] items-start justify-between px-[2px] py-[4px] relative shrink-0" data-name="Segmented">
+      <button type="button" className="variant-tab bg-[rgba(34,39,42,0.7)] content-stretch cursor-pointer flex flex-col h-[42px] items-start justify-between px-[2px] py-[4px] relative shrink-0 border-0 text-left" data-name="Segmented" data-variant-tab="0-code">
         <Button5 />
-      </div>
-      <div className="bg-[rgba(255,255,255,0.05)] content-stretch flex flex-col items-start pl-[2px] pr-[4px] py-[4px] relative rounded-br-[12px] rounded-tr-[12px] shrink-0" data-name="Segmented">
+      </button>
+      <button type="button" className="variant-tab bg-[rgba(34,39,42,0.7)] content-stretch cursor-pointer flex flex-col items-start pl-[2px] pr-[4px] py-[4px] relative rounded-br-[12px] rounded-tr-[12px] shrink-0 border-0 text-left" data-name="Segmented" data-variant-tab="0-comments">
         <Button6 />
-      </div>
+      </button>
     </div>
   );
 }
@@ -723,9 +723,13 @@ function Frame31() {
 
 function Frame53() {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full" data-variant-block="0">
       <Frame26 />
-      <Frame31 />
+      <div className="variant-panel block" data-variant-panel="0-preview">
+        <Frame31 />
+      </div>
+      <div className="variant-panel hidden backdrop-blur-[20px] bg-[#1c1c1c] relative rounded-[16px] shrink-0 w-full min-h-[80px] p-[24px]" data-inject="variant-0-code" data-variant-panel="0-code" />
+      <div className="variant-panel hidden w-full min-h-[80px] rounded-[12px] bg-[rgba(255,255,255,0.03)] p-3" data-inject="variant-0-comments" data-variant-panel="0-comments" />
     </div>
   );
 }
@@ -775,16 +779,16 @@ function Button9() {
 
 function Frame35() {
   return (
-    <div className="content-stretch flex items-start relative shrink-0">
-      <div className="bg-[rgba(255,255,255,0.05)] content-stretch flex flex-col h-[42px] items-start justify-between pl-[4px] pr-[2px] py-[4px] relative rounded-bl-[12px] rounded-tl-[12px] shrink-0" data-name="Segmented">
+    <div className="content-stretch flex items-start relative shrink-0" data-variant-tabs="1">
+      <button type="button" className="variant-tab bg-[rgba(34,39,42,0.7)] content-stretch cursor-pointer flex flex-col h-[42px] items-start justify-between pl-[4px] pr-[2px] py-[4px] relative rounded-bl-[12px] rounded-tl-[12px] shrink-0 border-0 text-left" data-name="Segmented" data-variant-tab="1-preview">
         <Button7 />
-      </div>
-      <div className="bg-[rgba(255,255,255,0.05)] content-stretch flex flex-col h-[42px] items-start justify-between px-[2px] py-[4px] relative shrink-0" data-name="Segmented">
+      </button>
+      <button type="button" className="variant-tab bg-[#0090f9] content-stretch cursor-pointer flex flex-col h-[42px] items-start justify-between px-[2px] py-[4px] relative shrink-0 border-0 text-left" data-name="Segmented" data-variant-tab="1-code">
         <Button8 />
-      </div>
-      <div className="bg-[rgba(255,255,255,0.05)] content-stretch flex flex-col items-start pl-[2px] pr-[4px] py-[4px] relative rounded-br-[12px] rounded-tr-[12px] shrink-0" data-name="Segmented">
+      </button>
+      <button type="button" className="variant-tab bg-[rgba(34,39,42,0.7)] content-stretch cursor-pointer flex flex-col items-start pl-[2px] pr-[4px] py-[4px] relative rounded-br-[12px] rounded-tr-[12px] shrink-0 border-0 text-left" data-name="Segmented" data-variant-tab="1-comments">
         <Button9 />
-      </div>
+      </button>
     </div>
   );
 }
@@ -800,9 +804,10 @@ function Frame33() {
 
 function Frame32() {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full" data-variant-block="1">
       <Frame33 />
-      <div className="backdrop-blur-[20px] bg-[#1c1c1c] relative rounded-[16px] shrink-0 w-full" data-name="Code block" data-inject="variant-1-code">
+      <div className="variant-panel hidden bg-[rgba(255,255,255,0.05)] relative rounded-[12px] shrink-0 w-full min-h-[120px]" data-inject="variant-1-preview" data-variant-panel="1-preview" />
+      <div className="variant-panel block backdrop-blur-[20px] bg-[#1c1c1c] relative rounded-[16px] shrink-0 w-full" data-name="Code block" data-inject="variant-1-code" data-variant-panel="1-code">
         <div className="content-stretch flex flex-col gap-[8px] items-start p-[24px] relative w-full">
           <div className="content-start flex flex-wrap gap-y-[8px] items-start relative rounded-[8px] shrink-0 w-full" data-name="Content">
             <div className="content-start flex flex-[1_0_0] flex-wrap font-normal gap-[4px_8px] items-start min-h-px min-w-px relative rounded-[8px] text-[14px] whitespace-nowrap" data-name="Text">
@@ -1044,6 +1049,7 @@ function Frame32() {
           </div>
         </div>
       </div>
+      <div className="variant-panel hidden w-full min-h-[80px] rounded-[12px] bg-[rgba(255,255,255,0.03)] p-3" data-inject="variant-1-comments" data-variant-panel="1-comments" />
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function DeleteUserModalNew({ isOpen, onClose, onConfirm, userName }: Del
 
   const handleConfirm = () => {
     onConfirm();
-    onClose();
+    // Modal é fechado pelo pai após sucesso da API
   };
 
   return (

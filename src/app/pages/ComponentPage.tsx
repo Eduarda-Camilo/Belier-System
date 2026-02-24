@@ -3,6 +3,8 @@ import { useParams, Navigate } from "react-router";
 import Pagina from "../../imports/Pagina-7-5044";
 import { withProfileDropdown } from "../components/withProfileDropdown";
 import { ComponentDataInjector } from "../components/ComponentDataInjector";
+import { CommentsInjector } from "../components/CommentsInjector";
+import { VariantTabsInjector } from "../components/VariantTabsInjector";
 import { api, ComponentDetail } from "../api/client";
 
 function ComponentPageContent() {
@@ -50,6 +52,8 @@ function ComponentPageContent() {
     <>
       <Pagina />
       <ComponentDataInjector componentData={componentData} slug={slug} />
+      <CommentsInjector componentData={componentData} />
+      <VariantTabsInjector ready={!!componentData} />
     </>
   );
 }

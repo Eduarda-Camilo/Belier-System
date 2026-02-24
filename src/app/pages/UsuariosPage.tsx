@@ -80,9 +80,11 @@ function UsuariosPageContent() {
         .then(() => {
           setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
           setSelectedUser(null);
+          setShowDeleteModal(false);
         })
         .catch((error) => {
           console.error("Erro ao excluir usuário:", error);
+          alert(error instanceof Error ? error.message : "Erro ao excluir usuário.");
         });
     }
   };
@@ -102,9 +104,11 @@ function UsuariosPageContent() {
             )
           );
           setSelectedUser(null);
+          setShowEditModal(false);
         })
         .catch((error) => {
           console.error("Erro ao atualizar usuário:", error);
+          alert(error instanceof Error ? error.message : "Erro ao atualizar usuário.");
         });
     }
   };
