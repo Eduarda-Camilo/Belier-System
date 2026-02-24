@@ -1,83 +1,120 @@
 const express = require("express");
 const cors = require("cors");
+const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: true, // permite qualquer origem em desenvolvimento
+    origin: true,
     credentials: true,
   })
 );
 app.use(express.json());
 
-// Usuários em memória (apenas para desenvolvimento)
-const users = [
-  {
-    id: "1",
-    email: "admin@belier.com",
-    password: "admin123",
-    name: "Admin",
-    role: "admin",
-  },
-];
+// Initialize SQLite database
+const dbPath = path.resolve(__dirname, "belier.db");
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error("Erro ao conectar ao banco de dados:", err.message);
+  } else {
+    console.log("Conectado ao banco de dados SQLite local.");
+    initializeDatabase();
+  }
+});
 
-// Componentes em memória (apenas para desenvolvimento)
-const components = [
-  {
-    id: "1",
-    name: "Button",
-    slug: "button",
-    description: "Botão padrão do sistema Belier.",
-    importDescription:
-      "Use o componente Button para ações principais. Ele suporta variações como Default, Disabled, Sizes e Icon.",
-    importSnippetIndividual: `import { Button } from "@/components/ui/button";`,
-    importSnippetGlobal: `// registre o Button no seu design system global`,
-    createdAt: new Date().toISOString(),
-    createdBy: "1",
-    updatedAt: new Date().toISOString(),
-    updatedBy: "1",
-  },
-];
+function initializeDatabase() {
+  db.serialize(() => {
+    // Users table
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'dev'
+    )`);
 
-const variants = [
-  {
-    id: "v1",
-    componentId: "1",
-    title: "Default",
-    description: "Estado padrão do botão.",
-    codeSnippet: `<Button>Salvar</Button>`,
-    previewProps: JSON.stringify({ variant: "default" }),
-    previewChildren: "Salvar",
-    orderIndex: 0,
-    createdAt: new Date().toISOString(),
-    createdBy: "1",
-    updatedAt: new Date().toISOString(),
-    updatedBy: "1",
-  },
-  {
-    id: "v2",
-    componentId: "1",
-    title: "Disabled",
-    description: "Botão desabilitado.",
-    codeSnippet: `<Button disabled>Salvar</Button>`,
-    previewProps: JSON.stringify({ disabled: true }),
-    previewChildren: "Salvar",
-    orderIndex: 1,
-    createdAt: new Date().toISOString(),
-    createdBy: "1",
-    updatedAt: new Date().toISOString(),
-    updatedBy: "1",
-  },
-];
+    // Components table
+    db.run(`CREATE TABLE IF NOT EXISTS components (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      description TEXT,
+      importDescription TEXT,
+      importSnippetIndividual TEXT,
+      importSnippetGlobal TEXT,
+      createdAt TEXT,
+      createdBy TEXT,
+      updatedAt TEXT,
+      updatedBy TEXT
+    )`);
 
-// Contadores para IDs únicos (em memória)
-let nextComponentId = 2;
-let nextVariantId = 3;
+    // Variants table
+    db.run(`CREATE TABLE IF NOT EXISTS variants (
+      id TEXT PRIMARY KEY,
+      componentId INTEGER,
+      title TEXT NOT NULL,
+      description TEXT,
+      codeSnippet TEXT,
+      previewProps TEXT,
+      previewChildren TEXT,
+      orderIndex INTEGER,
+      createdAt TEXT,
+      createdBy TEXT,
+      updatedAt TEXT,
+      updatedBy TEXT,
+      FOREIGN KEY(componentId) REFERENCES components(id) ON DELETE CASCADE
+    )`);
+
+    // Comments table
+    db.run(`CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      variantId TEXT,
+      authorId TEXT,
+      text TEXT NOT NULL,
+      createdAt TEXT,
+      FOREIGN KEY(variantId) REFERENCES variants(id) ON DELETE CASCADE
+    )`);
+
+    // SaveEvents table
+    db.run(`CREATE TABLE IF NOT EXISTS save_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      componentId INTEGER,
+      authorId TEXT,
+      createdAt TEXT,
+      FOREIGN KEY(componentId) REFERENCES components(id) ON DELETE CASCADE
+    )`);
+
+    // ChangelogEntries table
+    db.run(`CREATE TABLE IF NOT EXISTS changelog_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      saveEventId INTEGER,
+      componentId INTEGER,
+      variantId TEXT,
+      variantTitle TEXT,
+      codeSnippet TEXT,
+      previewProps TEXT,
+      previewChildren TEXT,
+      authorId TEXT,
+      createdAt TEXT,
+      FOREIGN KEY(saveEventId) REFERENCES save_events(id) ON DELETE CASCADE
+    )`);
+
+    // Insert mock admin user if not exists
+    db.get("SELECT * FROM users WHERE email = ?", ["admin@belier.com"], (err, row) => {
+      if (!row) {
+        db.run(
+          "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+          ["Admin", "admin@belier.com", "admin123", "admin"]
+        );
+      }
+    });
+  });
+}
 
 // --- Helpers ---
-
 function slugify(name) {
   return name
     .toLowerCase()
@@ -89,13 +126,33 @@ function slugify(name) {
     .replace(/^-|-$/g, "") || "component";
 }
 
-function ensureUniqueSlug(baseSlug) {
-  let slug = baseSlug;
-  let suffix = 1;
-  while (components.some((c) => c.slug === slug)) {
-    slug = `${baseSlug}-${++suffix}`;
-  }
-  return slug;
+function ensureUniqueSlug(baseSlug, currentId = null) {
+  return new Promise((resolve, reject) => {
+    let slug = baseSlug;
+    let suffix = 1;
+
+    const check = (currentSlug) => {
+      const query = currentId 
+        ? "SELECT id FROM components WHERE slug = ? AND id != ?" 
+        : "SELECT id FROM components WHERE slug = ?";
+      const params = currentId ? [currentSlug, currentId] : [currentSlug];
+
+      db.get(query, params, (err, row) => {
+        if (err) return reject(err);
+        if (row) {
+          suffix++;
+          check(`${baseSlug}-${suffix}`);
+        } else {
+          resolve(currentSlug);
+        }
+      });
+    };
+    check(slug);
+  });
+}
+
+function generateVariantId() {
+  return 'v' + Date.now() + Math.floor(Math.random() * 1000);
 }
 
 function validateComponent(body) {
@@ -118,68 +175,90 @@ function validateVariant(v, i) {
   return { err, title, desc };
 }
 
+function runAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function(err) {
+      if (err) reject(err);
+      else resolve(this);
+    });
+  });
+}
+
+function allAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
+function getAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+}
+
+// ========== Rotas Básicas ==========
+
 app.get("/api", (req, res) => {
-  res.json({ message: "Belier local API — dev only" });
+  res.json({ message: "Belier API rodando com SQLite" });
 });
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body || {};
+  if (!email || !password) return res.status(400).json({ error: "Email e senha são obrigatórios" });
 
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email e senha são obrigatórios" });
+  try {
+    const user = await getAsync("SELECT * FROM users WHERE email = ? AND password = ?", [email, password]);
+    if (!user) return res.status(401).json({ error: "Email ou senha inválidos" });
+
+    res.json({
+      token: "dev-token-sqlite",
+      user: {
+        id: String(user.id),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Erro no servidor" });
   }
-
-  const user = users.find((u) => u.email === email && u.password === password);
-
-  if (!user) {
-    return res.status(401).json({ error: "Email ou senha inválidos" });
-  }
-
-  // No futuro podemos gerar um token de verdade; por enquanto, é mock.
-  res.json({
-    token: "dev-token",
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
-  });
 });
 
-// Lista de componentes
-app.get("/api/components", (req, res) => {
-  const items = components.map((c) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    description: c.description,
-  }));
-  res.json(items);
+// ========== Área 1: Componentes e Variantes ==========
+
+app.get("/api/components", async (req, res) => {
+  try {
+    const items = await allAsync("SELECT id, name, slug, description FROM components ORDER BY createdAt DESC");
+    res.json(items.map(item => ({ ...item, id: String(item.id) })));
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar componentes" });
+  }
 });
 
-// Detalhe de componente por slug ou id (inclui variáveis)
-app.get("/api/components/:slug", (req, res) => {
+app.get("/api/components/:slug", async (req, res) => {
   const { slug } = req.params;
-  const component =
-    components.find((c) => c.slug === slug) || components.find((c) => c.id === slug);
+  try {
+    const component = await getAsync("SELECT * FROM components WHERE slug = ? OR id = ?", [slug, slug]);
+    if (!component) return res.status(404).json({ error: "Componente não encontrado" });
 
-  if (!component) {
-    return res.status(404).json({ error: "Componente não encontrado" });
+    const variants = await allAsync("SELECT * FROM variants WHERE componentId = ? ORDER BY orderIndex ASC", [component.id]);
+    res.json({
+      ...component,
+      id: String(component.id),
+      variants: variants,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar detalhes do componente" });
   }
-
-  const componentVariants = variants
-    .filter((v) => v.componentId === component.id)
-    .sort((a, b) => a.orderIndex - b.orderIndex);
-
-  res.json({
-    ...component,
-    variants: componentVariants,
-  });
 });
 
-// Criar componente + variantes
-app.post("/api/components", (req, res) => {
+app.post("/api/components", async (req, res) => {
   const body = req.body || {};
   const { err, name, desc, importDesc } = validateComponent(body);
   if (err.length) return res.status(400).json({ error: err.join("; ") });
@@ -189,9 +268,7 @@ app.post("/api/components", (req, res) => {
     variantsPayload = [{ title: "Default", description: "Variante padrão.", codeSnippet: "", previewProps: "{}", previewChildren: "" }];
   }
   const hasDefault = variantsPayload.some((v) => (v.title || "").trim().toLowerCase() === "default");
-  if (!hasDefault) {
-    return res.status(400).json({ error: "É obrigatório ter uma variante 'Default'" });
-  }
+  if (!hasDefault) return res.status(400).json({ error: "É obrigatório ter uma variante 'Default'" });
 
   const variantErrors = [];
   const validatedVariants = variantsPayload.map((v, i) => {
@@ -201,176 +278,154 @@ app.post("/api/components", (req, res) => {
   });
   if (variantErrors.length) return res.status(400).json({ error: variantErrors.join("; ") });
 
-  const baseSlug = slugify(name);
-  const slug = ensureUniqueSlug(baseSlug);
-  const id = String(nextComponentId++);
-  const now = new Date().toISOString();
-  const userId = body.createdBy || "1";
+  try {
+    const baseSlug = slugify(name);
+    const slug = await ensureUniqueSlug(baseSlug);
+    const now = new Date().toISOString();
+    const userId = body.createdBy || "1";
 
-  const component = {
-    id,
-    name,
-    slug,
-    description: desc,
-    importDescription: body.importDescription || "",
-    importSnippetIndividual: body.importSnippetIndividual || "",
-    importSnippetGlobal: body.importSnippetGlobal || "",
-    createdAt: now,
-    createdBy: userId,
-    updatedAt: now,
-    updatedBy: userId,
-  };
-  components.push(component);
+    const compResult = await runAsync(
+      `INSERT INTO components (name, slug, description, importDescription, importSnippetIndividual, importSnippetGlobal, createdAt, createdBy, updatedAt, updatedBy)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, slug, desc, body.importDescription || "", body.importSnippetIndividual || "", body.importSnippetGlobal || "", now, userId, now, userId]
+    );
 
-  validatedVariants.forEach((v, i) => {
-    const vid = `v${nextVariantId++}`;
-    variants.push({
-      id: vid,
-      componentId: id,
-      title: v.title,
-      description: v.desc,
-      codeSnippet: v.codeSnippet,
-      previewProps: typeof v.previewProps === "string" ? v.previewProps : JSON.stringify(v.previewProps || {}),
-      previewChildren: v.previewChildren,
-      orderIndex: i,
-      createdAt: now,
-      createdBy: userId,
-      updatedAt: now,
-      updatedBy: userId,
-    });
-  });
+    const componentId = compResult.lastID;
+    const variantsList = [];
 
-  const componentVariants = variants
-    .filter((v) => v.componentId === id)
-    .sort((a, b) => a.orderIndex - b.orderIndex);
+    for (let i = 0; i < validatedVariants.length; i++) {
+      const v = validatedVariants[i];
+      const vid = generateVariantId();
+      const previewProps = typeof v.previewProps === "string" ? v.previewProps : JSON.stringify(v.previewProps || {});
+      
+      await runAsync(
+        `INSERT INTO variants (id, componentId, title, description, codeSnippet, previewProps, previewChildren, orderIndex, createdAt, createdBy, updatedAt, updatedBy)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [vid, componentId, v.title, v.desc, v.codeSnippet, previewProps, v.previewChildren, i, now, userId, now, userId]
+      );
 
-  createChangelogForSave(id, componentVariants, userId);
+      variantsList.push({ id: vid, componentId, title: v.title, description: v.desc, codeSnippet: v.codeSnippet, previewProps, previewChildren: v.previewChildren, orderIndex: i, createdAt: now, createdBy: userId, updatedAt: now, updatedBy: userId });
+    }
 
-  res.status(201).json({ ...component, variants: componentVariants });
+    // Changelog
+    const saveEventResult = await runAsync(`INSERT INTO save_events (componentId, authorId, createdAt) VALUES (?, ?, ?)`, [componentId, userId, now]);
+    const eventId = saveEventResult.lastID;
+
+    for (const v of variantsList) {
+      await runAsync(
+        `INSERT INTO changelog_entries (saveEventId, componentId, variantId, variantTitle, codeSnippet, previewProps, previewChildren, authorId, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [eventId, componentId, v.id, v.title, v.codeSnippet, v.previewProps, v.previewChildren, userId, now]
+      );
+    }
+
+    const newComp = await getAsync("SELECT * FROM components WHERE id = ?", [componentId]);
+    res.status(201).json({ ...newComp, id: String(newComp.id), variants: variantsList });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao criar componente" });
+  }
 });
 
-// Atualizar componente + variantes
-app.put("/api/components/:id", (req, res) => {
+app.put("/api/components/:id", async (req, res) => {
   const { id } = req.params;
-  const component = components.find((c) => c.id === id);
-  if (!component) return res.status(404).json({ error: "Componente não encontrado" });
-
   const body = req.body || {};
-  const { err, name, desc, importDesc } = validateComponent(body);
-  if (err.length) return res.status(400).json({ error: err.join("; ") });
+  
+  try {
+    const component = await getAsync("SELECT * FROM components WHERE id = ?", [id]);
+    if (!component) return res.status(404).json({ error: "Componente não encontrado" });
 
-  const variantsPayload = Array.isArray(body.variants) ? body.variants : [];
-  const hasDefault = variantsPayload.some((v) => (v.title || "").trim().toLowerCase() === "default");
-  if (variantsPayload.length > 0 && !hasDefault) {
-    return res.status(400).json({ error: "É obrigatório ter uma variante 'Default'" });
-  }
+    const { err, name, desc, importDesc } = validateComponent(body);
+    if (err.length) return res.status(400).json({ error: err.join("; ") });
 
-  const variantErrors = [];
-  const validatedVariants = variantsPayload.map((v, i) => {
-    const { err: ve, title, desc: vdesc } = validateVariant(v, i + 1);
-    variantErrors.push(...ve);
-    return {
-      id: v.id,
-      title,
-      desc: vdesc,
-      codeSnippet: v.codeSnippet || "",
-      previewProps: v.previewProps || "{}",
-      previewChildren: v.previewChildren || "",
-    };
-  });
-  if (variantErrors.length) return res.status(400).json({ error: variantErrors.join("; ") });
+    const variantsPayload = Array.isArray(body.variants) ? body.variants : [];
+    const hasDefault = variantsPayload.some((v) => (v.title || "").trim().toLowerCase() === "default");
+    if (variantsPayload.length > 0 && !hasDefault) return res.status(400).json({ error: "É obrigatório ter uma variante 'Default'" });
 
-  const newSlug = slugify(name);
-  const slug = newSlug === component.slug ? component.slug : ensureUniqueSlug(newSlug);
+    const variantErrors = [];
+    const validatedVariants = variantsPayload.map((v, i) => {
+      const { err: ve, title, desc: vdesc } = validateVariant(v, i + 1);
+      variantErrors.push(...ve);
+      return { id: v.id, title, desc: vdesc, codeSnippet: v.codeSnippet || "", previewProps: v.previewProps || "{}", previewChildren: v.previewChildren || "" };
+    });
+    if (variantErrors.length) return res.status(400).json({ error: variantErrors.join("; ") });
 
-  const now = new Date().toISOString();
-  const userId = body.updatedBy || "1";
+    const baseSlug = slugify(name);
+    const slug = await ensureUniqueSlug(baseSlug, id);
+    const now = new Date().toISOString();
+    const userId = body.updatedBy || "1";
 
-  Object.assign(component, {
-    name,
-    slug,
-    description: desc,
-    importDescription: body.importDescription ?? component.importDescription,
-    importSnippetIndividual: body.importSnippetIndividual ?? component.importSnippetIndividual,
-    importSnippetGlobal: body.importSnippetGlobal ?? component.importSnippetGlobal,
-    updatedAt: now,
-    updatedBy: userId,
-  });
+    await runAsync(
+      `UPDATE components SET name = ?, slug = ?, description = ?, importDescription = ?, importSnippetIndividual = ?, importSnippetGlobal = ?, updatedAt = ?, updatedBy = ? WHERE id = ?`,
+      [name, slug, desc, body.importDescription ?? component.importDescription, body.importSnippetIndividual ?? component.importSnippetIndividual, body.importSnippetGlobal ?? component.importSnippetGlobal, now, userId, id]
+    );
 
-  // Atualizar variantes existentes e criar novas
-  const existingIds = new Set();
-  validatedVariants.forEach((v, i) => {
-    if (v.id) {
-      const existing = variants.find((x) => x.id === v.id && x.componentId === id);
-      if (existing) {
-        existingIds.add(v.id);
-        existing.title = v.title;
-        existing.description = v.desc;
-        existing.codeSnippet = v.codeSnippet;
-        existing.previewProps = typeof v.previewProps === "string" ? v.previewProps : JSON.stringify(v.previewProps || {});
-        existing.previewChildren = v.previewChildren;
-        existing.orderIndex = i;
-        existing.updatedAt = now;
-        existing.updatedBy = userId;
+    // Get current variants to compute diffs
+    const currentVariants = await allAsync("SELECT id FROM variants WHERE componentId = ?", [id]);
+    const currentVariantIds = currentVariants.map(v => v.id);
+    const keepingVariantIds = new Set(validatedVariants.filter(v => v.id).map(v => v.id));
+
+    // Delete removed variants
+    for (const cvId of currentVariantIds) {
+      if (!keepingVariantIds.has(cvId)) {
+        await runAsync("DELETE FROM variants WHERE id = ?", [cvId]);
       }
     }
-  });
 
-  // Remover variantes que não vieram no payload
-  for (let i = variants.length - 1; i >= 0; i--) {
-    if (variants[i].componentId === id && !existingIds.has(variants[i].id)) {
-      variants.splice(i, 1);
+    const variantsList = [];
+    for (let i = 0; i < validatedVariants.length; i++) {
+      const v = validatedVariants[i];
+      const previewProps = typeof v.previewProps === "string" ? v.previewProps : JSON.stringify(v.previewProps || {});
+      
+      if (v.id && keepingVariantIds.has(v.id)) {
+        await runAsync(
+          `UPDATE variants SET title = ?, description = ?, codeSnippet = ?, previewProps = ?, previewChildren = ?, orderIndex = ?, updatedAt = ?, updatedBy = ? WHERE id = ?`,
+          [v.title, v.desc, v.codeSnippet, previewProps, v.previewChildren, i, now, userId, v.id]
+        );
+        variantsList.push({ id: v.id, componentId: Number(id), title: v.title, description: v.desc, codeSnippet: v.codeSnippet, previewProps, previewChildren: v.previewChildren, orderIndex: i, updatedAt: now, updatedBy: userId });
+      } else {
+        const vid = generateVariantId();
+        await runAsync(
+          `INSERT INTO variants (id, componentId, title, description, codeSnippet, previewProps, previewChildren, orderIndex, createdAt, createdBy, updatedAt, updatedBy)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [vid, id, v.title, v.desc, v.codeSnippet, previewProps, v.previewChildren, i, now, userId, now, userId]
+        );
+        variantsList.push({ id: vid, componentId: Number(id), title: v.title, description: v.desc, codeSnippet: v.codeSnippet, previewProps, previewChildren: v.previewChildren, orderIndex: i, createdAt: now, createdBy: userId, updatedAt: now, updatedBy: userId });
+      }
     }
+
+    // Create Changelog
+    const saveEventResult = await runAsync(`INSERT INTO save_events (componentId, authorId, createdAt) VALUES (?, ?, ?)`, [id, userId, now]);
+    const eventId = saveEventResult.lastID;
+
+    for (const v of variantsList) {
+      await runAsync(
+        `INSERT INTO changelog_entries (saveEventId, componentId, variantId, variantTitle, codeSnippet, previewProps, previewChildren, authorId, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [eventId, id, v.id, v.title, v.codeSnippet, v.previewProps, v.previewChildren, userId, now]
+      );
+    }
+
+    const updatedComp = await getAsync("SELECT * FROM components WHERE id = ?", [id]);
+    res.json({ ...updatedComp, id: String(updatedComp.id), variants: variantsList });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao atualizar componente" });
   }
-
-  // Adicionar novas variantes (sem id no payload)
-  validatedVariants.forEach((v, i) => {
-    if (!v.id || !existingIds.has(v.id)) {
-      const vid = `v${nextVariantId++}`;
-      variants.push({
-        id: vid,
-        componentId: id,
-        title: v.title,
-        description: v.desc,
-        codeSnippet: v.codeSnippet,
-        previewProps: typeof v.previewProps === "string" ? v.previewProps : JSON.stringify(v.previewProps || {}),
-        previewChildren: v.previewChildren,
-        orderIndex: i,
-        createdAt: now,
-        createdBy: userId,
-        updatedAt: now,
-        updatedBy: userId,
-      });
-    }
-  });
-
-  const componentVariants = variants
-    .filter((v) => v.componentId === id)
-    .sort((a, b) => a.orderIndex - b.orderIndex);
-
-  createChangelogForSave(id, componentVariants, userId);
-
-  res.json({ ...component, variants: componentVariants });
 });
 
-// Excluir componente
-app.delete("/api/components/:id", (req, res) => {
+app.delete("/api/components/:id", async (req, res) => {
   const { id } = req.params;
-  const idx = components.findIndex((c) => c.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Componente não encontrado" });
-
-  components.splice(idx, 1);
-  for (let i = variants.length - 1; i >= 0; i--) {
-    if (variants[i].componentId === id) variants.splice(i, 1);
+  try {
+    const changes = (await runAsync("DELETE FROM components WHERE id = ?", [id])).changes;
+    if (changes === 0) return res.status(404).json({ error: "Componente não encontrado" });
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao excluir componente" });
   }
-
-  res.status(204).send();
 });
 
-// ========== Área 2: Comentários por variante ==========
-
-const comments = [];
-let nextCommentId = 1;
+// ========== Área 2: Comentários ==========
 
 function validateComment(text) {
   const t = (text || "").trim();
@@ -379,77 +434,44 @@ function validateComment(text) {
   return { err: null, text: t };
 }
 
-app.get("/api/variants/:variantId/comments", (req, res) => {
+app.get("/api/variants/:variantId/comments", async (req, res) => {
   const { variantId } = req.params;
-  const variant = variants.find((v) => v.id === variantId);
-  if (!variant) return res.status(404).json({ error: "Variante não encontrada" });
-
-  const list = comments
-    .filter((c) => c.variantId === variantId)
-    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-
-  res.json(list);
+  try {
+    const list = await allAsync("SELECT * FROM comments WHERE variantId = ? ORDER BY createdAt ASC", [variantId]);
+    res.json(list.map(c => ({ ...c, id: String(c.id) })));
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar comentários" });
+  }
 });
 
-app.post("/api/variants/:variantId/comments", (req, res) => {
+app.post("/api/variants/:variantId/comments", async (req, res) => {
   const { variantId } = req.params;
-  const variant = variants.find((v) => v.id === variantId);
-  if (!variant) return res.status(404).json({ error: "Variante não encontrada" });
-
-  const { text } = req.body || {};
+  const { text, authorId } = req.body || {};
+  
   const { err, text: validText } = validateComment(text);
   if (err) return res.status(400).json({ error: err });
 
-  const userId = req.body.authorId || "1";
-  const now = new Date().toISOString();
-  const comment = {
-    id: String(nextCommentId++),
-    variantId,
-    authorId: userId,
-    text: validText,
-    createdAt: now,
-  };
-  comments.push(comment);
-  res.status(201).json(comment);
+  try {
+    const variant = await getAsync("SELECT id FROM variants WHERE id = ?", [variantId]);
+    if (!variant) return res.status(404).json({ error: "Variante não encontrada" });
+
+    const userId = authorId || "1";
+    const now = new Date().toISOString();
+    
+    const result = await runAsync(
+      `INSERT INTO comments (variantId, authorId, text, createdAt) VALUES (?, ?, ?, ?)`,
+      [variantId, userId, validText, now]
+    );
+
+    res.status(201).json({ id: String(result.lastID), variantId, authorId: userId, text: validText, createdAt: now });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao criar comentário" });
+  }
 });
 
-// ========== Área 3: Changelog (SaveEvent, ChangelogEntry) ==========
+// ========== Área 3: Changelog ==========
 
-const saveEvents = [];
-const changelogEntries = [];
-let nextSaveEventId = 1;
-let nextChangelogEntryId = 1;
-
-function createChangelogForSave(componentId, componentVariants, userId) {
-  const component = components.find((c) => c.id === componentId);
-  if (!component) return;
-
-  const now = new Date().toISOString();
-  const eventId = String(nextSaveEventId++);
-  saveEvents.push({
-    id: eventId,
-    componentId,
-    authorId: userId,
-    createdAt: now,
-  });
-
-  componentVariants.forEach((v) => {
-    changelogEntries.push({
-      id: String(nextChangelogEntryId++),
-      saveEventId: eventId,
-      componentId,
-      variantId: v.id,
-      variantTitle: v.title,
-      codeSnippet: v.codeSnippet,
-      previewProps: v.previewProps,
-      previewChildren: v.previewChildren,
-      authorId: userId,
-      createdAt: now,
-    });
-  });
-}
-
-app.get("/api/changelog", (req, res) => {
+app.get("/api/changelog", async (req, res) => {
   const { period, from, to } = req.query;
   let fromDate;
   let toDate = new Date();
@@ -473,113 +495,124 @@ app.get("/api/changelog", (req, res) => {
     fromDate.setDate(fromDate.getDate() - 30);
   }
 
-  const fromTime = fromDate.getTime();
-  const toTime = toDate.getTime();
+  const fromISODate = fromDate.toISOString();
+  const toISODate = toDate.toISOString();
 
-  const entries = changelogEntries.filter((e) => {
-    const t = new Date(e.createdAt).getTime();
-    return t >= fromTime && t <= toTime;
-  });
-
-  const withEvent = entries.map((e) => {
-    const ev = saveEvents.find((s) => s.id === e.saveEventId);
-    const comp = components.find((c) => c.id === e.componentId);
-    return {
-      ...e,
-      componentName: comp?.name,
-      componentSlug: comp?.slug,
-      authorId: ev?.authorId,
-      createdAt: e.createdAt,
-    };
-  });
-
-  res.json(withEvent.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+  try {
+    const query = `
+      SELECT ch.*, c.name as componentName, c.slug as componentSlug 
+      FROM changelog_entries ch
+      JOIN components c ON ch.componentId = c.id
+      WHERE ch.createdAt >= ? AND ch.createdAt <= ?
+      ORDER BY ch.createdAt DESC
+    `;
+    const entries = await allAsync(query, [fromISODate, toISODate]);
+    res.json(entries.map(e => ({ ...e, id: String(e.id), saveEventId: String(e.saveEventId), componentId: String(e.componentId) })));
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar changelog" });
+  }
 });
 
-// ========== Área 4: CRUD de usuários ==========
+// ========== Área 4: Usuários ==========
 
-let nextUserId = 2;
+function validateUserForm(body, isNew) {
+  return new Promise(async (resolve) => {
+    const err = [];
+    const name = (body.name || "").trim();
+    if (!name || name.length < 1) err.push("Nome é obrigatório");
+    
+    const email = (body.email || "").trim().toLowerCase();
+    if (!email) err.push("Email é obrigatório");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) err.push("Email inválido");
+    else if (isNew) {
+      const existing = await getAsync("SELECT id FROM users WHERE email = ?", [email]);
+      if (existing) err.push("Email já cadastrado");
+    }
 
-function validateUser(body, isNew) {
-  const err = [];
-  const name = (body.name || "").trim();
-  if (!name || name.length < 1) err.push("Nome é obrigatório");
-  const email = (body.email || "").trim().toLowerCase();
-  if (!email) err.push("Email é obrigatório");
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) err.push("Email inválido");
-  else if (isNew && users.some((u) => u.email === email)) err.push("Email já cadastrado");
-  if (isNew) {
-    const pwd = body.password || "";
-    if (!pwd || pwd.length < 6) err.push("Senha deve ter no mínimo 6 caracteres");
-  }
-  return { err, name, email };
+    if (isNew) {
+      const pwd = body.password || "";
+      if (!pwd || pwd.length < 6) err.push("Senha deve ter no mínimo 6 caracteres");
+    }
+    
+    resolve({ err, name, email });
+  });
 }
 
-app.get("/api/users", (req, res) => {
-  const list = users.map((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role,
-  }));
-  res.json(list);
+app.get("/api/users", async (req, res) => {
+  try {
+    const list = await allAsync("SELECT id, name, email, role FROM users");
+    res.json(list.map(u => ({ ...u, id: String(u.id) })));
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar usuários" });
+  }
 });
 
-app.post("/api/users", (req, res) => {
+app.post("/api/users", async (req, res) => {
   const body = req.body || {};
-  const { err, name, email } = validateUser(body, true);
-  if (err.length) return res.status(400).json({ error: err.join("; ") });
+  try {
+    const { err, name, email } = await validateUserForm(body, true);
+    if (err.length) return res.status(400).json({ error: err.join("; ") });
 
-  const role = ["admin", "designer", "dev"].includes(body.role) ? body.role : "dev";
-  const id = String(nextUserId++);
-  const user = {
-    id,
-    name,
-    email,
-    password: body.password,
-    role,
-  };
-  users.push(user);
-  res.status(201).json({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  });
+    const role = ["admin", "designer", "dev"].includes(body.role) ? body.role : "dev";
+    
+    const result = await runAsync(
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [name, email, body.password, role]
+    );
+
+    res.status(201).json({ id: String(result.lastID), name, email, role });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao criar usuário" });
+  }
 });
 
-app.put("/api/users/:id", (req, res) => {
+app.put("/api/users/:id", async (req, res) => {
   const { id } = req.params;
-  const user = users.find((u) => u.id === id);
-  if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
-
   const body = req.body || {};
-  const { err, name, email } = validateUser({ ...body, email: body.email || user.email }, false);
-  if (err.length) return res.status(400).json({ error: err.join("; ") });
+  
+  try {
+    const user = await getAsync("SELECT * FROM users WHERE id = ?", [id]);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
-  const otherWithEmail = users.find((u) => u.id !== id && u.email === email);
-  if (otherWithEmail) return res.status(400).json({ error: "Email já cadastrado" });
+    const email = (body.email || user.email).trim().toLowerCase();
+    const existing = await getAsync("SELECT id FROM users WHERE email = ? AND id != ?", [email, id]);
+    if (existing) return res.status(400).json({ error: "Email já cadastrado" });
 
-  user.name = name;
-  user.email = email;
-  if (body.password && body.password.length >= 6) user.password = body.password;
-  if (["admin", "designer", "dev"].includes(body.role)) user.role = body.role;
+    const name = (body.name || user.name).trim();
+    if (!name) return res.status(400).json({ error: "Nome é obrigatório" });
+    
+    const role = ["admin", "designer", "dev"].includes(body.role) ? body.role : user.role;
+    const password = body.password && body.password.length >= 6 ? body.password : user.password;
 
-  res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+    await runAsync(
+      "UPDATE users SET name = ?, email = ?, password = ?, role = ? WHERE id = ?",
+      [name, email, password, role, id]
+    );
+
+    res.json({ id: String(id), name, email, role });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao atualizar usuário" });
+  }
 });
 
-app.delete("/api/users/:id", (req, res) => {
+app.delete("/api/users/:id", async (req, res) => {
   const { id } = req.params;
-  if (id === "1") return res.status(400).json({ error: "Não é possível excluir o usuário admin principal" });
+  
+  try {
+    const user = await getAsync("SELECT email FROM users WHERE id = ?", [id]);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    
+    if (user.email === "admin@belier.com") {
+      return res.status(400).json({ error: "Não é possível excluir o usuário admin principal" });
+    }
 
-  const idx = users.findIndex((u) => u.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Usuário não encontrado" });
-
-  users.splice(idx, 1);
-  res.status(204).send();
+    await runAsync("DELETE FROM users WHERE id = ?", [id]);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao excluir usuário" });
+  }
 });
 
 app.listen(PORT, () => {
-  console.log(`Belier backend dev rodando em http://localhost:${PORT}`);
+  console.log(`Belier backend rodando em porta ${PORT} com SQLite persistent`);
 });
-
