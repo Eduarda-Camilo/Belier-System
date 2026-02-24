@@ -140,43 +140,45 @@ export function Login() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            {/* Email */}
+            {/* Email - estilo Figma: fundo escuro, borda #3d4448, texto claro */}
             <div className="flex flex-col gap-2">
               <label className="font-['Open_Sans:SemiBold',sans-serif] font-semibold text-[14px] text-white" style={{ fontVariationSettings: "'wdth' 100" }}>
                 E-mail
               </label>
-              <div className="bg-[#22272a] border border-[#3d4448] rounded-[12px]">
+              <div className="bg-[#22272a] border border-[#3d4448] rounded-[12px] overflow-hidden">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
                   required
-                  className="w-full px-4 py-3 bg-transparent font-['Open_Sans:Regular',sans-serif] text-[16px] text-white placeholder:text-[#f5f5f5] placeholder:opacity-50 outline-none"
+                  autoComplete="email"
+                  className="login-input w-full px-4 py-3 bg-[#22272a] font-['Open_Sans:Regular',sans-serif] text-[16px] text-[#f5f5f5] placeholder:text-[#a7b5b9] outline-none border-0 focus:ring-0 [&:-webkit-autofill]:!bg-[#22272a] [&:-webkit-autofill]:!text-[#f5f5f5] [&:-webkit-autofill]:shadow-[inset_0_0_0px_1000px_#22272a]"
                   style={{ fontVariationSettings: "'wdth' 100" }}
                 />
               </div>
             </div>
 
-            {/* Password */}
+            {/* Senha - estilo Figma: fundo escuro, borda #3d4448, texto claro */}
             <div className="flex flex-col gap-2">
               <label className="font-['Open_Sans:SemiBold',sans-serif] font-semibold text-[14px] text-white" style={{ fontVariationSettings: "'wdth' 100" }}>
                 Senha
               </label>
-              <div className="bg-[#22272a] border border-[#3d4448] rounded-[12px] flex items-center px-4 py-3">
+              <div className="bg-[#22272a] border border-[#3d4448] rounded-[12px] flex items-center overflow-hidden">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="flex-1 bg-transparent font-['Open_Sans:Regular',sans-serif] text-[16px] text-white placeholder:text-[#f5f5f5] outline-none"
+                  autoComplete="current-password"
+                  className="login-input flex-1 min-w-0 px-4 py-3 bg-[#22272a] font-['Open_Sans:Regular',sans-serif] text-[16px] text-[#f5f5f5] placeholder:text-[#a7b5b9] outline-none border-0 focus:ring-0 [&:-webkit-autofill]:!bg-[#22272a] [&:-webkit-autofill]:!text-[#f5f5f5] [&:-webkit-autofill]:shadow-[inset_0_0_0px_1000px_#22272a]"
                   style={{ fontVariationSettings: "'wdth' 100" }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="ml-2 text-[#f5f5f5] hover:text-white transition-colors"
+                  className="shrink-0 mr-3 text-[#a7b5b9] hover:text-white transition-colors p-1"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     {showPassword ? (

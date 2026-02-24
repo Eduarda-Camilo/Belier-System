@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { api, type ChangelogEntry } from "../api/client";
+import { highlightCode } from "../utils/codeHighlight";
 
 /**
  * Busca o changelog na API e renderiza a lista no container [data-inject="changelog-list"].
@@ -68,10 +69,18 @@ function ChangelogList({ entries }: { entries: ChangelogEntry[] }) {
             {entry.createdAt ? new Date(entry.createdAt).toLocaleString("pt-BR") : ""}
           </p>
           {entry.codeSnippet && (
-            <pre className="mt-2 p-2 rounded bg-[#1c1c1c] text-[12px] text-[rgba(255,255,255,0.8)] overflow-x-auto">
-              {entry.codeSnippet.slice(0, 200)}
-              {entry.codeSnippet.length > 200 ? "…" : ""}
-            </pre>
+            <div className="code-block-prism mt-2 p-2 rounded bg-[#1c1c1c] text-[12px] overflow-x-auto">
+              <pre className="m-0">
+                <code
+                  className="language-jsx"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      highlightCode(entry.codeSnippet.slice(0, 200)) +
+                      (entry.codeSnippet.length > 200 ? "…" : ""),
+                  }}
+                />
+              </pre>
+            </div>
           )}
           {entry.componentSlug && (
             <a

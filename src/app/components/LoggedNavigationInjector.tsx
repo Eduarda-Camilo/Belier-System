@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { useAuth } from "../auth/AuthContext";
 import { api, type ComponentSummary } from "../api/client";
 import { SidebarComponentList } from "./SidebarComponentList";
+import { GlobalSearch } from "./GlobalSearch";
 
 /**
  * Injeta navegação em páginas logadas
@@ -21,18 +22,23 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
   const { user } = useAuth();
   const [components, setComponents] = useState<ComponentSummary[]>([]);
   const sidebarRootRef = useRef<ReturnType<typeof createRoot> | null>(null);
+  const searchRootRef = useRef<ReturnType<typeof createRoot> | null>(null);
 
   // Fetch components for sidebar
   useEffect(() => {
     api.getComponents().then(setComponents).catch(() => setComponents([]));
   }, []);
 
-  // Unmount sidebar root when injector unmounts
+  // Unmount sidebar and search roots when injector unmounts
   useEffect(() => {
     return () => {
       if (sidebarRootRef.current) {
         sidebarRootRef.current.unmount();
         sidebarRootRef.current = null;
+      }
+      if (searchRootRef.current) {
+        searchRootRef.current.unmount();
+        searchRootRef.current = null;
       }
     };
   }, []);
@@ -116,22 +122,39 @@ export function LoggedNavigationInjector({ onAvatarClick, onPerfilClick, onTroca
         }
       });
 
-      // ====== HEADER - SEARCH INPUT ======
-      const searchContainers = Array.from(document.querySelectorAll('p')).filter(
-        (p) => p.textContent?.includes('Buscar')
+      // ====== HEADER - BUSCA GERAL (apenas componentes) ======
+      const genericSearchPs = Array.from(document.querySelectorAll('p')).filter(
+        (p) => p.textContent?.trim() === 'Buscar...'
       );
-      searchContainers.forEach((searchP) => {
-        const container = searchP.closest('[data-name="Input"]');
-        if (container && !container.hasAttribute('data-nav-setup')) {
-          container.setAttribute('data-nav-setup', 'true');
-          (container as HTMLElement).style.cursor = 'pointer';
-          container.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Open search modal');
-          });
+      const existingSearchWrap = document.querySelector('[data-global-search-wrap]');
+      if (existingSearchWrap && searchRootRef.current) {
+        searchRootRef.current.render(
+          <GlobalSearch
+            components={components}
+            onSelect={(slug) => navigate(`/components/${slug}`)}
+            placeholder="Buscar componentes..."
+          />
+        );
+      } else if (genericSearchPs.length > 0) {
+        const firstP = genericSearchPs[0];
+        const container = firstP.closest('[data-name="Input"]');
+        if (container && container instanceof HTMLElement && !container.querySelector('[data-global-search-wrap]')) {
+          container.innerHTML = '';
+          const wrap = document.createElement('div');
+          wrap.className = 'w-full';
+          wrap.setAttribute('data-global-search-wrap', 'true');
+          container.appendChild(wrap);
+          if (searchRootRef.current) searchRootRef.current.unmount();
+          searchRootRef.current = createRoot(wrap);
+          searchRootRef.current.render(
+            <GlobalSearch
+              components={components}
+              onSelect={(slug) => navigate(`/components/${slug}`)}
+              placeholder="Buscar componentes..."
+            />
+          );
         }
-      });
+      }
 
       // ====== HEADER - NOVO COMPONENTE BUTTON ======
       const novoComponenteButtons = Array.from(document.querySelectorAll('p')).filter(

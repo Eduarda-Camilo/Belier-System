@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { getPreviewComponent, renderPreview } from "../preview/registry";
+import { highlightCode } from "../utils/codeHighlight";
 import type { ComponentDetail } from "../api/client";
 
 /**
@@ -67,17 +68,12 @@ export function ComponentDataInjector({
         const codeEl = document.querySelector(`[data-inject="variant-${i}-code"]`);
         if (codeEl && codeEl instanceof HTMLElement) {
           const snippet = variant.codeSnippet || "";
-          const escaped = snippet
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
+          const highlighted = highlightCode(snippet);
+          codeEl.className = (codeEl.className || "") + " code-block-prism";
           codeEl.innerHTML = `
             <div class="content-stretch flex flex-col gap-[8px] items-start p-[24px] relative w-full">
               <div class="content-start flex flex-wrap gap-y-[8px] items-start relative rounded-[8px] shrink-0 w-full" data-name="Content">
-                <div class="content-start flex flex-[1_0_0] flex-wrap font-['Source_Code_Pro:Regular',sans-serif] font-normal gap-[4px_8px] items-start leading-[20px] min-h-px min-w-px relative rounded-[8px] text-[14px]" data-name="Text">
-                  <p class="relative shrink-0 text-[rgba(255,255,255,0.4)]" style="font-feature-settings: 'ss01', 'cv01', 'cv11'">${escaped}</p>
-                </div>
+                <pre class="m-0 w-full overflow-x-auto text-[14px] leading-[20px]"><code class="language-jsx">${highlighted}</code></pre>
               </div>
             </div>
           `;

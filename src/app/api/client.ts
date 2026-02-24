@@ -1,10 +1,14 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL as string | undefined;
+// Base da API: deve apontar para o backend. Sempre usamos o prefixo /api nas rotas.
+const raw = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "";
+const API_BASE_URL = raw
+  ? raw.replace(/\/+$/, "").includes("/api")
+    ? raw.replace(/\/+$/, "")
+    : `${raw.replace(/\/+$/, "")}/api`
+  : "";
 
 if (!API_BASE_URL) {
-  // Em desenvolvimento, é melhor falhar cedo se a URL da API não estiver configurada
-  // (em produção, Vercel deve sempre ter VITE_API_URL configurado).
   console.warn(
-    "[Belier API] VITE_API_URL não definido. Configure VITE_API_URL no .env.local e no Vercel."
+    "[Belier API] VITE_API_URL não definido. Configure no .env.local (local) e no Vercel (produção). Ex: https://belier-system-1.onrender.com/api"
   );
 }
 
@@ -145,7 +149,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     let message = serverMessage || `Erro na API (${response.status})`;
     if (is404 && !serverMessage) {
       message =
-        "API não encontrada (404). Em produção (Vercel), defina a variável de ambiente VITE_API_URL com a URL do backend (ex: https://belier-system.onrender.com/api) e faça um novo deploy.";
+        "API retornou 404. Verifique: (1) VITE_API_URL deve ser a base do backend terminando em /api (ex: https://belier-system-1.onrender.com/api); (2) no Vercel, defina essa variável e faça um novo deploy; (3) o backend (ex: Render) deve estar no ar.";
     } else if (is5xx && !serverMessage) {
       message = `Erro no servidor (${response.status}). O backend pode estar iniciando (Render); tente novamente em alguns segundos.`;
     }

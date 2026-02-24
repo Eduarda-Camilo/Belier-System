@@ -1,0 +1,57 @@
+/* Tema Prism escuro (estilo IDE) para blocos de código */
+.code-block-prism pre,
+.code-block-prism code {
+  font-family: 'Source Code Pro', 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+.code-block-prism pre {
+  white-space: pre;
+  overflow-x: auto;
+  width: 100%;
+}
+.code-block-prism .token.comment,
+.code-block-prism .token.prolog,
+.code-block-prism .token.doctype,
+.code-block-prism .token.cdata {
+  color: #6a9955;
+}
+.code-block-prism .token.punctuation {
+  color: rgba(255, 255, 255, 0.6);
+}
+.code-block-prism .token.property,
+.code-block-prism .token.tag,
+.code-block-prism .token.boolean,
+.code-block-prism .token.number,
+.code-block-prism .token.constant {
+  color: #569cd6;
+}
+.code-block-prism .token.selector,
+.code-block-prism .token.attr-name,
+.code-block-prism .token.string,
+.code-block-prism .token.char {
+  color: #ce9178;
+}
+.code-block-prism .token.operator,
+.code-block-prism .token.entity,
+.code-block-prism .token.url {
+  color: #d4d4d4;
+}
+.code-block-prism .token.atrule,
+.code-block-prism .token.attr-value,
+.code-block-prism .token.keyword {
+  color: #c586c0;
+}
+.code-block-prism .token.function,
+.code-block-prism .token.class-name {
+  color: #dcdcaa;
+}
+.code-block-prism .token.regex,
+.code-block-prism .token.important,
+.code-block-prism .token.variable {
+  color: #d16969;
+}

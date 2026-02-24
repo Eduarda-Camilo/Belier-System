@@ -452,7 +452,7 @@ function Placeholder() {
 
 function Button() {
   return (
-    <div className="bg-[#0090f9] content-stretch flex gap-[4px] items-center justify-center px-[12px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button">
+    <div className="bg-[#0090f9] content-stretch flex gap-[4px] items-center justify-center px-[12px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button" data-inbox-days="ontem">
       <p className="font-['Open_Sans:SemiBold',sans-serif] font-semibold leading-[18px] relative shrink-0 text-[12px] text-white" style={{ fontVariationSettings: "\'wdth\' 100" }}>
         Ontem
       </p>
@@ -462,7 +462,7 @@ function Button() {
 
 function Button1() {
   return (
-    <div className="bg-[rgba(34,39,42,0.7)] content-stretch flex gap-[4px] items-center justify-center px-[12px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button">
+    <div className="bg-[rgba(34,39,42,0.7)] content-stretch flex gap-[4px] items-center justify-center px-[12px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button" data-inbox-days="7">
       <p className="font-['Open_Sans:SemiBold',sans-serif] font-semibold leading-[18px] relative shrink-0 text-[#cbd4d6] text-[12px]" style={{ fontVariationSettings: "\'wdth\' 100" }}>
         7 dias
       </p>
@@ -472,7 +472,7 @@ function Button1() {
 
 function Button2() {
   return (
-    <div className="bg-[rgba(34,39,42,0.7)] content-stretch flex gap-[4px] items-center justify-center px-[12px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button">
+    <div className="bg-[rgba(34,39,42,0.7)] content-stretch flex gap-[4px] items-center justify-center px-[12px] py-[8px] relative rounded-[8px] shrink-0" data-name="Button" data-inbox-days="15">
       <p className="font-['Open_Sans:SemiBold',sans-serif] font-semibold leading-[18px] relative shrink-0 text-[#cbd4d6] text-[12px]" style={{ fontVariationSettings: "\'wdth\' 100" }}>
         15 dias
       </p>
@@ -544,7 +544,7 @@ function TextInput() {
 
 function Frame26() {
   return (
-    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full">
+    <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-inbox-filters>
       <button className="content-stretch cursor-pointer flex flex-[1_0_0] flex-col h-[42px] items-start justify-center min-h-px min-w-px relative" data-name="Search">
         <Placeholder />
       </button>
@@ -954,7 +954,7 @@ function Frame18() {
 
 function Frame30() {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full" data-inbox-item data-inbox-date="2021-08-19" data-inbox-author="Ralph Edwards" data-inbox-text="Default Versão padrão do componente principal In mauris porttitor tincidunt">
       <Placeholder2 />
       <Frame19 />
       <Frame18 />
@@ -1365,7 +1365,7 @@ function Frame23() {
 
 function Frame31() {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full" data-inbox-item data-inbox-date="2021-08-19" data-inbox-author="Ralph Edwards" data-inbox-text="Default Versão padrão do componente principal In mauris porttitor tincidunt">
       <Placeholder4 />
       <Frame21 />
       <Frame23 />

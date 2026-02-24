@@ -69,44 +69,57 @@ export function UsuariosPageWrapper({
         }
       });
 
-      // Setup action icons for each user row
-      const avatarCircles = Array.from(document.querySelectorAll('[data-name="Ellipse 13"]'));
+      // Setup action icons for each user row (layout usa [data-name="avatar"] por linha)
+      const usuariosEl = document.querySelector('[data-name="usuarios"]');
+      const avatars = usuariosEl ? Array.from(usuariosEl.querySelectorAll('[data-name="avatar"]')) : [];
       
-      avatarCircles.forEach((avatarCircle, index) => {
+      avatars.forEach((avatar, index) => {
         if (index >= users.length) return;
         
         const user = users[index];
-        const row = avatarCircle.closest('[data-name="Container"]')?.parentElement;
+        const row = (avatar as HTMLElement).closest('[data-name="Table Container"]')?.parentElement;
         
-        if (row) {
-          const actionsContainer = row.querySelector('[data-name="Container"]:last-child');
+        if (!row) return;
+        
+        const tableContainers = row.querySelectorAll('[data-name="Table Container"]');
+        // Atualizar iniciais no avatar (1ª célula)
+        const avatarText = (avatar as HTMLElement).querySelector('p');
+        if (avatarText) avatarText.textContent = user.initials;
+        // Atualizar nome (2ª célula) e e-mail (3ª célula)
+        if (tableContainers.length >= 3) {
+          const nameCell = tableContainers[1].querySelector('p');
+          if (nameCell) nameCell.textContent = user.name;
+          const emailCell = tableContainers[2].querySelector('p');
+          if (emailCell) emailCell.textContent = user.email;
+        }
+        
+        const actionsContainer = tableContainers.length > 0 ? tableContainers[tableContainers.length - 1] : null;
+        
+        if (actionsContainer) {
+          const icons = Array.from(actionsContainer.querySelectorAll('[data-name="visibility"], [data-name="edit"], [data-name="delete"]'));
           
-          if (actionsContainer) {
-            const icons = Array.from(actionsContainer.querySelectorAll('[data-name="visibility"], [data-name="edit"], [data-name="delete"]'));
+          icons.forEach((icon) => {
+            const iconName = icon.getAttribute('data-name');
+            const clickTarget = (icon as HTMLElement).closest('button') || (icon as HTMLElement).closest('div');
             
-            icons.forEach((icon) => {
-              const iconName = icon.getAttribute('data-name');
-              const iconContainer = icon.closest('div');
+            if (clickTarget && !clickTarget.hasAttribute('data-action-setup')) {
+              clickTarget.setAttribute('data-action-setup', 'true');
+              (clickTarget as HTMLElement).style.cursor = 'pointer';
               
-              if (iconContainer && !iconContainer.hasAttribute('data-action-setup')) {
-                iconContainer.setAttribute('data-action-setup', 'true');
-                (iconContainer as HTMLElement).style.cursor = 'pointer';
+              clickTarget.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 
-                iconContainer.addEventListener('click', (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  
-                  if (iconName === 'visibility') {
-                    onViewUser(user);
-                  } else if (iconName === 'edit') {
-                    onEditUser(user);
-                  } else if (iconName === 'delete') {
-                    onDeleteUser(user);
-                  }
-                });
-              }
-            });
-          }
+                if (iconName === 'visibility') {
+                  onViewUser(user);
+                } else if (iconName === 'edit') {
+                  onEditUser(user);
+                } else if (iconName === 'delete') {
+                  onDeleteUser(user);
+                }
+              });
+            }
+          });
         }
       });
 
