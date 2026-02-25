@@ -1,0 +1,104 @@
+=========================================
+📝 TEMPLATE: NOVO COMPONENTE BELIER UI
+=========================================
+Copie os blocos abaixo e cole na tela de "Novo Componente" para criar um botão premium rapidamente.
+
+-----------------------------------------
+1. INFORMAÇÕES BÁSICAS
+-----------------------------------------
+NOME DO COMPONENTE:
+Botão Gradiente Pro
+
+DESCRIÇÃO:
+Botão moderno com fundo em gradiente, efeito de brilho suave (glow) ao passar o mouse e micro-interação de clique. Ideal para Call to Actions (CTAs) principais.
+
+-----------------------------------------
+2. VARIÁVEIS (Adicione uma por uma no painel esquerdo)
+-----------------------------------------
+Váriavel 1:
+Nome da Variável: text
+Valor Padrão: Começar Agora
+
+Váriavel 2:
+Nome da Variável: size
+Valor Padrão: md
+
+-----------------------------------------
+3. CÓDIGO DO COMPONENTE
+-----------------------------------------
+Aba: DEFAULT (ou o nome que preferir para a versão base)
+
+<!-- HTML / Estrutura -->
+<button class="btn-gradient-pro {{size}}">
+  <span class="btn-text">{{text}}</span>
+  <span class="btn-glow"></span>
+</button>
+
+
+<!-- CSS / Estilização (Cole logo abaixo do HTML ou na aba CSS se existir) -->
+<style>
+.btn-gradient-pro {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 9999px; /* Pill shape */
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+}
+
+/* Tamanhos guiados pela variável {{size}} */
+.btn-gradient-pro.sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+.btn-gradient-pro.md { padding: 0.75rem 1.5rem; font-size: 1rem; }
+.btn-gradient-pro.lg { padding: 1rem 2rem; font-size: 1.125rem; }
+
+.btn-text {
+  position: relative;
+  z-index: 10;
+}
+
+/* Efeito Glow Interno Animado */
+.btn-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.5s ease;
+  z-index: 1;
+}
+
+.btn-gradient-pro:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+}
+
+.btn-gradient-pro:hover .btn-glow {
+  left: 100%;
+}
+
+.btn-gradient-pro:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.3);
+}
+</style>
+
+
+<!-- JAVASCRIPT / Interação Extra (Opcional) -->
+<script>
+// Exemplo de JS puro se precisar adicionar efeito de ripple
+document.querySelectorAll('.btn-gradient-pro').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    // Lógica opcional aqui
+    console.log("Botão clicado!");
+  });
+});
+</script>
