@@ -10,9 +10,18 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         // Fetch current session
         const fetchSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
-            setLoading(false);
+            try {
+                const { data, error } = await supabase.auth.getSession();
+                if (error) {
+                    console.error("Erro na sessão Supabase:", error.message);
+                }
+                setUser(data?.session?.user ?? null);
+            } catch (err) {
+                console.error("Falha catastrófica no Auth:", err);
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchSession();
