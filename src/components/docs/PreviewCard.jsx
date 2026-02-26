@@ -10,15 +10,8 @@ export function PreviewCard({ title, description, children, initialTab = 'Previe
     // Comments state
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
-    const [isLoadingComments, setIsLoadingComments] = useState(false);
 
-    useEffect(() => {
-        if (activeTab === 'Comentários') {
-            fetchComments();
-        }
-    }, [activeTab, componentId]);
-
-    const fetchComments = async () => {
+    const fetchComments = React.useCallback(async () => {
         if (!componentId) {
             // Mock data fallback if no real component ID is provided
             setComments([{
@@ -29,7 +22,6 @@ export function PreviewCard({ title, description, children, initialTab = 'Previe
             return;
         }
 
-        setIsLoadingComments(true);
         try {
             const { data, error } = await supabase
                 .from('comments')
@@ -53,10 +45,14 @@ export function PreviewCard({ title, description, children, initialTab = 'Previe
             setComments(formattedComments);
         } catch (error) {
             console.error('Erro ao buscar comentários:', error);
-        } finally {
-            setIsLoadingComments(false);
         }
-    };
+    }, [componentId, variantName]);
+
+    useEffect(() => {
+        if (activeTab === 'Comentários') {
+            fetchComments();
+        }
+    }, [activeTab, fetchComments]);
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;

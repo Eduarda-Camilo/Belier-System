@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Inbox, FileText, Figma, LayoutGrid } from 'lucide-react';
 import { ProfileDropdown } from './ProfileDropdown';
+import { SearchModal } from '../ui/SearchModal';
 
 export function Header({ isPublic, onNavigate, showLogo = false }) {
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+    // Global Command+K or Ctrl+K shortcut
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsSearchModalOpen(true);
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
     return (
         <header className="h-[72px] shrink-0 bg-transparent flex items-center justify-between px-6 pl-6">
 
@@ -32,14 +46,18 @@ export function Header({ isPublic, onNavigate, showLogo = false }) {
             {/* Right side: Search & Actions (gap 16px) */}
             <div className="flex items-center gap-4">
 
-                {/* Search Input */}
-                <div className="relative group">
-                    <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Buscar..."
-                        className="h-10 w-[280px] bg-[#1e252b] border border-white/10 rounded-full pl-10 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all font-medium shadow-inner"
-                    />
+                {/* Search Input Button */}
+                <div
+                    className="relative group cursor-pointer"
+                    onClick={() => setIsSearchModalOpen(true)}
+                >
+                    <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-blue-400 transition-colors pointer-events-none" />
+                    <div className="flex items-center h-10 w-[280px] bg-[#1e252b] border border-white/10 hover:border-white/20 rounded-full pl-10 pr-4 text-sm text-slate-500 transition-all shadow-inner">
+                        <span className="flex-1 text-left">Buscar na documentação...</span>
+                        <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded">
+                            Ctrl K
+                        </kbd>
+                    </div>
                 </div>
 
                 {isPublic ? (
@@ -60,6 +78,13 @@ export function Header({ isPublic, onNavigate, showLogo = false }) {
                     </>
                 )}
             </div>
+
+            {/* Search Modal Portal / Render */}
+            <SearchModal
+                isOpen={isSearchModalOpen}
+                onClose={() => setIsSearchModalOpen(false)}
+                onNavigate={onNavigate}
+            />
 
         </header>
     );

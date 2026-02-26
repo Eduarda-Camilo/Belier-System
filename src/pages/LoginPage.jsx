@@ -24,7 +24,7 @@ export function LoginPage({ onNavigate }) {
         setIsLoading(true);
 
         try {
-            const { data, error } = await signIn({ email, password });
+            const { error } = await signIn({ email, password });
 
             if (error) {
                 setErrorMsg("E-mail ou senha incorretos.");

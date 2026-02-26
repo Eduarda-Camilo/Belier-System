@@ -19,6 +19,7 @@ export function ComponentDocPage({ onNavigate, activePage, isPublic, componentId
         if (componentId) {
             fetchComponent();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [componentId]);
 
     const fetchComponent = async () => {

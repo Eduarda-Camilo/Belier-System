@@ -44,7 +44,7 @@ export function ProfileDropdown({ onNavigate }) {
 
         if (action === 'logout') {
             await signOut();
-            if (onNavigate) onNavigate('login');
+            window.location.href = '/';
             return;
         }
 

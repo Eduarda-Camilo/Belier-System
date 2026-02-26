@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { X, EyeOff, Eye, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export function ProfileModal({ isOpen, onClose }) {
     const { user } = useAuth();
-    const [showPassword, setShowPassword] = useState(false);
 
     if (!isOpen) return null;
 
@@ -93,8 +92,8 @@ export function ProfileModal({ isOpen, onClose }) {
                         <label className="text-sm font-semibold text-slate-200">Senha</label>
                         <div className="relative">
                             <input
-                                type={showPassword ? "text" : "password"}
-                                defaultValue={showPassword ? "NaoVisivelAqui" : "********"}
+                                type="password"
+                                defaultValue="********"
                                 disabled
                                 className="w-full bg-[#111822] border border-white/10 rounded-lg px-4 py-3 text-[13px] text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium tracking-[0.15em] cursor-not-allowed opacity-70"
                             />

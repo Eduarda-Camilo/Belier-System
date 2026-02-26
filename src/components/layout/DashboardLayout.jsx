@@ -2,7 +2,6 @@ import React from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { RightSidebar } from './RightSidebar';
-import { GlobalRightPanel } from './GlobalRightPanel';
 
 export function DashboardLayout({ children, outlineContent, activePage, onNavigate, isPublic }) {
     return (
@@ -25,17 +24,15 @@ export function DashboardLayout({ children, outlineContent, activePage, onNaviga
                 <div className="flex-1 flex flex-col min-w-0 mr-6">
                     <Header isPublic={isPublic} onNavigate={onNavigate} />
 
-                    <main className="flex-1 overflow-auto flex">
-                        <div className="flex-1 p-8 max-w-5xl mx-auto flex flex-col">
+                    <main className="flex-1 overflow-auto flex text-left">
+                        <div className="w-full max-w-[1000px] p-8 flex flex-col">
                             {children}
                         </div>
 
-                        {outlineContent ? (
-                            <div className="w-[240px] shrink-0 bg-transparent hidden xl:block">
+                        {outlineContent && (
+                            <div className="w-[240px] shrink-0 bg-transparent hidden xl:block ml-auto">
                                 <RightSidebar items={outlineContent} />
                             </div>
-                        ) : (
-                            <GlobalRightPanel />
                         )}
                     </main>
                 </div>

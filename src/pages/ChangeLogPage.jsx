@@ -6,7 +6,7 @@ import Button from '../components/Button';
 import { CodeEditor } from '../components/ui/CodeEditor';
 import { supabase } from '../supabaseClient';
 
-export function ChangeLogPage({ onNavigate, activePage, isPublic }) {
+export function ChangeLogPage({ onNavigate }) {
     const [filter, setFilter] = useState('Ontem');
     const [dateValue, setDateValue] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +52,7 @@ export function ChangeLogPage({ onNavigate, activePage, isPublic }) {
     };
 
     // Filter logic simplified
-    const displayedChanges = changes.filter(item => {
+    const displayedChanges = changes.filter(() => {
         if (!filter || filter === '15 dias') return true;
         return true;
     });

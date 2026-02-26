@@ -1,0 +1,273 @@
+=================================================
+ COMPONENTE 1: BOTÃO PRIMÁRIO
+=================================================
+nome do componente: Botão Primário
+descrição do componente: Botão de ação principal do sistema. Utilizado para submissões de formulários e ações de destaque. Deve ser usado com moderação na tela.
+
+dados da primeira variante (default)
+trechos de codigo:
+
+--- HTML ---
+<button class="btn-primary">Text Button</button>
+
+--- CSS ---
+.btn-primary {
+  background-color: #0ea5e9;
+  color: #ffffff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #0284c7;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+--- JS ---
+// Não é necessário JavaScript para o estado default deste botão.
+
+=================================================
+ COMPONENTE 2: CAMPO DE TEXTO (INPUT)
+=================================================
+nome do componente: Campo de Texto Padrão
+descrição do componente: Campo de entrada de texto utilizado em formulários de cadastro e edição. Suporta rótulo (label) indicando obrigatoriedade e texto de ajuda inferior.
+
+dados da primeira variante (default)
+trechos de codigo:
+
+--- HTML ---
+<div class="input-group">
+  <label class="input-label">Input Label <span class="required">*</span></label>
+  <input type="text" class="input-field" placeholder="Placeholder" />
+  <span class="helper-text">Você pode usar até 000 caracteres.</span>
+</div>
+
+--- CSS ---
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  font-family: 'Inter', sans-serif;
+}
+
+.input-label {
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.input-field {
+  background-color: #1e252b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 1px #0ea5e9;
+}
+
+.helper-text {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+--- JS ---
+// Não é necessário JavaScript para o caso base.
+
+-------------------------------------------------
+add variante: Input com Erro
+descrição da variante: Estado de validação do input mostrando que há um problema com o dado inserido. Contorno vermelho e ícone de alerta integrado.
+
+trechos de codigo:
+
+--- HTML ---
+<div class="input-group error">
+  <label class="input-label">Input Label <span class="required">*</span></label>
+  <div class="input-wrapper">
+     <input type="text" class="input-field" placeholder="Placeholder" />
+     <svg class="icon-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  </div>
+  <span class="helper-text error-msg">Mensagem de erro obrigatória</span>
+</div>
+
+--- CSS ---
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper .input-field {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.icon-right {
+  position: absolute;
+  right: 12px;
+  width: 18px;
+  height: 18px;
+}
+
+.input-group.error .input-field {
+  border-color: #ef4444;
+}
+
+.input-group.error .input-field:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 1px #ef4444;
+}
+
+.input-group.error .icon-right,
+.input-group.error .error-msg {
+  color: #ef4444;
+}
+
+--- JS ---
+// A classe "error" é adicionada pelo seu framework JS (React/Vue) dependendo do estado de validação.
+
+=================================================
+ COMPONENTE 3: INPUT DE SENHA
+=================================================
+nome do componente: Input de Senha (Password)
+descrição do componente: Campo oculto para credenciais sensíveis. Permite ao usuário clicar no ícone de "olho" para revelar ou esconder a senha visando acessibilidade e usabilidade.
+
+dados da primeira variante (default)
+trechos de codigo:
+
+--- HTML ---
+<div class="input-group">
+  <label class="input-label">Senha <span class="required">*</span></label>
+  <div class="input-wrapper">
+    <input type="password" class="input-field" placeholder="••••••••" id="password-field" />
+    <button type="button" class="btn-toggle-visibility" onclick="togglePassword()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+  </div>
+</div>
+
+--- CSS ---
+.btn-toggle-visibility {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.btn-toggle-visibility:hover {
+  color: #cbd5e1;
+}
+
+--- JS ---
+function togglePassword() {
+  const pwdInput = document.getElementById('password-field');
+  if (pwdInput.type === 'password') {
+    pwdInput.type = 'text';
+  } else {
+    pwdInput.type = 'password';
+  }
+}
+
+=================================================
+ COMPONENTE 4: TABS DE NAVEGAÇÃO
+=================================================
+nome do componente: Tabs (Abas) Horizontal
+descrição do componente: Abas de navegação principal superior para alternar vistas na mesma página. Inclui suporte a ícones, texto e crachá (badge) numérico.
+
+dados da primeira variante (default)
+trechos de codigo:
+
+--- HTML ---
+<div class="tabs-container">
+  <button class="tab active" onclick="activateTab(this)">
+    <span class="tab-icon">+</span> Example Text <span class="badge">1</span>
+  </button>
+  <button class="tab" onclick="activateTab(this)">
+    <span class="tab-icon">+</span> Example Text <span class="badge">2</span>
+  </button>
+</div>
+
+--- CSS ---
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 14px 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: #cbd5e1;
+}
+
+.tab.active {
+  color: #ffffff;
+  border-bottom-color: #0ea5e9;
+}
+
+.badge {
+  background-color: #0ea5e9;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+--- JS ---
+function activateTab(clickedTab) {
+  // Remove classe active de todas as abas no container
+  const tabs = clickedTab.parentElement.querySelectorAll('.tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  
+  // Adiciona a classe active na aba clicada
+  clickedTab.classList.add('active');
+}

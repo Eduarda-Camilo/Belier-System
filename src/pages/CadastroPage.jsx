@@ -28,7 +28,7 @@ export function CadastroPage({ onNavigate }) {
         setIsLoading(true);
 
         try {
-            const { data, error } = await signUp({
+            const { error } = await signUp({
                 email,
                 password,
                 options: {

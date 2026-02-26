@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { Search, Trash2, Pencil, Eye, Users } from 'lucide-react';
 import { UserModal } from '../components/ui/UserModal';
@@ -22,6 +22,7 @@ export function UsuariosPage({ onNavigate, activePage, isPublic }) {
             fetchUsers(searchQuery);
         }, 400); // 400ms debounce
         return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery]);
 
     const fetchUsers = async (query = '') => {

@@ -5,7 +5,7 @@ import { Copy, Maximize2, Trash2, Plus } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 
-export function NovoComponentePage({ onNavigate, activePage, isPublic }) {
+export function NovoComponentePage({ onNavigate }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [defaultCode, setDefaultCode] = useState({});
@@ -52,9 +52,20 @@ export function NovoComponentePage({ onNavigate, activePage, isPublic }) {
                 author_id: user?.id,
             };
 
-            const { error } = await supabase.from('components').insert(componentData);
+            const { data: insertedData, error } = await supabase.from('components').insert(componentData).select('id').single();
 
             if (error) throw error;
+
+            if (insertedData) {
+                await supabase.from('changelog').insert({
+                    component_id: insertedData.id,
+                    author_id: user?.id,
+                    version_data: {
+                        description: "Criou um novo componente na biblioteca",
+                        code: defaultCode
+                    }
+                });
+            }
 
             alert('Componente salvo no Supabase com sucesso!');
             if (onNavigate) onNavigate('docs');

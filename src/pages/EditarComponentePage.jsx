@@ -21,6 +21,7 @@ export function EditarComponentePage({ onNavigate, activePage, isPublic, compone
 
     React.useEffect(() => {
         if (componentId) fetchComponent();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [componentId]);
 
     const fetchComponent = async () => {
@@ -41,8 +42,6 @@ export function EditarComponentePage({ onNavigate, activePage, isPublic, compone
             }
         } catch (error) {
             console.error("Erro ao carregar componente:", error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -64,10 +63,6 @@ export function EditarComponentePage({ onNavigate, activePage, isPublic, compone
     ];
 
     const [isSaving, setIsSaving] = useState(false);
-
-    // TEMPORARY: Since we don't have dynamic routing yet, we mock a component ID.
-    // In Phase 5 Dynamic Rendering, this will come from props or URL params.
-    const mockComponentId = 'mock-id-to-be-replaced-later';
 
     const handleSaveComponent = async () => {
         if (!name || !description) {
@@ -116,6 +111,15 @@ export function EditarComponentePage({ onNavigate, activePage, isPublic, compone
 
     const handleDeleteComponent = async () => {
         try {
+            await supabase.from('changelog').insert([{
+                component_id: null,
+                author_id: user.id,
+                version_data: {
+                    description: `Excluiu o componente: ${name}`,
+                    code: {}
+                }
+            }]);
+
             const { error } = await supabase.from('components').delete().eq('id', componentId);
             if (error) throw error;
 

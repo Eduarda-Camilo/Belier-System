@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { Search, Calendar, Maximize2, Copy, ArrowUpRight, MessageSquareOff } from 'lucide-react';
 import Button from '../components/Button';
@@ -39,7 +39,8 @@ export function InboxPage({ onNavigate, activePage, isPublic }) {
                         profiles(full_name)
                     )
                 `)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(50);
 
             if (error) throw error;
 
@@ -80,7 +81,7 @@ export function InboxPage({ onNavigate, activePage, isPublic }) {
     };
 
     // Filter logic based on Date logic (simplified for prototype)
-    const displayedItems = feedItems.filter(item => {
+    const displayedItems = feedItems.filter(() => {
         if (!filter || filter === '15 dias') return true;
         // In a real scenario, compare `item.date` with real dates.
         return true;
@@ -225,9 +226,7 @@ function FeedItem({ data, onNavigate }) {
                         <p className="text-[11px] text-slate-500">{data.authorName} - {data.time} - {data.date}</p>
                     </div>
                     <button
-                        onClick={() => window.location.href = `/`} // In memory router hack: Since App.jsx listens to parent state, we must use onNavigate from props if possible. Wait, we don't have onNavigate in FeedItem. 
-                        // Wait! I need to pass onNavigate to FeedItem. Let me just use a generic class that we can hook or pass onNavigate.
-                        // I will add onNavigate={onNavigate} down in the map, but for now let's just leave it visually or fix it.
+                        onClick={() => onNavigate && onNavigate('componente/' + data.id)}
                         className="flex items-center gap-2 text-xs font-medium text-slate-300 hover:text-white transition-colors"
                     >
                         Ver componente <ArrowUpRight size={14} />
@@ -254,7 +253,7 @@ function FeedItem({ data, onNavigate }) {
             </div>
 
             {/* Comment Block List */}
-            {comments.map((comment, index) => (
+            {comments.map((comment) => (
                 <div key={comment.id} className="bg-[#1e252b]/50 border border-white/5 rounded-2xl p-4 flex gap-4 ml-6 relative group transition-colors hover:bg-[#1e252b]">
                     {/* Only show the top stem on the first comment if we want, or on all of them connecting. Simplified to just straight line for now. */}
                     <div className="absolute -left-[14px] top-6 w-[20px] border-t border-l border-white/10 h-10 rounded-tl-lg" />

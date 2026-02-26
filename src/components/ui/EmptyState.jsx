@@ -2,6 +2,7 @@ import React from 'react';
 import { SearchX } from 'lucide-react';
 
 export function EmptyState({
+    // eslint-disable-next-line no-unused-vars
     icon: Icon = SearchX,
     title = "Sem logs no período",
     description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",

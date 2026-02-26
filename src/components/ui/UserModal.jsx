@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { X, EyeOff, Eye, ChevronDown } from 'lucide-react';
 
 export function UserModal({ isOpen, onClose, mode = 'create', userData = null, onSave }) {
-    if (!isOpen) return null;
-
     const isReadOnly = mode === 'view';
     const title = mode === 'create' ? 'Novo usuário' : mode === 'edit' ? 'Editar usuário' : 'Usuário';
 
@@ -22,6 +20,8 @@ export function UserModal({ isOpen, onClose, mode = 'create', userData = null, o
             setShowPassword(false);
         }
     }, [isOpen, userData]);
+
+    if (!isOpen) return null;
 
     // Helper syntax to get initials
     const getInitials = (nameStr) => {
