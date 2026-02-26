@@ -1,85 +1,88 @@
 # **CSI606-2024-02 - Remoto - Trabalho Final - Resultados**
 
-## *Discente: Eduarda Camilo*
+## *Discente: Eduarda Gomes Camilo*
 
 ---
 
 ### Resumo
 
-O **Belier Sistema (BelierUI)** é uma plataforma premium voltada para a documentação técnica e o gerenciamento prático de componentes de interface de usuário (UI). Inspirado por design systems modernos e estéticas de "dark mode" luxuosas e brutais, o sistema oferece um hub unificado onde desenvolvedores podem visualizar, copiar códigos, criar novos componentes e registrar em um *changelog* todas as evoluções da biblioteca. A aplicação contempla todo o ciclo: desde a autenticação segura de usuários até a persistência dos códigos em banco de dados relacional.
+O **Belier Sistema (BelierUI)** é uma plataforma desenvolvida para o gerenciamento e documentação de componentes de interface de usuário (UI). O objetivo do sistema é atuar como um *Design System* centralizado, permitindo que a equipe unifique os componentes visuais em um ambiente único, mantendo a padronização e a eficiência no processo de desenvolvimento web. A aplicação conta com visualização interativa dos elementos, documentação técnica e um histórico completo de alterações (changelog), garantindo a consistência das atualizações e facilitando a comunicação e clareza do time.
 
 ---
 
 ### 1. Funcionalidades implementadas
 
-- **Autenticação Segura:** Login e Cadastro de usuários utilizando Supabase Auth, protegendo rotas sensíveis da aplicação.
-- **Gestão de Perfil e Acessos:** Exibição dinâmica de dados do usuário (nome, e-mail, iniciais) e controle de nível de acesso (Admin vs Usuário comum).
-- **Documentação de Componentes (Visualização):** Páginas dinâmicas para visualizar componentes UI renderizados, com blocos de código integrados, formatação de sintaxe (*syntax highlighting*) e botão de cópia com um clique.
-- **Criação e Edição de Componentes (Admin):** Área administrativa com editor de código online integrado (React Simple Code Editor + PrismJS) para criar e alterar atributos e códigos HTML/Tailwind dos componentes diretamente pela interface.
-- **Sistema de ChangeLog:** Histórico automatizado de alterações. Toda vez que um componente é salvo ou editado, uma nova versão fica registrada para auditoria e acompanhamento de mudanças.
-- **Widgets Utilitários (Global Right Panel):** Implementação de ferramentas nativas na interface, como Conversor de Cores Hex/RGB em tempo real, Bloco de Notas Rápidas integrado ao LocalStorage, e elementos de "Ambient Branding" focados em design de excelência.
-- **Design System Premium:** Layout 100% responsivo, focado em dark mode profundo, sem componentes padronizados óbvios, focado em originalidade e experiência do usuário (UX).
+De acordo com o escopo inicial proposto, as seguintes funcionalidades foram implementadas com sucesso:
+
+- **Controle de Acesso e Autenticação:** Implementação de um sistema seguro de Login e Cadastro de usuários, utilizando autenticação no backend (Supabase), permitindo distinguir fluxos entre Administradores e Desenvolvedores.
+- **CRUD de Componentes:** Foi construído o gerenciamento completo para criação, leitura, atualização (edição) e deleção de dados referentes aos componentes e seus atributos.
+- **Visualização Interativa e Documentação Técnica:** Página de componentes onde os usuários podem ver a interface de fato renderizada na tela juntamente com seu bloco de código correspondente, exemplos de uso e um botão prático para copiar o trecho completo de código.
+- **Histórico de Versões (Changelog):** A plataforma conta com um sistema de registro histórico. Sempre que modificações ocorrem em um componente, novas "versões" são cadastradas, gerando um controle de evolução contínua da biblioteca.
 
 ---
 
 ### 2. Funcionalidades previstas e não implementadas
 
-- **Colaboração em Tempo Real:** Permitir que múltiplos usuários editem o mesmo componente simultaneamente (tipo Google Docs).
-- **Upload e Galeria de Imagens de Componente:** Hospedagem nativa de imagens anexadas aos componentes documentados pelo Supabase Storage (atualmente focado 100% em código fonte).
-- **Exportação de Projetos:** Download do código de múltiplos componentes agrupados em formato .ZIP para integração offline.
+A proposta inicial previa uma plataforma altamente focada na colaboração textual entre equipes. Devido ao volume de requisições exigido e a desafios na priorização de escopo durante o desenvolvimento, as seguintes *features* foram planejadas para uma futura versão:
+
+- **Sistema de Comentários em cada Componente:** A ideia original contemplava que os desenvolvedores pudessem interagir tirando dúvidas ou sugerindo melhorias como notas (threads) diretamente na página do componente, o que não foi incorporado.
+- **Notificações para o Responsável:** Sendo dependente do sistema de comentários, os alertas diretos a *Desingers* quando novos desenvolvimentos solicitassem atenção não foram realizados na versão v1.0.
+- **Classificação de Categorias por Filtro:** Enquanto temos uma barra de busca funcionando perfeitamente (para procurar pelo título do elemento, como "Button"), um sistema mais robusto e cruzado para filtrar visualmente os componentes por ramificações e *tags* muito extensas acabou não sendo incluído nesta entrega final.
 
 ---
 
 ### 3. Outras funcionalidades implementadas
 
-- Controle Granular de Estado: Uso customizado da *Context API* para encapsular e rotear estados de sessão (AuthContext) por toda a aplicação.
-- Componentes Dinâmicos por Banco de Dados: Toda a estrutura da "DocsPage" é alimentada reativamente pelo backend conforme edições são feitas.
+Apesar de algumas baixas na parte social do sistema, compensamos o fluxo técnico com funcionalidades excedentes:
+
+- **Widgets Utilitários Embutidos:** A fim de dar mais valor prático à ferramenta de Design System, foram adicionadas *features* menores, como o "Conversor Hexadecimal/RGB" real e um sistema "Notas Rápidas" integrado ao cache local (`LocalStorage`) do navegador, voltado a pequenos ensaios pontuais da parte do programador que estiver copiando um componente.
+- **Micro-Editor de Cógido Embutido:** Como o administrador precisaria não apenas registrar o "nome" do texto, mas sim o seu comportamento em blocos de `HTML/JSX/Tailwind`, foi necessário embutir pela plataforma um editor com auto-detecção sintática (`react-simple-code-editor` e `prismjs`), gerando uma vivência mais realista na construção da própria documentação.
+- **Banco de Dados Relacional Nativo e RLS:** Migrou-se para a ferramenta tecnológica em nuvem (BaaS - Supabase) por trazer regras inerentes nas políticas de acesso (`Row Level Security` via SQL), controlando quem pode atualizar dados dentro das próprias tabelas da aplicação, sem exigir um middleware Backend robusto tradicional montado do zero.
 
 ---
 
 ### 4. Principais desafios e dificuldades
 
-Durante o desenvolvimento do BelierUI, o maior desafio conceitual foi integrar um **Editor de Código (em tempo real)** funcional na versão WEB, mantendo o estrito nível estético desejado. Houve grande dificuldade na sincronização de estado (`initialCode` do editor sumindo ou falhando na persistência) durante a comunicação com o banco de dados.
+Durante o processo de construção e desenvolvimento, três grandes gargalos proporcionaram expressivos percalços à finalização da plataforma:
 
-Do ponto de vista de DevOps e infraestrutura, a implementação das **Políticas de RLS (Row Level Security) do Supabase** gerou dificuldades, exigindo múltiplas configurações de permissão SQL para que apenas administradores autenticados conseguissem alterar ou inserir logs na tabela `changelog`. 
-Por fim, o ciclo de **Deploy contínuo no Vercel** trouxe problemas de concorrência com variáveis de ambiente (loops infinitos engatilhados por falhas de string no vite/build). A solução exigiu tratamentos sólidos de exceção (`try/catch`) no contexto de roteamento AuthContext da aplicação.
+1. A **Manipulação Textual Especial na View**: Integrar a visualização real do código dos usuários sem que a formatação local quebrasse todo o CSS externo e renderizar os blocos preenchidos de forma exata e síncrona representaram difíceis problemas lógicos com ferramentas e componentes nativos do React (o código apagava os atributos temporários sem envio à persistência).
+2. O **Configurador de Tabelas Relacionais na Nuvem**: Escrever o código SQL puro direto para gerar dependência condicional (onde criar um componente força a criação inicial do *log*) revelou uma série de dificuldades imprevistas de infraestrutura.
+3. Tratamento de **Deploy em Vercel**: A migração final entre a estrutura do modo "Desenvolvimento/Localhost" para uma ferramenta CI/CD online escancarou problemas cruciais com *Promises* pendentes. Especificamente o manuseio desprotegido de variáveis secretas (Chaves de API) entre Git e Hospedeiro travava as sessões de login assíncronas do React num `loop` de *loading*, demandando correções sensíveis à prova de exceção (`try/catch`).
 
 ---
 
 ### 5. Instruções para instalação e execução
 
-**Pré-requisitos:**
-- Node.js (v18+) instalado na máquina.
-- Gerenciador de pacotes npm.
+**Pré-requisitos e Ambientação Opcional:**
+- Utilização de Terminal Shell e Node.js (v18+) contendo gerenciador de pacotes npm.
+- Conta local no Github ou Client (CLI) instalado.
 
-**Passos para rodar localmente:**
-1. Clone o repositório do github:
+**Passos para Execução Manual (Local):**
+1. Realize o Clone do projeto via linha de comando ou baixe seus arquivos principais (*Download ZIP*).
    ```bash
    git clone https://github.com/Eduarda-Camilo/Belier-System.git
-   ```
-2. Acesse a pasta do projeto:
-   ```bash
    cd Belier-System
    ```
-3. Instale as dependências pelo terminal:
+2. Instale massivamente as pacotes inerentes na arquitetura do Framework via Node:
    ```bash
    npm install
    ```
-4. Crie um arquivo chamado `.env` na raiz do projeto contendo as chaves de conexão do banco de dados fornecidas pelo administrador (necessário as diretivas VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY).
-5. Inicie o servidor de desenvolvimento:
+3. Na pasta matriz da *stack* (`BelierUI`), configure o arquivo invisível nomeado `.env` portando os chaves de conexão providos (os *tokens* obrigatórios são: `VITE_SUPABASE_URL` assim como a chave pública em `VITE_SUPABASE_ANON_KEY`).
+4. Inicialize propriamente os servidores locais:
    ```bash
    npm run dev
    ```
-6. Acesse a aplicação no seu navegador: `http://localhost:5173`.
 
-> **Nota para Avaliação:** A aplicação já encontra-se implantada em produção e hospedada no Vercel. Caso prefira avaliar a versão online rodando em sua totalidade, acesse: [**https://belier-system.vercel.app**](https://belier-system.vercel.app).
+> **Aviso de Avaliação Prioritário:** O trabalho prático possui vínculo ativo (Continuous Deployment). É completamente possível julgar e avaliar o seu pleno desenvolvimento técnico pela plataforma externa já vinculada ao GitHub.
+> Basta acessar o endereço web de produção: **https://belier-system.vercel.app**
 
 ---
 
 ### 6. Referências
 
-- Documentação Oficial Vite: https://vite.dev/
-- Documentação React: https://react.dev/
-- Tailwind CSS: https://tailwindcss.com/
-- Supabase (Backend as a Service): https://supabase.com/docs
-- Vercel (Hospedagem): https://vercel.com/docs
+- Base Framework Vite: https://vite.dev/
+- Tratativas em React e Componentizações: https://react.dev/
+- Base de Estilizações (Tailwind CSS): https://tailwindcss.com/
+- Documentação e Regras PostgreSQL Cloud (Supabase): https://supabase.com/docs
+- Documentações Relativas à LocalStorage (Mozilla Web API): https://developer.mozilla.org/
+- Distribuição Nativa em Nuvem: https://vercel.com/docs
