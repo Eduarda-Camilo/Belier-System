@@ -79,10 +79,4 @@ Durante o processo de construção e desenvolvimento, três grandes gargalos pro
 ---
 
 ### 6. Referências
-
-- Base Framework Vite: https://vite.dev/
-- Tratativas em React e Componentizações: https://react.dev/
-- Base de Estilizações (Tailwind CSS): https://tailwindcss.com/
-- Documentação e Regras PostgreSQL Cloud (Supabase): https://supabase.com/docs
-- Documentações Relativas à LocalStorage (Mozilla Web API): https://developer.mozilla.org/
-- Distribuição Nativa em Nuvem: https://vercel.com/docs
+---
