@@ -9,7 +9,6 @@ import { useAuth } from '../context/AuthContext';
 export function EditarComponentePage({ onNavigate, activePage, isPublic, componentId }) {
     const { user } = useAuth();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
 
     // Form state
     const [name, setName] = useState('');
@@ -25,7 +24,6 @@ export function EditarComponentePage({ onNavigate, activePage, isPublic, compone
     }, [componentId]);
 
     const fetchComponent = async () => {
-        setIsLoading(true);
         try {
             const { data, error } = await supabase.from('components').select('*').eq('id', componentId).single();
             if (error) throw error;

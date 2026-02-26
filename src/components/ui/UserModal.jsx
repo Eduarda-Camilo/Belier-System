@@ -13,6 +13,7 @@ export function UserModal({ isOpen, onClose, mode = 'create', userData = null, o
 
     useEffect(() => {
         if (isOpen) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setName(userData?.name || '');
             setAccess(userData?.access === 'Administrador' ? 'admin' : userData?.access === 'Desenvolvedor' ? 'dev' : '');
             setEmail(userData?.email || '');

@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Hash, Braces, Component, ArrowRight } from 'lucide-react';
+import { Search, X, Hash, Braces, Component, ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '../../supabaseClient';
 
 export function SearchModal({ isOpen, onClose, onNavigate }) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [results, setResults] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const inputRef = useRef(null);
     const modalRef = useRef(null);
 
@@ -40,26 +43,46 @@ export function SearchModal({ isOpen, onClose, onNavigate }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen, onClose]);
 
+
+    // Fetch data when query changes
+    useEffect(() => {
+        const fetchResults = async () => {
+            if (!searchQuery.trim()) {
+                setResults([]);
+                return;
+            }
+            setIsLoading(true);
+            try {
+                // Fetch from Supabase
+                const { data, error } = await supabase
+                    .from('componentes')
+                    .select('id, name')
+                    .ilike('name', `%${searchQuery}%`)
+                    .limit(10);
+
+                if (error) throw error;
+
+                // Format results
+                const formatted = (data || []).map(comp => ({
+                    id: comp.id,
+                    title: comp.name,
+                    icon: Component,
+                    route: `componente/${comp.id}`
+                }));
+                setResults(formatted);
+            } catch (error) {
+                console.error("Error searching components:", error);
+                setResults([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        const timeoutId = setTimeout(fetchResults, 300); // debounce
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
+
     if (!isOpen) return null;
-
-    // Mock recent searches for empty state (if we wanted to show them, but standard HeroUI shows "No recent searches" when empty)
-    // Mock results for when typing
-    const mockResults = [
-        { id: '1', parent: 'Breadcrumbs', title: 'BreadcrumbItem Events', icon: Hash, type: 'hash', route: 'docs' },
-        { id: '2', parent: 'Breadcrumbs', title: 'Types', icon: Hash, type: 'hash', route: 'docs' },
-        { id: '3', parent: 'Button', title: 'Installation', icon: Hash, type: 'hash', route: 'docs' },
-        { id: '4', parent: 'Button', title: 'Import', icon: Hash, type: 'hash', route: 'docs' },
-        { id: '5', parent: 'Button', title: 'Usage', icon: Hash, type: 'hash', route: 'docs' },
-        { id: '6', type: 'component', title: 'Button', icon: Braces, route: 'componente/button-id' }
-    ];
-
-    // Simple filter logic
-    const filteredResults = searchQuery.trim()
-        ? mockResults.filter(item =>
-            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (item.parent && item.parent.toLowerCase().includes(searchQuery.toLowerCase()))
-        )
-        : [];
 
     const handleClear = () => {
         setSearchQuery('');
@@ -117,8 +140,13 @@ export function SearchModal({ isOpen, onClose, onNavigate }) {
                     ) : (
                         /* Results */
                         <div className="p-2 space-y-1">
-                            {filteredResults.length > 0 ? (
-                                filteredResults.map((result, index) => {
+                            {isLoading ? (
+                                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                                    <Loader2 className="w-6 h-6 text-blue-500 animate-spin mb-4" />
+                                    <p className="text-[15px] font-medium text-slate-400">Buscando...</p>
+                                </div>
+                            ) : results.length > 0 ? (
+                                results.map((result, index) => {
                                     const ResultIcon = result.icon;
                                     // Make the second item (index 1) appear "selected/active" purely for visual demonstration matching the screenshot,
                                     // OR handle hover state. In a real app we'd track keyboard focus index. We'll rely on hover.
