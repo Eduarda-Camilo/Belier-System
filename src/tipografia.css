@@ -1,0 +1,125 @@
+@theme {
+    --font-open-sans: "Open Sans", sans-serif;
+}
+
+@layer utilities {
+    .font-headingheading-4xlregular {
+        @apply font-open-sans text-6xl font-normal leading-tight;
+    }
+
+    .font-headingheading-4xlmedium {
+        @apply font-open-sans text-6xl font-semibold leading-tight;
+    }
+
+    .font-headingheading-4xlbold {
+        @apply font-open-sans text-6xl font-bold leading-tight;
+    }
+
+    .font-headingheading-xxxlregular {
+        @apply font-open-sans text-5xl font-normal leading-snug;
+    }
+
+    .font-headingheading-xxxlmedium {
+        @apply font-open-sans text-5xl font-semibold leading-snug;
+    }
+
+    .font-headingheading-xxxlbold {
+        @apply font-open-sans text-5xl font-bold leading-snug;
+    }
+
+    .font-headingheading-xxlregular {
+        @apply font-open-sans text-4xl font-normal leading-snug;
+    }
+
+    .font-headingheading-xxlmedium {
+        @apply font-open-sans text-4xl font-semibold leading-snug;
+    }
+
+    .font-headingheading-xxlbold {
+        @apply font-open-sans text-4xl font-bold leading-snug;
+    }
+
+    .font-titletitle-xlregular {
+        @apply font-open-sans text-2xl font-normal leading-8;
+    }
+
+    .font-titletitle-xlmedium {
+        @apply font-open-sans text-2xl font-semibold leading-8;
+    }
+
+    .font-titletitle-xlbold {
+        @apply font-open-sans text-2xl font-bold leading-8;
+    }
+
+    .font-titletitle-lregular {
+        @apply font-open-sans text-xl font-normal leading-7;
+    }
+
+    .font-titletitle-lmedium {
+        @apply font-open-sans text-xl font-semibold leading-7;
+    }
+
+    .font-titletitle-lbold {
+        @apply font-open-sans text-xl font-bold leading-7;
+    }
+
+    .font-bodybody-mregular {
+        @apply font-open-sans text-lg font-normal leading-7;
+    }
+
+    .font-bodybody-msemibold {
+        @apply font-open-sans text-lg font-semibold leading-7;
+    }
+
+    .font-bodybody-mbold {
+        @apply font-open-sans text-lg font-bold leading-7;
+    }
+
+    .font-bodybody-sregular {
+        @apply font-open-sans text-base font-normal leading-6;
+    }
+
+    .font-bodybody-ssemibold {
+        @apply font-open-sans text-base font-semibold leading-6;
+    }
+
+    .font-bodybody-sbold {
+        @apply font-open-sans text-base font-bold leading-6;
+    }
+
+    .font-bodybody-xsregular {
+        @apply font-open-sans text-sm font-normal leading-5;
+    }
+
+    .font-bodybody-xssemibold {
+        @apply font-open-sans text-sm font-semibold leading-5;
+    }
+
+    .font-bodybody-xsbold {
+        @apply font-open-sans text-sm font-bold leading-5;
+    }
+
+    .font-bodybody-xxsregular {
+        @apply font-open-sans text-xs font-normal leading-4;
+    }
+
+    .font-bodybody-xxssemibold {
+        @apply font-open-sans text-xs font-semibold leading-4;
+    }
+
+    .font-bodybody-xxsbold {
+        @apply font-open-sans text-xs font-bold leading-4;
+    }
+
+    .font-captioncaption-xxxsregular {
+        @apply font-open-sans text-xs font-normal leading-3;
+    }
+
+    .font-captioncaption-xxxssemibold {
+        @apply font-open-sans text-xs font-semibold leading-3;
+    }
+
+    .font-captioncaption-xxxsbold {
+        @apply font-open-sans text-xs font-bold leading-3;
+    }
+}
